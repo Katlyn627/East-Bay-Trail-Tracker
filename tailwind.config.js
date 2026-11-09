@@ -7,11 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#10b981',
-        secondary: '#059669',
-        accent: '#f59e0b',
-        dark: '#1f2937',
-        light: '#f9fafb',
+        primary: '#2D5A27',
+        secondary: '#1B4332',
+        accent: '#FFB703',
+        forest: '#2D5A27',
+        deepforest: '#1B4332',
+        earth: '#5C4033',
+        soil: '#8B5A2B',
+        mist: '#F4F6F0',
+        dark: '#243127',
+        light: '#F4F6F0',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

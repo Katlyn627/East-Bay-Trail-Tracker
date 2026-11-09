@@ -82,24 +82,25 @@ const Dashboard = () => {
   const badges = userProfile?.badgesEarned || [];
 
   return (
-    <div className="page-container min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">Dashboard</h1>
+    <div className="page-container min-h-screen bg-transparent">
+      <div className="sticky top-0 z-10 mb-4 rounded-2xl border border-emerald-100 bg-white/80 shadow-sm backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-3 sm:px-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">Forest dashboard</p>
+            <h1 className="text-xl font-bold text-[#1B4332] sm:text-2xl">East Bay Trail Tracker</h1>
+          </div>
           <button
             onClick={handleLogOut}
-            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
             Logout
           </button>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Profile Card */}
-        <div className="card mb-6 rounded-2xl p-4 sm:p-5">
+      <div className="mx-auto max-w-6xl px-0 sm:px-2">
+        <div className="card mb-6 rounded-2xl border border-emerald-100 bg-gradient-to-br from-[#f5f8ef] to-white p-4 sm:p-5">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex-1">
               {isEditing ? (
@@ -147,7 +148,7 @@ const Dashboard = () => {
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex h-11 items-center gap-2 rounded-lg px-3 text-primary transition-colors hover:bg-blue-50"
+                className="flex h-11 items-center gap-2 rounded-xl border border-[#2D5A27]/20 bg-[#edf7ec] px-3 text-[#1B4332] transition-colors hover:bg-[#e4f4e3]"
               >
                 <Edit2 size={18} />
                 <span className="text-sm font-medium">Edit</span>
@@ -174,26 +175,30 @@ const Dashboard = () => {
         <div className="mb-8 grid gap-4 sm:grid-cols-2">
           <button
             onClick={() => setIsIssueModalOpen(true)}
-            className="card mobile-card cursor-pointer transition-shadow hover:shadow-lg"
+            className="card mobile-card cursor-pointer border-[#f7d884]/70 bg-gradient-to-br from-[#fffaf0] to-white transition-shadow hover:shadow-lg"
           >
             <div className="flex items-center gap-3">
-              <AlertCircle size={28} className="text-accent" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFB703]/18 text-[#8B5A2B]">
+                <AlertCircle size={28} className="text-[#8B5A2B]" />
+              </div>
               <div className="text-left">
-                <h3 className="text-base font-bold text-dark sm:text-lg">Report Issue</h3>
-                <p className="text-xs text-gray-600 sm:text-sm">Flag maintenance problems</p>
+                <h3 className="text-base font-bold text-[#1B4332] sm:text-lg">Report Issue</h3>
+                <p className="text-xs text-[#4d6356] sm:text-sm">Flag maintenance problems</p>
               </div>
             </div>
           </button>
 
           <button
             onClick={() => setIsCleanupModalOpen(true)}
-            className="card mobile-card cursor-pointer transition-shadow hover:shadow-lg"
+            className="card mobile-card cursor-pointer border-[#dfeecf] bg-gradient-to-br from-[#f2f9f1] to-white transition-shadow hover:shadow-lg"
           >
             <div className="flex items-center gap-3">
-              <Trash2 size={28} className="text-secondary" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2D5A27]/10 text-[#2D5A27]">
+                <Trash2 size={28} className="text-[#2D5A27]" />
+              </div>
               <div className="text-left">
-                <h3 className="text-base font-bold text-dark sm:text-lg">Log Cleanup</h3>
-                <p className="text-xs text-gray-600 sm:text-sm">Record your trail work</p>
+                <h3 className="text-base font-bold text-[#1B4332] sm:text-lg">Log Cleanup</h3>
+                <p className="text-xs text-[#4d6356] sm:text-sm">Record your trail work</p>
               </div>
             </div>
           </button>
