@@ -21,30 +21,36 @@ const getTreeStage = (tree) => {
 };
 
 function VirtualForest() {
-  const { userProfile, updateUserProfile } = useAuth();
+  const { userProfile, updateUserProfile, loading } = useAuth();
   const [selectedTree, setSelectedTree] = useState(null);
 
-  const treeCount = userProfile?.treesPlanted || 0;
-  const saplingsAvailable = userProfile?.saplingsAvailable || 0;
-  const treeHistory = Array.isArray(userProfile?.treeHistory) ? userProfile.treeHistory : [];
+  const treeCount = Number(userProfile?.treesPlanted) || 0;
+  const saplingsAvailable = Number(userProfile?.saplingsAvailable) || 0;
+  const treeHistory = Array.isArray(userProfile?.treeHistory) ? userProfile.treeHistory.filter(Boolean) : [];
 
   const plotCells = useMemo(() => {
-    if (treeHistory.length) {
-      return treeHistory.slice(0, PLOT_SIZE);
-    }
-
-    return Array.from({ length: Math.max(treeCount, 0) }, (_, index) => ({
+    const sourceTrees = treeHistory.length ? treeHistory : Array.from({ length: Math.max(treeCount, 0) }, (_, index) => ({
       id: `fallback-${index}`,
       title: 'Trail recovery sapling',
       plantedAt: new Date(Date.now() - index * 86400000).toISOString(),
       trashBagsCollected: 2 + index,
       milesLogged: 1.2 + index * 0.8,
       pointsBalance: 50 + index * 25,
-    })).slice(0, PLOT_SIZE);
+    }));
+
+    return sourceTrees.slice(0, PLOT_SIZE);
   }, [treeHistory, treeCount]);
 
   const handleGrowTree = async () => {
-    if (saplingsAvailable <= 0) return;
+    if (!updateUserProfile || typeof updateUserProfile !== 'function') {
+      return;
+    }
+
+    const currentSaplings = Math.max(0, Number(userProfile?.saplingsAvailable) || 0);
+    if (currentSaplings <= 0) return;
+
+    const currentTrees = Math.max(0, Number(userProfile?.treesPlanted) || 0);
+    const currentHistory = Array.isArray(userProfile?.treeHistory) ? userProfile.treeHistory.filter(Boolean) : [];
 
     const newTree = {
       id: `new-tree-${Date.now()}`,
@@ -57,12 +63,32 @@ function VirtualForest() {
       stage: 'seed',
     };
 
-    await updateUserProfile({
-      saplingsAvailable: saplingsAvailable - 1,
-      treesPlanted: treeCount + 1,
-      treeHistory: [...treeHistory, newTree],
-    });
+    try {
+      await updateUserProfile({
+        saplingsAvailable: currentSaplings - 1,
+        treesPlanted: currentTrees + 1,
+        treeHistory: [...currentHistory, newTree],
+      });
+    } catch (error) {
+      console.error('Failed to plant tree:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="card mb-8 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 text-sm text-slate-600">
+        Loading your forest...
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="card mb-8 rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 p-5 text-sm text-emerald-700">
+        Sign in to begin growing your virtual forest.
+      </div>
+    );
+  }
 
   return (
     <div className="card mb-8 overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4 sm:p-5">
