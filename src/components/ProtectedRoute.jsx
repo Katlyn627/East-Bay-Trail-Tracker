@@ -2,9 +2,10 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader } from 'lucide-react';
+import ProfileSetupWizard from './ProfileSetupWizard';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, needsProfileSetup } = useAuth();
 
   if (loading) {
     return (
@@ -18,7 +19,12 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return (
+    <>
+      {needsProfileSetup && <ProfileSetupWizard />}
+      {children}
+    </>
+  );
 };
 
 export default ProtectedRoute;

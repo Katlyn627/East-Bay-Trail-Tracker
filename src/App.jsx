@@ -7,6 +7,7 @@ import LogIn from './components/LogIn';
 import SignUp from './components/SignUp';
 import Dashboard from './pages/Dashboard';
 import TrailReportForm from './components/TrailReportForm';
+import StravaAuthCallback from './components/StravaAuthCallback';
 import './styles/index.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LogIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/auth/strava/callback" element={<StravaAuthCallback />} />
 
           {/* Protected routes */}
           <Route

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, storage } from '../services/firebase';
+import { db } from '../services/firebase';
+import uploadTrailReportImage from '../utils/uploadTrailReportImage';
 import {
   collection,
   addDoc,
@@ -9,7 +10,6 @@ import {
   updateDoc,
   increment,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   AlertCircle,
   MapPin,
@@ -118,15 +118,8 @@ export default function TrailReportForm() {
     try {
       // Upload photos to Firebase Storage
       const photoURLs = [];
-      for (let i = 0; i < photoFiles.length; i++) {
-        const file = photoFiles[i];
-        const timestamp = Date.now();
-        const storageRef = ref(
-          storage,
-          `trail-reports/${user.uid}/${timestamp}-${i}-${file.name}`
-        );
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
+      for (const file of photoFiles) {
+        const downloadURL = await uploadTrailReportImage(file, user.uid);
         photoURLs.push(downloadURL);
       }
 

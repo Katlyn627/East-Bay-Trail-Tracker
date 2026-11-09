@@ -99,14 +99,20 @@ const Home = () => {
         <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-8 mb-16">
           <h3 className="text-2xl font-bold text-dark mb-4">Connect Strava</h3>
           <p className="text-gray-600 mb-4">
-            Seamlessly integrate your Strava activities. Pin your recent runs and hikes, 
+            Seamlessly integrate your Strava activities. Pin your recent runs and hikes,
             then attach trail cleanup reports directly to your recorded workouts.
           </p>
-          <div className="flex items-center justify-center gap-2 text-gray-500">
-            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+          <div className="flex flex-col items-center justify-center gap-3 text-gray-700 sm:flex-row">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 font-bold text-white">
               Ⓢ
             </div>
-            <p>Coming soon for premium members</p>
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600"
+            >
+              Start syncing
+            </button>
           </div>
         </div>
       </div>
