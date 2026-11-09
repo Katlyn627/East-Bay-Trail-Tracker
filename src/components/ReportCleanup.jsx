@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Camera, ImagePlus, Loader2, MapPin, Trash2, Trees } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../services/firebase';
-import { fetchRecentStravaActivities } from '../services/strava';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
 
 const ISSUE_TYPES = [
@@ -23,28 +22,6 @@ function ReportCleanup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [activities, setActivities] = useState([]);
-  const [selectedStravaId, setSelectedStravaId] = useState(null);
-  const [loadingActivities, setLoadingActivities] = useState(false);
-
-  const stravaToken = useMemo(() => userProfile?.strava?.accessToken || '', [userProfile]);
-
-  useEffect(() => {
-    const loadActivities = async () => {
-      if (!stravaToken) return;
-      setLoadingActivities(true);
-      try {
-        const response = await fetchRecentStravaActivities(stravaToken);
-        setActivities(response.slice(0, 5));
-      } catch (err) {
-        console.warn('Unable to load recent Strava activities:', err);
-      } finally {
-        setLoadingActivities(false);
-      }
-    };
-
-    loadActivities();
-  }, [stravaToken]);
 
   const handlePhotoSelection = (event) => {
     const file = event.target.files?.[0];
@@ -88,7 +65,6 @@ function ReportCleanup() {
         bagCount: Number(bagCount || 0),
         notes: notes.trim(),
         photoUrl,
-        stravaActivityId: selectedStravaId || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         status: 'submitted',
@@ -96,10 +72,14 @@ function ReportCleanup() {
 
       await addDoc(collection(db, 'reports'), reportDoc);
 
+      const currentSaplings = Number(userProfile?.saplings ?? userProfile?.saplingsAvailable ?? userProfile?.seeds ?? 0) || 0;
+
       await updateDoc(doc(db, 'users', user.uid), {
         pointsBalance: increment(pointsEarned),
         trashBagsCollected: increment(Number(bagCount || 0)),
+        saplings: increment(saplingsAwarded),
         saplingsAvailable: increment(saplingsAwarded),
+        seeds: increment(saplingsAwarded),
         updatedAt: serverTimestamp(),
       });
 
@@ -107,13 +87,17 @@ function ReportCleanup() {
         ...userProfile,
         pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
         trashBagsCollected: (userProfile?.trashBagsCollected || 0) + Number(bagCount || 0),
-        saplingsAvailable: (userProfile?.saplingsAvailable || 0) + saplingsAwarded,
+        saplings: currentSaplings + saplingsAwarded,
+        saplingsAvailable: currentSaplings + saplingsAwarded,
+        seeds: currentSaplings + saplingsAwarded,
       };
 
       await updateUserProfile({
         pointsBalance: nextProfile.pointsBalance,
         trashBagsCollected: nextProfile.trashBagsCollected,
+        saplings: nextProfile.saplings,
         saplingsAvailable: nextProfile.saplingsAvailable,
+        seeds: nextProfile.seeds,
       });
 
       setSuccess(`Cleanup submitted! You earned ${pointsEarned} points and ${saplingsAwarded} sapling${saplingsAwarded > 1 ? 's' : ''}.`);
@@ -122,7 +106,6 @@ function ReportCleanup() {
       setNotes('');
       setSelectedPhoto(null);
       setPhotoFile(null);
-      setSelectedStravaId(null);
       if (document.getElementById('cleanup-photo-input')) {
         document.getElementById('cleanup-photo-input').value = '';
       }
@@ -223,47 +206,6 @@ function ReportCleanup() {
             </div>
           )}
         </div>
-
-        {stravaToken && (
-          <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-orange-700">
-              <Trash2 size={16} />
-              Attach a recent Strava activity
-            </div>
-
-            {loadingActivities ? (
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <Loader2 size={16} className="animate-spin" />
-                Loading recent activities...
-              </div>
-            ) : activities.length > 0 ? (
-              <div className="space-y-2">
-                {activities.map((activity) => (
-                  <button
-                    key={activity.id}
-                    type="button"
-                    onClick={() => setSelectedStravaId(activity.id)}
-                    className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left transition ${
-                      selectedStravaId === activity.id
-                        ? 'border-orange-400 bg-white text-orange-700'
-                        : 'border-orange-100 bg-white text-slate-700 hover:border-orange-200'
-                    }`}
-                  >
-                    <div>
-                      <p className="font-medium">{activity.name}</p>
-                      <p className="text-xs text-slate-500">
-                        {new Date(activity.start_date).toLocaleDateString()} • {activity.type}
-                      </p>
-                    </div>
-                    {selectedStravaId === activity.id && <span className="text-xs font-semibold">Selected</span>}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-600">No recent Strava activities were found for this account.</p>
-            )}
-          </div>
-        )}
 
         <button
           type="submit"

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { doc, increment, serverTimestamp, updateDoc, arrayUnion } from 'firebase/firestore';
 import { LogOut, Edit2, Loader, TreePine, Trash2, AlertCircle, Award } from 'lucide-react';
-import StravaConnectionCard from '../components/StravaConnectionCard';
 import VirtualForest from '../components/VirtualForest';
 import ReportCleanupModal from '../components/ReportCleanupModal';
 import ReportIssueModal from '../components/ReportIssueModal';
+import { db } from '../services/firebase';
 
 const Dashboard = () => {
   const { user, userProfile, loading, logOut, updateUserProfile } = useAuth();
@@ -55,6 +56,46 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const userStats = {
+    saplings: userProfile?.saplings ?? userProfile?.saplingsAvailable ?? userProfile?.seeds ?? 0,
+    saplingsAvailable: userProfile?.saplingsAvailable ?? userProfile?.saplings ?? userProfile?.seeds ?? 0,
+    seeds: userProfile?.seeds ?? userProfile?.saplings ?? userProfile?.saplingsAvailable ?? 0,
+    plantedTrees: userProfile?.plantedTrees ?? userProfile?.treeHistory ?? [],
+    treeHistory: userProfile?.treeHistory ?? [],
+  };
+
+  const handlePlantTree = async () => {
+    if (!user?.uid) return;
+
+    const currentSaplings = Number(userProfile?.saplings ?? userProfile?.saplingsAvailable ?? userProfile?.seeds ?? 0) || 0;
+    if (currentSaplings <= 0) return;
+
+    const treeId = `tree-${user.uid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const newTree = {
+      id: treeId,
+      timestamp: new Date().toISOString(),
+      cleanupId: `manual-${Date.now()}`,
+      stage: 'mature evergreen',
+    };
+
+    const nextPlantedTrees = [...(Array.isArray(userProfile?.plantedTrees) ? userProfile.plantedTrees : []), newTree];
+
+    await updateDoc(doc(db, 'users', user.uid), {
+      saplings: increment(-1),
+      saplingsAvailable: increment(-1),
+      seeds: increment(-1),
+      plantedTrees: arrayUnion(newTree),
+      updatedAt: serverTimestamp(),
+    });
+
+    await updateUserProfile({
+      saplings: currentSaplings - 1,
+      saplingsAvailable: currentSaplings - 1,
+      seeds: currentSaplings - 1,
+      plantedTrees: nextPlantedTrees,
+    });
+  };
 
   const stats = [
     {
@@ -157,8 +198,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <StravaConnectionCard />
-        <VirtualForest />
+        <VirtualForest userStats={userStats} onPlantTree={handlePlantTree} />
 
         {/* Stats Grid */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

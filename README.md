@@ -1,14 +1,13 @@
 # East Bay Trail Tracker
 
-East Bay Trail Tracker is a community-minded trail maintenance and outdoor activity app designed to help hikers, runners, and volunteers log cleanup efforts, report trail issues, connect fitness data, and grow a virtual forest as a reward for positive environmental impact.
+East Bay Trail Tracker is a community-minded trail maintenance and outdoor activity app designed to help hikers and volunteers log cleanup efforts, report trail issues, and grow a virtual forest as a reward for positive environmental impact.
 
-The application combines Firebase authentication, Firestore data persistence, Firebase Storage for photo uploads, and Strava OAuth for activity linking. It is built with React, Vite, and Tailwind CSS, with a mobile-first UX tailored to trail reporting and on-the-go cleanup tracking.
+The application combines Firebase authentication, Firestore data persistence, and Firebase Storage for photo uploads. It is built with React, Vite, and Tailwind CSS, with a mobile-first UX tailored to trail reporting and on-the-go cleanup tracking.
 
 ## Highlights
 
 - Firebase-powered authentication and onboarding flow
 - User profile creation and trail preference setup
-- Strava OAuth connection and recent activity linking
 - Trail cleanup reporting with issue type selection and optional photo upload
 - Firebase Storage uploads for maintenance and cleanup images
 - Gamified virtual forest and achievement system
@@ -21,22 +20,19 @@ The application combines Firebase authentication, Firestore data persistence, Fi
 - Vite
 - Tailwind CSS
 - Firebase Auth, Firestore, Storage
-- Strava OAuth and activity API
-- Express (for local token-exchange debugging and local server support)
+- Express (for local backend support when needed)
 
 ## Project Structure
 
 ```text
 East-Bay-Trail-Tracker/
-├─ api/
-│  └─ strava-token.js               # Serverless Strava token exchange handler
 ├─ public/                           # Static public assets
 ├─ src/
 │  ├─ components/                    # UI modules and reusable interactive features
 │  ├─ context/                       # Auth context and app-wide state
 │  ├─ firebase.js                    # Firebase initialization and exports
 │  ├─ pages/                         # App pages and dashboards
-│  ├─ services/                      # Firebase/Strava service integrations
+│  ├─ services/                      # Firebase-related service integrations
 │  ├─ styles/                        # Global styling and utility layers
 │  ├─ utils/                         # Helper utilities such as image upload logic
 │  ├─ App.jsx                        # App routing and layout
@@ -48,7 +44,7 @@ East-Bay-Trail-Tracker/
 ├─ index.html                        # HTML shell for Vite
 ├─ LICENSE                           # License information
 ├─ package.json                      # Scripts and dependency metadata
-├─ server.js                         # Local Express backend for backend token exchange testing
+├─ server.js                         # Local Express backend for app support
 ├─ tailwind.config.js                # Tailwind configuration
 ├─ tsconfig.json                     # TypeScript config (if used by tooling)
 ├─ README.md                         # Project documentation
@@ -72,13 +68,6 @@ East-Bay-Trail-Tracker/
 - Save report objects to a `reports` collection in Firestore
 - Reward users with points and saplings for participation
 
-### Strava integration
-
-- OAuth redirect using Strava client credentials
-- Token exchange using the official Strava token endpoint
-- Storage of access and refresh tokens in the user profile
-- Recent activities can be linked to cleanup reports
-
 ### Gamification
 
 - Points and saplings accrue for cleanup work
@@ -100,7 +89,7 @@ npm install
 cp .env.example .env
 ```
 
-4. Fill in your Firebase and Strava credentials in `.env`.
+4. Fill in your Firebase credentials in `.env`.
 
 5. Start the frontend:
 
@@ -129,27 +118,6 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 ```
 
-### Strava
-
-```env
-VITE_STRAVA_CLIENT_ID=your_strava_client_id
-VITE_STRAVA_CLIENT_SECRET=your_strava_client_secret
-VITE_STRAVA_REDIRECT_URI=http://localhost:5174/auth/strava-callback
-```
-
-### Optional server-side token exchange
-
-```env
-STRAVA_CLIENT_ID=your_strava_client_id
-STRAVA_CLIENT_SECRET=your_strava_client_secret
-VITE_STRAVA_REDIRECT_URI=http://localhost:5174/auth/strava-callback
-PORT=3001
-```
-
-## Strava OAuth Notes
-
-The app currently supports a direct in-browser token exchange flow against Strava’s public OAuth endpoint, which removes the need for a local backend during client-side testing. The project also includes a backend token exchange route in `server.js` and `api/strava-token.js` for debugging and server-side compatibility.
-
 ## Firebase and Firestore Setup
 
 The app expects a Firebase project with:
@@ -165,7 +133,7 @@ User data is stored in `users/{uid}` and reports are stored in a `reports` colle
 
 ```bash
 npm run dev          # start the Vite frontend
-npm run server       # start the local Express Strava token server
+npm run server       # start the local Express backend
 npm run build        # create a production build
 npm run preview      # preview the production build locally
 ```
@@ -173,8 +141,6 @@ npm run preview      # preview the production build locally
 ## Security Notes
 
 - Keep all real credentials in a local `.env` file and do not commit secret values.
-- Do not expose production Strava secrets in browser code for production deployment.
-- Use a secure serverless or backend endpoint in production if you want to keep client secrets out of the frontend bundle.
 
 ## License
 

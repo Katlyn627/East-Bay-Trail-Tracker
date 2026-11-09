@@ -140,16 +140,19 @@ function ReportCleanupModal({ isOpen, onClose }) {
         milesLogged: miles,
         notes: notes.trim(),
         photoUrls: uploadedPhotoUrls,
-        stravaActivityId: null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         status: 'submitted',
       });
 
+      const currentSaplings = Number(userProfile?.saplings ?? userProfile?.saplingsAvailable ?? userProfile?.seeds ?? 0) || 0;
+
       await updateDoc(doc(db, 'users', user.uid), {
         pointsBalance: increment(pointsEarned),
         trashBagsCollected: increment(bagTotal),
+        saplings: increment(saplingsAwarded),
         saplingsAvailable: increment(saplingsAwarded),
+        seeds: increment(saplingsAwarded),
         updatedAt: serverTimestamp(),
       });
 
@@ -167,10 +170,14 @@ function ReportCleanupModal({ isOpen, onClose }) {
         })),
       ];
 
+      const nextSaplings = currentSaplings + saplingsAwarded;
+
       await updateUserProfile({
         pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
         trashBagsCollected: (userProfile?.trashBagsCollected || 0) + bagTotal,
-        saplingsAvailable: (userProfile?.saplingsAvailable || 0) + saplingsAwarded,
+        saplings: nextSaplings,
+        saplingsAvailable: nextSaplings,
+        seeds: nextSaplings,
         treesPlanted: (userProfile?.treesPlanted || 0) + saplingsAwarded,
         treeHistory: nextTreeHistory,
       });

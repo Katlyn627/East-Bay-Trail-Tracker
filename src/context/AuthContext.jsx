@@ -21,21 +21,14 @@ const createDefaultProfile = (currentUser, overrides = {}) => ({
   location: overrides.location || '',
   bio: overrides.bio || '',
   preferredUnits: overrides.preferredUnits || 'miles',
-  strava: {
-    connected: false,
-    accessToken: '',
-    refreshToken: '',
-    athleteId: null,
-    expiresAt: null,
-    connectedAt: null,
-    lastSyncedAt: null,
-    ...(overrides.strava || {}),
-  },
   milesLogged: 0,
   trashBagsCollected: 0,
   issuesReported: 0,
   pointsBalance: 0,
+  saplings: 0,
   saplingsAvailable: 0,
+  seeds: 0,
+  plantedTrees: [],
   treesPlanted: 0,
   treeHistory: [],
   badgesEarned: [],
@@ -106,10 +99,6 @@ export const AuthProvider = ({ children }) => {
           ...createDefaultProfile(currentUser, existingDoc.data()),
           ...existingDoc.data(),
           ...profileOverrides,
-          strava: {
-            ...(existingDoc.data()?.strava || {}),
-            ...(profileOverrides.strava || {}),
-          },
           updatedAt: new Date(),
         }
       : createDefaultProfile(currentUser, profileOverrides);
@@ -185,14 +174,15 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const userDocRef = doc(db, 'users', user.uid);
+      const nextSaplings = updates?.saplings ?? updates?.saplingsAvailable ?? (userProfile?.saplings ?? userProfile?.saplingsAvailable ?? userProfile?.seeds ?? 0);
+      const nextSaplingsAvailable = updates?.saplingsAvailable ?? updates?.saplings ?? (userProfile?.saplingsAvailable ?? userProfile?.saplings ?? userProfile?.seeds ?? 0);
       const nextProfile = {
         ...(userProfile || createDefaultProfile(user)),
         ...updates,
-        strava: {
-          ...((userProfile && userProfile.strava) || {}),
-          ...((updates && updates.strava) || {}),
-        },
-        saplingsAvailable: updates?.saplingsAvailable ?? (userProfile?.saplingsAvailable ?? 0),
+        saplings: nextSaplings,
+        saplingsAvailable: nextSaplingsAvailable,
+        seeds: updates?.seeds ?? nextSaplings,
+        plantedTrees: updates?.plantedTrees ?? (userProfile?.plantedTrees ?? userProfile?.treeHistory ?? []),
         treesPlanted: updates?.treesPlanted ?? (userProfile?.treesPlanted ?? 0),
         treeHistory: updates?.treeHistory ?? (userProfile?.treeHistory ?? []),
         updatedAt: new Date(),
