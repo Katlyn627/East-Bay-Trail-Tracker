@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Edit2, Loader, TreePine, Trash2, AlertCircle, Award } from 'lucide-react';
 import StravaConnectionCard from '../components/StravaConnectionCard';
+import VirtualForest from '../components/VirtualForest';
 
 const Dashboard = () => {
   const { user, userProfile, loading, logOut, updateUserProfile } = useAuth();
@@ -152,6 +153,7 @@ const Dashboard = () => {
         </div>
 
         <StravaConnectionCard />
+        <VirtualForest />
 
         {/* Stats Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

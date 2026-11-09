@@ -35,6 +35,8 @@ const createDefaultProfile = (currentUser, overrides = {}) => ({
   trashBagsCollected: 0,
   issuesReported: 0,
   pointsBalance: 0,
+  saplingsAvailable: 0,
+  treesPlanted: 0,
   badgesEarned: [],
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -189,6 +191,8 @@ export const AuthProvider = ({ children }) => {
           ...((userProfile && userProfile.strava) || {}),
           ...((updates && updates.strava) || {}),
         },
+        saplingsAvailable: updates?.saplingsAvailable ?? (userProfile?.saplingsAvailable ?? 0),
+        treesPlanted: updates?.treesPlanted ?? (userProfile?.treesPlanted ?? 0),
         updatedAt: new Date(),
       };
 

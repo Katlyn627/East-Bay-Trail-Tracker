@@ -1,9 +1,14 @@
 export const STRAVA_SCOPES = 'activity:read_all';
 
-export function buildStravaAuthUrl() {
+export function getStravaRedirectUri() {
+  return (
+    import.meta.env.VITE_STRAVA_REDIRECT_URI || `${window.location.origin}/auth/strava-callback`
+  );
+}
+
+export function buildStravaAuthUrl(userId = '') {
   const clientId = import.meta.env.VITE_STRAVA_CLIENT_ID;
-  const redirectUri =
-    import.meta.env.VITE_STRAVA_REDIRECT_URI || `${window.location.origin}/auth/strava/callback`;
+  const redirectUri = getStravaRedirectUri();
 
   if (!clientId) {
     throw new Error('Please set VITE_STRAVA_CLIENT_ID in your environment to enable Strava OAuth.');
@@ -15,6 +20,7 @@ export function buildStravaAuthUrl() {
     response_type: 'code',
     approval_prompt: 'force',
     scope: STRAVA_SCOPES,
+    state: userId,
   });
 
   return `https://www.strava.com/oauth/authorize?${params.toString()}`;

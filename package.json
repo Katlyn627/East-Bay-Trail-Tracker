@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently \"npm run server\" \"npm run dev -- --host\"",
+    "server": "node server.js",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .jsx,.js",
@@ -12,24 +14,28 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
+    "axios": "^1.6.2",
+    "chart.js": "^4.4.0",
+    "concurrently": "^10.0.7",
+    "cors": "^2.8.6",
+    "date-fns": "^2.30.0",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
     "firebase": "^10.7.0",
     "lucide-react": "^0.292.0",
-    "chart.js": "^4.4.0",
+    "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
-    "axios": "^1.6.2",
-    "date-fns": "^2.30.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.0",
-    "tailwindcss": "^3.4.0",
-    "postcss": "^8.4.32",
     "autoprefixer": "^10.4.16",
-    "typescript": "^5.3.3",
     "eslint": "^8.55.0",
-    "prettier": "^3.1.0"
+    "postcss": "^8.4.32",
+    "prettier": "^3.1.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0"
   }
 }

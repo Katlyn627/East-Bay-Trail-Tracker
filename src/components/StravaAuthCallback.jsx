@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { exchangeStravaCodeForTokens } from '../services/strava';
+import { exchangeStravaCodeForTokens, getStravaRedirectUri } from '../services/strava';
 
 function StravaAuthCallback() {
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ function StravaAuthCallback() {
     const runCallback = async () => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
+      const state = params.get('state');
 
       if (!user) {
         setIsError(true);
@@ -29,8 +30,15 @@ function StravaAuthCallback() {
         return;
       }
 
+      if (state && state !== user.uid) {
+        setIsError(true);
+        setStatus('The Strava request could not be validated.');
+        setTimeout(() => navigate('/dashboard'), 2000);
+        return;
+      }
+
       try {
-        const redirectUri = `${window.location.origin}/auth/strava/callback`;
+        const redirectUri = getStravaRedirectUri();
         const result = await exchangeStravaCodeForTokens(code, redirectUri);
 
         if (!result || !result.access_token) {

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { buildStravaAuthUrl, fetchRecentStravaActivities } from '../services/strava';
 
 function StravaConnectionCard() {
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState([]);
   const [fetchingActivities, setFetchingActivities] = useState(false);
@@ -14,7 +14,7 @@ function StravaConnectionCard() {
 
   const handleConnect = () => {
     try {
-      window.location.href = buildStravaAuthUrl();
+      window.location.href = buildStravaAuthUrl(user?.uid || '');
     } catch (err) {
       setError(err.message || 'Unable to start the Strava connection flow.');
     }
