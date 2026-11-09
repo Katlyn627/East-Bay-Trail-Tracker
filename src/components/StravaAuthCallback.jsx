@@ -16,6 +16,8 @@ function StravaAuthCallback() {
       const code = params.get('code');
       const state = params.get('state');
 
+      console.log('DEBUG Strava callback params', { code, state, uid: user?.uid });
+
       if (!user) {
         setIsError(true);
         setStatus('You must be logged in before connecting Strava.');
@@ -39,7 +41,9 @@ function StravaAuthCallback() {
 
       try {
         const redirectUri = getStravaRedirectUri();
+        console.log('DEBUG Strava exchange start', { redirectUri, code });
         const result = await exchangeStravaCodeForTokens(code, redirectUri);
+        console.log('DEBUG Strava exchange success payload', result);
 
         if (!result || !result.access_token) {
           throw new Error('Strava did not return an access token.');
@@ -60,6 +64,7 @@ function StravaAuthCallback() {
         setStatus('Strava connected successfully. Redirecting to your dashboard...');
         setTimeout(() => navigate('/dashboard'), 1800);
       } catch (err) {
+        console.error('DEBUG Strava callback error', err);
         setIsError(true);
         setStatus(err.message || 'Unable to connect Strava right now.');
         setTimeout(() => navigate('/dashboard'), 2500);
