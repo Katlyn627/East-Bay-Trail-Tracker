@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Edit2, Loader, TreePine, Trash2, AlertCircle, Award } from 'lucide-react';
 import StravaConnectionCard from '../components/StravaConnectionCard';
 import VirtualForest from '../components/VirtualForest';
+import ReportCleanupModal from '../components/ReportCleanupModal';
+import ReportIssueModal from '../components/ReportIssueModal';
 
 const Dashboard = () => {
   const { user, userProfile, loading, logOut, updateUserProfile } = useAuth();
@@ -11,6 +13,8 @@ const Dashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(userProfile?.displayName || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
+  const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
 
   useEffect(() => {
     if (userProfile?.displayName) {
@@ -95,13 +99,13 @@ const Dashboard = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Profile Card */}
-        <div className="card mb-8">
-          <div className="flex justify-between items-start mb-6">
+        <div className="card mb-6 rounded-2xl p-4 sm:p-5">
+          <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex-1">
               {isEditing ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       Display Name
                     </label>
                     <input
@@ -112,11 +116,11 @@ const Dashboard = () => {
                       placeholder="Your name"
                     />
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={handleSaveProfile}
                       disabled={isSaving}
-                      className="btn-primary px-4 py-2"
+                      className="btn-primary h-11 px-4"
                     >
                       {isSaving ? <Loader size={20} className="animate-spin" /> : 'Save'}
                     </button>
@@ -125,7 +129,7 @@ const Dashboard = () => {
                         setIsEditing(false);
                         setDisplayName(userProfile?.displayName || '');
                       }}
-                      className="btn-outline px-4 py-2"
+                      className="btn-outline h-11 px-4"
                     >
                       Cancel
                     </button>
@@ -133,20 +137,20 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div>
-                  <h2 className="text-3xl font-bold text-dark mb-1">
+                  <h2 className="mb-1 text-2xl font-bold text-dark sm:text-3xl">
                     {userProfile?.displayName || 'Trail Adventurer'}
                   </h2>
-                  <p className="text-gray-600">{user?.email}</p>
+                  <p className="text-sm text-gray-600 sm:text-base">{user?.email}</p>
                 </div>
               )}
             </div>
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 text-primary hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex h-11 items-center gap-2 rounded-lg px-3 text-primary transition-colors hover:bg-blue-50"
               >
-                <Edit2 size={20} />
-                Edit
+                <Edit2 size={18} />
+                <span className="text-sm font-medium">Edit</span>
               </button>
             )}
           </div>
@@ -156,40 +160,40 @@ const Dashboard = () => {
         <VirtualForest />
 
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
-            <div key={index} className="card text-center">
-              <div className="flex justify-center mb-3">{stat.icon}</div>
-              <p className="text-3xl font-bold text-dark mb-1">{stat.value}</p>
-              <p className="text-gray-600 text-sm">{stat.label}</p>
+            <div key={index} className="card mobile-card text-center">
+              <div className="mb-3 flex justify-center">{stat.icon}</div>
+              <p className="mb-1 text-2xl font-bold text-dark sm:text-3xl">{stat.value}</p>
+              <p className="text-xs text-gray-600 sm:text-sm">{stat.label}</p>
             </div>
           ))}
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2">
           <button
-            onClick={() => navigate('/report')}
-            className="card hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => setIsIssueModalOpen(true)}
+            className="card mobile-card cursor-pointer transition-shadow hover:shadow-lg"
           >
             <div className="flex items-center gap-3">
-              <AlertCircle size={32} className="text-accent" />
+              <AlertCircle size={28} className="text-accent" />
               <div className="text-left">
-                <h3 className="font-bold text-dark">Report Issue</h3>
-                <p className="text-sm text-gray-600">Flag maintenance problems</p>
+                <h3 className="text-base font-bold text-dark sm:text-lg">Report Issue</h3>
+                <p className="text-xs text-gray-600 sm:text-sm">Flag maintenance problems</p>
               </div>
             </div>
           </button>
 
           <button
-            onClick={() => navigate('/cleanup')}
-            className="card hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => setIsCleanupModalOpen(true)}
+            className="card mobile-card cursor-pointer transition-shadow hover:shadow-lg"
           >
             <div className="flex items-center gap-3">
-              <Trash2 size={32} className="text-secondary" />
+              <Trash2 size={28} className="text-secondary" />
               <div className="text-left">
-                <h3 className="font-bold text-dark">Log Cleanup</h3>
-                <p className="text-sm text-gray-600">Record your trail work</p>
+                <h3 className="text-base font-bold text-dark sm:text-lg">Log Cleanup</h3>
+                <p className="text-xs text-gray-600 sm:text-sm">Record your trail work</p>
               </div>
             </div>
           </button>
@@ -220,6 +224,9 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      <ReportIssueModal isOpen={isIssueModalOpen} onClose={() => setIsIssueModalOpen(false)} />
+      <ReportCleanupModal isOpen={isCleanupModalOpen} onClose={() => setIsCleanupModalOpen(false)} />
     </div>
   );
 };

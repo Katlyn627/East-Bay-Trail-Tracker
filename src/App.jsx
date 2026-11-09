@@ -7,7 +7,6 @@ import LogIn from './components/LogIn';
 import SignUp from './components/SignUp';
 import Dashboard from './pages/Dashboard';
 import TrailReportForm from './components/TrailReportForm';
-import ReportCleanup from './components/ReportCleanup';
 import StravaAuthCallback from './components/StravaAuthCallback';
 import './styles/index.css';
 
@@ -40,15 +39,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/cleanup"
-            element={
-              <ProtectedRoute>
-                <ReportCleanup />
-              </ProtectedRoute>
-            }
-          />
-
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

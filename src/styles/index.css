@@ -3,21 +3,40 @@
 @tailwind utilities;
 
 * {
+  box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   @apply bg-light text-dark font-sans;
+  margin: 0;
+  min-height: 100vh;
 }
 
 html, body, #root {
   @apply w-full h-full;
 }
 
+button, input, select, textarea {
+  font: inherit;
+}
+
+button {
+  min-height: 44px;
+}
+
 /* Utility classes for common patterns */
 .card {
   @apply bg-white rounded-lg shadow-md p-4 transition-shadow hover:shadow-lg;
+}
+
+.mobile-card {
+  @apply min-h-[104px] rounded-2xl p-4 shadow-sm;
 }
 
 .btn-primary {
@@ -53,19 +72,50 @@ html, body, #root {
 }
 
 .page-container {
-  @apply max-w-4xl mx-auto px-4 py-6;
+  @apply max-w-4xl mx-auto px-3 py-5 sm:px-4 sm:py-6;
 }
 
 .mobile-nav {
   @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg sm:relative sm:border-t-0;
 }
 
+.forest-sprout {
+  animation: forestPulse 1.8s ease-in-out infinite alternate;
+}
+
+.forest-sapling {
+  animation: forestFloat 2.2s ease-in-out infinite alternate;
+}
+
+.forest-mature {
+  animation: forestBloom 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes forestPulse {
+  0% { transform: scale(0.96) translateY(0); }
+  100% { transform: scale(1.04) translateY(-2px); }
+}
+
+@keyframes forestFloat {
+  0% { transform: translateY(0) rotate(-1deg); }
+  100% { transform: translateY(-3px) rotate(1deg); }
+}
+
+@keyframes forestBloom {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-4px) scale(1.06); }
+}
+
 @media (max-width: 640px) {
   html, body {
     @apply text-base;
   }
-  
+
   .page-container {
     @apply pb-20;
+  }
+
+  .card {
+    @apply rounded-2xl p-4;
   }
 }

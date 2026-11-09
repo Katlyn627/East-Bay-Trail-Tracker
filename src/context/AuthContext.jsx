@@ -37,6 +37,7 @@ const createDefaultProfile = (currentUser, overrides = {}) => ({
   pointsBalance: 0,
   saplingsAvailable: 0,
   treesPlanted: 0,
+  treeHistory: [],
   badgesEarned: [],
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -193,6 +194,7 @@ export const AuthProvider = ({ children }) => {
         },
         saplingsAvailable: updates?.saplingsAvailable ?? (userProfile?.saplingsAvailable ?? 0),
         treesPlanted: updates?.treesPlanted ?? (userProfile?.treesPlanted ?? 0),
+        treeHistory: updates?.treeHistory ?? (userProfile?.treeHistory ?? []),
         updatedAt: new Date(),
       };
 
