@@ -14,7 +14,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen w-full overflow-x-hidden bg-[#f4f6f0]">
+        <div className="min-h-screen w-full max-w-[1280px] mx-auto overflow-x-hidden bg-[#f4f6f0] px-0 sm:px-3">
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
