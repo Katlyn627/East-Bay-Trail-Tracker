@@ -200,8 +200,8 @@ function ReportCleanupModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-4 py-8 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+      <div className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-5 sm:py-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Trail cleanup</p>
             <h2 className="text-2xl font-bold text-slate-900">Log a cleanup</h2>
@@ -220,7 +220,7 @@ function ReportCleanupModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 p-5 sm:p-6">
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:space-y-5 sm:p-5">
           {error && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
           )}
