@@ -2,7 +2,9 @@ import React, { useRef, useState } from 'react';
 import { addDoc, arrayUnion, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Camera, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import useCaliforniaTrailSearch from '../hooks/useCaliforniaTrailSearch';
 import { db } from '../firebase';
+import { buildGoogleMapsSearchUrl, normalizeCoordinates } from '../utils/maps';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
 
 const ISSUE_TYPES = [
@@ -44,6 +46,9 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
   const [replaceIndex, setReplaceIndex] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedTrailLocation, setSelectedTrailLocation] = useState(null);
+  const [showTrailSuggestions, setShowTrailSuggestions] = useState(false);
+  const trailSearch = useCaliforniaTrailSearch(trailName);
 
   const handlePhotoSelection = async (event) => {
     const incomingFiles = Array.from(event.target.files || []);
@@ -95,6 +100,8 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
     setNotes('');
     setPhotos([]);
     setReplaceIndex(null);
+    setSelectedTrailLocation(null);
+    setShowTrailSuggestions(false);
     setError('');
   };
 
@@ -132,6 +139,14 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
       const totalWeight = Number(weightLbs || 0);
       const pointsEarned = 25;
       const normalizedTrailName = trailName.trim();
+      const trailCoordinates =
+        selectedTrailLocation?.name?.trim().toLowerCase() === normalizedTrailName.toLowerCase()
+          ? normalizeCoordinates({
+              latitude: selectedTrailLocation.latitude,
+              longitude: selectedTrailLocation.longitude,
+            })
+          : null;
+      const trailMapUrl = buildGoogleMapsSearchUrl(normalizedTrailName, trailCoordinates);
 
       await addDoc(collection(db, 'reports'), {
         uid: user.uid,
@@ -139,6 +154,8 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
         userName: userProfile?.displayName || 'Trail Explorer',
         issueType,
         trailName: normalizedTrailName,
+        trailCoordinates,
+        trailMapUrl,
         bagCount: bagTotal,
         totalWeightLbs: totalWeight,
         milesLogged: miles,
@@ -242,13 +259,59 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block sm:col-span-2">
               <span className="mb-2 block text-sm font-semibold text-slate-700">Trail name</span>
-              <input
-                type="text"
-                value={trailName}
-                onChange={(event) => setTrailName(event.target.value)}
-                placeholder="Redwood Regional Trail"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={trailName}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setTrailName(value);
+                    if (selectedTrailLocation && selectedTrailLocation.name !== value) {
+                      setSelectedTrailLocation(null);
+                    }
+                    setShowTrailSuggestions(true);
+                  }}
+                  onFocus={() => setShowTrailSuggestions(true)}
+                  onBlur={() => window.setTimeout(() => setShowTrailSuggestions(false), 120)}
+                  placeholder="Search any California trail or park"
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                />
+                {showTrailSuggestions && trailSearch.suggestions.length > 0 && (
+                  <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                    {trailSearch.suggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        onClick={() => {
+                          setTrailName(suggestion.name);
+                          setSelectedTrailLocation(suggestion);
+                          setShowTrailSuggestions(false);
+                        }}
+                        className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                      >
+                        {suggestion.displayName}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {trailSearch.loading && <p className="mt-1 text-xs text-slate-500">Searching California trails...</p>}
+              {trailSearch.error && <p className="mt-1 text-xs text-red-600">{trailSearch.error}</p>}
+              {trailName.trim() && (
+                <a
+                  href={buildGoogleMapsSearchUrl(
+                    trailName,
+                    selectedTrailLocation?.name?.trim().toLowerCase() === trailName.trim().toLowerCase()
+                      ? selectedTrailLocation
+                      : null
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 underline decoration-emerald-400 underline-offset-2"
+                >
+                  📍 View on Google Maps
+                </a>
+              )}
             </label>
 
             <label className="block">

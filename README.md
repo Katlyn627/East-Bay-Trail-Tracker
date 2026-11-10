@@ -12,6 +12,7 @@ The application combines Firebase authentication, Firestore data persistence, an
 - Firebase Storage uploads for maintenance and cleanup images
 - Community board for trail updates, discussions, events, and shared resources
 - Community board supports trail-tagged posts, threaded comments/replies, event RSVPs, and map-linked partner resources
+- California-wide trail and park autocomplete powered by Nominatim for posts, events, and cleanup logs
 - Core impact metrics tracked in Firestore (`totalBags`, `totalWeightLbs`, `totalMiles`, `totalHours`, `uniqueTrails`, `pointsBalance`)
 - Dedicated interactive pages for cleanup logging and hazard reporting with photo uploads, GPS capture, and instant points updates
 - Mobile-friendly dashboard experience for volunteers and trail stewards

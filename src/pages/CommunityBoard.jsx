@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   addDoc,
   arrayRemove,
@@ -13,10 +13,8 @@ import {
 } from 'firebase/firestore';
 import {
   CalendarDays,
-  ExternalLink,
   Link2,
   Loader2,
-  LocateFixed,
   MapPin,
   MessageCircle,
   Reply,
@@ -25,10 +23,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
+import useCaliforniaTrailSearch from '../hooks/useCaliforniaTrailSearch';
+import { buildGoogleMapsSearchUrl, normalizeCoordinates } from '../utils/maps';
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-
-const FALLBACK_RESOURCES = [
+const RESOURCE_PARTNERS = [
   {
     id: 'ebparks',
     name: 'East Bay Regional Park District',
@@ -77,8 +75,6 @@ const COMMUNITY_GOALS = [
   'Increase new volunteer participation by 25%',
 ];
 
-let googleMapsScriptPromise;
-
 const formatTimestamp = (value) => {
   if (!value) return 'Just now';
   try {
@@ -87,18 +83,6 @@ const formatTimestamp = (value) => {
   } catch {
     return 'Just now';
   }
-};
-
-const getCoordinatesFromDetails = (details) => {
-  const location = details?.geometry?.location;
-  if (!location) return null;
-  const lat = typeof location.lat === 'function' ? location.lat() : location.lat;
-  const lng = typeof location.lng === 'function' ? location.lng() : location.lng;
-  if (typeof lat !== 'number' || typeof lng !== 'number') return null;
-  return {
-    latitude: Number(lat.toFixed(6)),
-    longitude: Number(lng.toFixed(6)),
-  };
 };
 
 const toDateInputValue = (value) => {
@@ -110,50 +94,6 @@ const toDateInputValue = (value) => {
 
 const parseTrailTags = (tagInput) =>
   [...new Set((tagInput || '').split(',').map((entry) => entry.trim()).filter(Boolean))];
-
-const buildGoogleMapsSearchUrl = (queryText) =>
-  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryText)}`;
-
-const loadGoogleMapsPlaces = async () => {
-  if (typeof window === 'undefined') return false;
-  if (window.google?.maps?.places) return true;
-  if (!GOOGLE_MAPS_API_KEY) return false;
-
-  if (!googleMapsScriptPromise) {
-    googleMapsScriptPromise = new Promise((resolve, reject) => {
-      const existingScript = document.getElementById('google-maps-places-sdk');
-      if (existingScript) {
-        existingScript.addEventListener('load', () => resolve(true));
-        existingScript.addEventListener('error', () => reject(new Error('Google Maps failed to load.')));
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.id = 'google-maps-places-sdk';
-      script.async = true;
-      script.defer = true;
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.onload = () => resolve(true);
-      script.onerror = () => reject(new Error('Google Maps failed to load.'));
-      document.head.appendChild(script);
-    });
-  }
-
-  try {
-    await googleMapsScriptPromise;
-    return !!window.google?.maps?.places;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
-};
-
-const classifyResourceType = (types = []) => {
-  if (types.includes('park')) return 'Parks & Access';
-  if (types.includes('fire_station') || types.includes('local_government_office')) return 'Ranger Station';
-  if (types.includes('library')) return 'Tool-Sharing Library';
-  return 'Conservation Group';
-};
 
 const CommunityBoard = () => {
   const { user, userProfile } = useAuth();
@@ -172,24 +112,23 @@ const CommunityBoard = () => {
   const [boardSuccess, setBoardSuccess] = useState('');
   const [replyDrafts, setReplyDrafts] = useState({});
   const [resourceSearch, setResourceSearch] = useState('');
-  const [detectingLocation, setDetectingLocation] = useState(false);
-  const [resourceLookupLoading, setResourceLookupLoading] = useState(false);
-  const [userCoordinates, setUserCoordinates] = useState(null);
-  const [googlePlacesReady, setGooglePlacesReady] = useState(false);
-  const [autocompleteStatus, setAutocompleteStatus] = useState('');
-  const [postTrailSuggestions, setPostTrailSuggestions] = useState([]);
-  const [eventTrailSuggestions, setEventTrailSuggestions] = useState([]);
-  const [resourceSuggestions, setResourceSuggestions] = useState([]);
-  const [resourcePlaces, setResourcePlaces] = useState([]);
-  const [postTrailLocation, setPostTrailLocation] = useState(null);
-  const [eventTrailLocation, setEventTrailLocation] = useState(null);
-  const [postForm, setPostForm] = useState({ title: '', message: '', trailName: '', trailTags: '' });
+  const [resourceSelectedLocation, setResourceSelectedLocation] = useState(null);
+  const [postSelectedLocation, setPostSelectedLocation] = useState(null);
+  const [eventSelectedLocation, setEventSelectedLocation] = useState(null);
+  const [showPostSuggestions, setShowPostSuggestions] = useState(false);
+  const [showEventSuggestions, setShowEventSuggestions] = useState(false);
+  const [showResourceSuggestions, setShowResourceSuggestions] = useState(false);
+  const [postForm, setPostForm] = useState({
+    title: '',
+    message: '',
+    trailName: '',
+    trailTags: '',
+  });
   const [commentDraft, setCommentDraft] = useState('');
   const [eventForm, setEventForm] = useState({ title: '', date: '', trailName: '', details: '' });
-
-  const placesServiceRef = useRef(null);
-  const placesAutocompleteRef = useRef(null);
-  const placesContainerRef = useRef(null);
+  const postTrailSearch = useCaliforniaTrailSearch(postForm.trailName);
+  const eventTrailSearch = useCaliforniaTrailSearch(eventForm.trailName);
+  const resourceLocationSearch = useCaliforniaTrailSearch(resourceSearch);
 
   const boardDisplayName = userProfile?.displayName || user?.displayName || 'Trail Volunteer';
 
@@ -250,32 +189,6 @@ const CommunityBoard = () => {
     return () => unsubscribe();
   }, [activeThreadPostId]);
 
-  useEffect(() => {
-    let mounted = true;
-    loadGoogleMapsPlaces().then((ready) => {
-      if (!mounted) return;
-      setGooglePlacesReady(ready);
-      if (!ready) {
-        setAutocompleteStatus(
-          GOOGLE_MAPS_API_KEY
-            ? 'Google Places suggestions unavailable right now.'
-            : 'Set VITE_GOOGLE_MAPS_API_KEY to enable Places autocomplete.'
-        );
-        return;
-      }
-
-      placesAutocompleteRef.current = new window.google.maps.places.AutocompleteService();
-      if (placesContainerRef.current) {
-        placesServiceRef.current = new window.google.maps.places.PlacesService(placesContainerRef.current);
-      }
-      setAutocompleteStatus('');
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   const rootComments = useMemo(() => comments.filter((entry) => !entry.parentCommentId), [comments]);
 
   const repliesByParent = useMemo(() => {
@@ -288,31 +201,17 @@ const CommunityBoard = () => {
     return map;
   }, [comments]);
 
-  const baseResources = useMemo(() => {
-    const normalizedPlaces = resourcePlaces.map((place) => ({
-      id: place.id,
-      name: place.name,
-      type: place.type,
-      description: place.description,
-      website: place.website,
-      phone: place.phone,
-      address: place.address,
-      mapQuery: place.mapQuery,
-      mapUrl: place.mapUrl,
-      source: 'google',
-    }));
-
-    return [...normalizedPlaces, ...FALLBACK_RESOURCES];
-  }, [resourcePlaces]);
-
   const filteredResources = useMemo(() => {
     const term = resourceSearch.trim().toLowerCase();
-    if (!term) return baseResources;
-
-    return baseResources.filter((resource) =>
-      [resource.name, resource.type, resource.description, resource.address].join(' ').toLowerCase().includes(term)
+    if (!term) return RESOURCE_PARTNERS;
+    const matches = RESOURCE_PARTNERS.filter((resource) =>
+      [resource.name, resource.type, resource.description, resource.address, resource.mapQuery]
+        .join(' ')
+        .toLowerCase()
+        .includes(term)
     );
-  }, [baseResources, resourceSearch]);
+    return matches.length > 0 || !resourceSelectedLocation ? matches : RESOURCE_PARTNERS;
+  }, [resourceSearch, resourceSelectedLocation]);
 
   const setTransientMessage = (type, message) => {
     if (type === 'error') setBoardError(message);
@@ -324,191 +223,18 @@ const CommunityBoard = () => {
     }, 2600);
   };
 
-  const resolvePlaceDetails = (placeId) =>
-    new Promise((resolve) => {
-      if (!placesServiceRef.current || !placeId || !window.google?.maps?.places) {
-        resolve(null);
-        return;
-      }
+  const getSelectedCoordinates = (selectedLocation, typedTrailName) => {
+    const normalizedTypedName = typedTrailName.trim().toLowerCase();
+    if (!selectedLocation || !normalizedTypedName) return null;
 
-      placesServiceRef.current.getDetails(
-        {
-          placeId,
-          fields: ['name', 'formatted_address', 'geometry', 'url', 'website', 'formatted_phone_number', 'types'],
-        },
-        (details, status) => {
-          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !details) {
-            resolve(null);
-            return;
-          }
-          resolve(details);
-        }
-      );
+    if (selectedLocation.name.trim().toLowerCase() !== normalizedTypedName) {
+      return null;
+    }
+
+    return normalizeCoordinates({
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
     });
-
-  const handleSelectTrailSuggestion = async (target, suggestion) => {
-    const details = await resolvePlaceDetails(suggestion.id);
-    const coords = details ? getCoordinatesFromDetails(details) : null;
-    const chosenName = details?.name || details?.formatted_address || suggestion.name;
-    const mapUrl = buildGoogleMapsSearchUrl(chosenName);
-
-    if (target === 'post') {
-      setPostForm((prev) => ({ ...prev, trailName: chosenName }));
-      setPostTrailLocation(
-        coords
-          ? { ...coords, mapUrl }
-          : null
-      );
-      setPostTrailSuggestions([]);
-      return;
-    }
-
-    if (target === 'event') {
-      setEventForm((prev) => ({ ...prev, trailName: chosenName }));
-      setEventTrailLocation(
-        coords
-          ? { ...coords, mapUrl }
-          : null
-      );
-      setEventTrailSuggestions([]);
-      return;
-    }
-
-    if (target === 'resource') {
-      setResourceSearch(chosenName);
-      setResourceSuggestions([]);
-      fetchNearbyResources(userCoordinates, chosenName);
-    }
-  };
-
-  const fetchTrailSuggestions = (inputValue, target) => {
-    if (!googlePlacesReady || !placesAutocompleteRef.current || !inputValue.trim()) {
-      if (target === 'post') setPostTrailSuggestions([]);
-      if (target === 'event') setEventTrailSuggestions([]);
-      if (target === 'resource') setResourceSuggestions([]);
-      return;
-    }
-
-    const request = {
-      input: inputValue.trim(),
-      types: ['establishment'],
-      componentRestrictions: { country: 'us' },
-    };
-
-    placesAutocompleteRef.current.getPlacePredictions(request, (predictions = [], status) => {
-      const ok = status === window.google.maps.places.PlacesServiceStatus.OK;
-      const next = ok
-        ? predictions
-            .filter((prediction) => prediction.types?.some((entry) => ['park', 'natural_feature', 'point_of_interest'].includes(entry)))
-            .slice(0, 6)
-            .map((prediction) => ({
-              id: prediction.place_id,
-              name: prediction.description,
-            }))
-        : [];
-
-      if (target === 'post') setPostTrailSuggestions(next);
-      if (target === 'event') setEventTrailSuggestions(next);
-      if (target === 'resource') setResourceSuggestions(next);
-    });
-  };
-
-  const fetchNearbyResources = async (coords, searchTerm = '') => {
-    if (!googlePlacesReady || !placesServiceRef.current) return;
-    setResourceLookupLoading(true);
-
-    const keyword = searchTerm.trim() || 'park ranger station conservation group tool library';
-    const handleResults = async (results = [], status) => {
-      if (status !== window.google.maps.places.PlacesServiceStatus.OK) {
-        setResourceLookupLoading(false);
-        return;
-      }
-
-      const topPlaces = results.slice(0, 8);
-      const detailedPlaces = await Promise.all(
-        topPlaces.map(
-          (place) =>
-            new Promise((resolve) => {
-              placesServiceRef.current.getDetails(
-                {
-                  placeId: place.place_id,
-                  fields: ['name', 'formatted_address', 'formatted_phone_number', 'website', 'url', 'types'],
-                },
-                (details, detailStatus) => {
-                  if (detailStatus !== window.google.maps.places.PlacesServiceStatus.OK || !details) {
-                    resolve(null);
-                    return;
-                  }
-                  resolve({
-                    id: `google-${place.place_id}`,
-                    name: details.name || place.name || 'Local resource',
-                    type: classifyResourceType(details.types || place.types || []),
-                    description: 'Nearby community stewardship resource from Google Places.',
-                    website: details.website || '',
-                    phone: details.formatted_phone_number || '',
-                    address: details.formatted_address || place.vicinity || '',
-                    mapQuery: details.name || place.name || 'resource',
-                    mapUrl: details.url || buildGoogleMapsSearchUrl(details.name || place.name || 'resource'),
-                  });
-                }
-              );
-            })
-        )
-      );
-
-      setResourcePlaces(detailedPlaces.filter(Boolean));
-      setResourceLookupLoading(false);
-    };
-
-    if (coords) {
-      const nearbyRequest = {
-        location: new window.google.maps.LatLng(Number(coords.latitude), Number(coords.longitude)),
-        radius: 15000,
-        keyword,
-      };
-      placesServiceRef.current.nearbySearch(nearbyRequest, handleResults);
-      return;
-    }
-
-    const textRequest = {
-      query: `${keyword} in East Bay California`,
-    };
-    placesServiceRef.current.textSearch(textRequest, handleResults);
-  };
-
-  useEffect(() => {
-    if (!googlePlacesReady || resourceSearch.trim().length < 3) return undefined;
-    const handle = window.setTimeout(() => {
-      fetchNearbyResources(userCoordinates, resourceSearch);
-    }, 450);
-    return () => window.clearTimeout(handle);
-  }, [resourceSearch, userCoordinates, googlePlacesReady]);
-
-  const handleUseMyLocation = () => {
-    if (!navigator.geolocation) {
-      setTransientMessage('error', 'Geolocation is not available in this browser.');
-      return;
-    }
-
-    setDetectingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords = {
-          latitude: position.coords.latitude.toFixed(5),
-          longitude: position.coords.longitude.toFixed(5),
-        };
-        setUserCoordinates(coords);
-        fetchNearbyResources(coords, resourceSearch);
-        setTransientMessage('success', 'Location captured. Nearby resources refreshed.');
-        setDetectingLocation(false);
-      },
-      (error) => {
-        console.error('Unable to fetch user location:', error);
-        setTransientMessage('error', 'Could not capture location. You can still search manually.');
-        setDetectingLocation(false);
-      },
-      { timeout: 7000 }
-    );
   };
 
   const handleCreatePost = async (event) => {
@@ -525,13 +251,8 @@ const CommunityBoard = () => {
 
     const trailTags = parseTrailTags(`${postForm.trailTags},${postForm.trailName}`);
     const postTrailName = postForm.trailName.trim();
-    const trailMapUrl = buildGoogleMapsSearchUrl(postTrailName || postForm.title.trim());
-    const trailCoordinates = postTrailLocation
-      ? {
-          latitude: postTrailLocation.latitude,
-          longitude: postTrailLocation.longitude,
-        }
-      : null;
+    const trailCoordinates = getSelectedCoordinates(postSelectedLocation, postTrailName);
+    const trailMapUrl = buildGoogleMapsSearchUrl(postTrailName || postForm.title.trim(), trailCoordinates);
 
     try {
       setPosting(true);
@@ -539,17 +260,18 @@ const CommunityBoard = () => {
         title: postForm.title.trim(),
         message: postForm.message.trim(),
         trailName: postTrailName,
+        trailCoordinates,
+        trailLocationLabel: postSelectedLocation?.displayName || '',
         trailTags,
         trailMapUrl,
-        trailCoordinates,
         authorUid: user.uid,
         authorName: boardDisplayName,
         createdAt: serverTimestamp(),
       });
 
       setPostForm({ title: '', message: '', trailName: '', trailTags: '' });
-      setPostTrailSuggestions([]);
-      setPostTrailLocation(null);
+      setPostSelectedLocation(null);
+      setShowPostSuggestions(false);
       setTransientMessage('success', 'Post shared with the community board.');
     } catch (error) {
       console.error('Unable to create post:', error);
@@ -574,18 +296,15 @@ const CommunityBoard = () => {
     try {
       setCreatingEvent(true);
       const eventTrailName = eventForm.trailName.trim();
-      const trailMapUrl = buildGoogleMapsSearchUrl(eventTrailName);
+      const trailCoordinates = getSelectedCoordinates(eventSelectedLocation, eventTrailName);
+      const trailMapUrl = buildGoogleMapsSearchUrl(eventTrailName, trailCoordinates);
       await addDoc(collection(db, 'communityEvents'), {
         title: eventForm.title.trim(),
         eventDate: eventForm.date,
         trailName: eventTrailName,
+        trailCoordinates,
+        trailLocationLabel: eventSelectedLocation?.displayName || '',
         trailMapUrl,
-        trailCoordinates: eventTrailLocation
-          ? {
-              latitude: eventTrailLocation.latitude,
-              longitude: eventTrailLocation.longitude,
-            }
-          : null,
         details: eventForm.details.trim(),
         organizerUid: user.uid,
         organizerName: boardDisplayName,
@@ -594,8 +313,8 @@ const CommunityBoard = () => {
       });
 
       setEventForm({ title: '', date: '', trailName: '', details: '' });
-      setEventTrailSuggestions([]);
-      setEventTrailLocation(null);
+      setEventSelectedLocation(null);
+      setShowEventSuggestions(false);
       setTransientMessage('success', 'Cleanup event posted. You are auto-joined.');
     } catch (error) {
       console.error('Unable to create event:', error);
@@ -685,21 +404,17 @@ const CommunityBoard = () => {
     }
   };
 
-  const locationQualifier = resourceSearch.trim() || (userCoordinates ? `${userCoordinates.latitude}, ${userCoordinates.longitude}` : 'East Bay');
-
   return (
     <div className="space-y-6">
-      <div ref={placesContainerRef} className="hidden" />
-
-      {(boardError || boardSuccess || autocompleteStatus) && (
+      {(boardError || boardSuccess) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm font-medium ${
-            boardError || autocompleteStatus
-              ? 'border-amber-200 bg-amber-50 text-amber-800'
+            boardError
+              ? 'border-red-200 bg-red-50 text-red-700'
               : 'border-[#52B788]/35 bg-[#ecf9f1] text-[#1B4332]'
           }`}
         >
-          {boardError || autocompleteStatus || boardSuccess}
+          {boardError || boardSuccess}
         </div>
       )}
 
@@ -719,6 +434,7 @@ const CommunityBoard = () => {
                 placeholder="Post title"
                 className="input-field"
               />
+
               <div className="relative">
                 <input
                   type="text"
@@ -726,32 +442,52 @@ const CommunityBoard = () => {
                   onChange={(event) => {
                     const value = event.target.value;
                     setPostForm((prev) => ({ ...prev, trailName: value }));
-                    setPostTrailLocation(null);
-                    fetchTrailSuggestions(value, 'post');
+                    if (postSelectedLocation && postSelectedLocation.name !== value) {
+                      setPostSelectedLocation(null);
+                    }
+                    setShowPostSuggestions(true);
                   }}
+                  onFocus={() => setShowPostSuggestions(true)}
+                  onBlur={() => window.setTimeout(() => setShowPostSuggestions(false), 120)}
                   placeholder="Primary trail / park"
                   className="input-field"
                 />
-                {postTrailSuggestions.length > 0 && (
+                {showPostSuggestions && postTrailSearch.suggestions.length > 0 && (
                   <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
-                    {postTrailSuggestions.map((suggestion) => (
+                    {postTrailSearch.suggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
                         type="button"
-                        onClick={() => handleSelectTrailSuggestion('post', suggestion)}
+                        onClick={() => {
+                          setPostForm((prev) => ({ ...prev, trailName: suggestion.name }));
+                          setPostSelectedLocation(suggestion);
+                          setShowPostSuggestions(false);
+                        }}
                         className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
                       >
-                        {suggestion.name}
+                        {suggestion.displayName}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-              {postTrailLocation && (
-                <p className="text-xs text-[#1B4332]/75">
-                  Coordinates: {postTrailLocation.latitude}, {postTrailLocation.longitude}
-                </p>
+
+              {postTrailSearch.loading && (
+                <p className="text-xs text-[#1B4332]/70">Searching California trails and parks...</p>
               )}
+              {postTrailSearch.error && <p className="text-xs text-[#8b2c2c]">{postTrailSearch.error}</p>}
+
+              {postForm.trailName && (
+                <a
+                  href={buildGoogleMapsSearchUrl(postForm.trailName, getSelectedCoordinates(postSelectedLocation, postForm.trailName))}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+                >
+                  📍 View on Google Maps
+                </a>
+              )}
+
               <input
                 type="text"
                 value={postForm.trailTags}
@@ -759,6 +495,7 @@ const CommunityBoard = () => {
                 placeholder="Additional trail tags (comma-separated)"
                 className="input-field"
               />
+
               <textarea
                 rows={3}
                 value={postForm.message}
@@ -766,6 +503,7 @@ const CommunityBoard = () => {
                 placeholder="Share field updates, route conditions, or notes for other volunteers..."
                 className="input-field"
               />
+
               <button
                 type="submit"
                 disabled={posting}
@@ -810,37 +548,32 @@ const CommunityBoard = () => {
                         {trailTags.map((tag) => (
                           <a
                             key={`${post.id}-${tag}`}
-                            href={buildGoogleMapsSearchUrl(`${tag} East Bay trail`)}
+                            href={buildGoogleMapsSearchUrl(`${tag} California trail`)}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 rounded-full border border-[#52B788]/40 bg-[#eef9f2] px-2 py-1 text-xs font-semibold text-[#1B4332] transition hover:bg-[#e2f5eb]"
                           >
                             <MapPin size={12} />
                             {tag}
-                            <ExternalLink size={11} />
                           </a>
                         ))}
                       </div>
                     )}
 
+                    <p className="mt-3 whitespace-pre-wrap text-sm text-[#1B4332]/80">{post.message}</p>
+
                     <a
-                      href={post.trailMapUrl || buildGoogleMapsSearchUrl(`${post.trailName || post.title} East Bay trail`)}
+                      href={
+                        post.trailMapUrl ||
+                        buildGoogleMapsSearchUrl(post.trailName || post.title, normalizeCoordinates(post.trailCoordinates))
+                      }
                       target="_blank"
                       rel="noreferrer"
                       className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
                     >
                       <Link2 size={12} />
-                      Directions
-                      <ExternalLink size={12} />
+                      📍 View on Google Maps
                     </a>
-
-                    {post.trailCoordinates && (
-                      <p className="mt-1 text-xs text-[#1B4332]/65">
-                        Coordinates: {post.trailCoordinates.latitude}, {post.trailCoordinates.longitude}
-                      </p>
-                    )}
-
-                    <p className="mt-3 whitespace-pre-wrap text-sm text-[#1B4332]/80">{post.message}</p>
 
                     <button
                       type="button"
@@ -953,6 +686,7 @@ const CommunityBoard = () => {
                 onChange={(event) => setEventForm((prev) => ({ ...prev, date: event.target.value }))}
                 className="input-field"
               />
+
               <div className="relative">
                 <input
                   type="text"
@@ -960,32 +694,52 @@ const CommunityBoard = () => {
                   onChange={(event) => {
                     const value = event.target.value;
                     setEventForm((prev) => ({ ...prev, trailName: value }));
-                    setEventTrailLocation(null);
-                    fetchTrailSuggestions(value, 'event');
+                    if (eventSelectedLocation && eventSelectedLocation.name !== value) {
+                      setEventSelectedLocation(null);
+                    }
+                    setShowEventSuggestions(true);
                   }}
+                  onFocus={() => setShowEventSuggestions(true)}
+                  onBlur={() => window.setTimeout(() => setShowEventSuggestions(false), 120)}
                   placeholder="Trail location"
                   className="input-field"
                 />
-                {eventTrailSuggestions.length > 0 && (
+                {showEventSuggestions && eventTrailSearch.suggestions.length > 0 && (
                   <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
-                    {eventTrailSuggestions.map((suggestion) => (
+                    {eventTrailSearch.suggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
                         type="button"
-                        onClick={() => handleSelectTrailSuggestion('event', suggestion)}
+                        onClick={() => {
+                          setEventForm((prev) => ({ ...prev, trailName: suggestion.name }));
+                          setEventSelectedLocation(suggestion);
+                          setShowEventSuggestions(false);
+                        }}
                         className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
                       >
-                        {suggestion.name}
+                        {suggestion.displayName}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-              {eventTrailLocation && (
-                <p className="text-xs text-[#1B4332]/75">
-                  Coordinates: {eventTrailLocation.latitude}, {eventTrailLocation.longitude}
-                </p>
+
+              {eventTrailSearch.loading && (
+                <p className="text-xs text-[#1B4332]/70">Searching California trails and parks...</p>
               )}
+              {eventTrailSearch.error && <p className="text-xs text-[#8b2c2c]">{eventTrailSearch.error}</p>}
+
+              {eventForm.trailName && (
+                <a
+                  href={buildGoogleMapsSearchUrl(eventForm.trailName, getSelectedCoordinates(eventSelectedLocation, eventForm.trailName))}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+                >
+                  📍 View on Google Maps
+                </a>
+              )}
+
               <textarea
                 rows={2}
                 value={eventForm.details}
@@ -1058,19 +812,19 @@ const CommunityBoard = () => {
                     </div>
                     {communityEvent.details && <p className="mt-2 text-sm text-[#1B4332]/75">{communityEvent.details}</p>}
                     <a
-                      href={communityEvent.trailMapUrl || buildGoogleMapsSearchUrl(`${communityEvent.trailName} trail`)}
+                      href={
+                        communityEvent.trailMapUrl ||
+                        buildGoogleMapsSearchUrl(
+                          communityEvent.trailName,
+                          normalizeCoordinates(communityEvent.trailCoordinates)
+                        )
+                      }
                       target="_blank"
                       rel="noreferrer"
                       className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
                     >
-                      Open trail in Google Maps
-                      <ExternalLink size={12} />
+                      📍 View on Google Maps
                     </a>
-                    {communityEvent.trailCoordinates && (
-                      <p className="mt-1 text-xs text-[#1B4332]/65">
-                        Coordinates: {communityEvent.trailCoordinates.latitude}, {communityEvent.trailCoordinates.longitude}
-                      </p>
-                    )}
                   </div>
                 );
               })
@@ -1080,11 +834,11 @@ const CommunityBoard = () => {
           <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
             <h3 className="text-xl font-bold text-[#1B4332]">Community Resources & Local Guides Finder</h3>
             <p className="mt-2 text-sm text-[#1B4332]/75">
-              Find nearby ranger stations, conservation groups, and tool-sharing resources with contact info and official links.
+              Search local ranger stations, conservation groups, and tool-sharing hubs in the East Bay.
             </p>
 
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <label className="relative flex-1">
+            <div className="mt-4 space-y-2">
+              <label className="relative block">
                 <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#1B4332]/60" />
                 <input
                   type="text"
@@ -1092,86 +846,80 @@ const CommunityBoard = () => {
                   onChange={(event) => {
                     const value = event.target.value;
                     setResourceSearch(value);
-                    fetchTrailSuggestions(value, 'resource');
+                    if (resourceSelectedLocation && resourceSelectedLocation.name !== value) {
+                      setResourceSelectedLocation(null);
+                    }
+                    setShowResourceSuggestions(true);
                   }}
-                  placeholder="Search by city, partner name, or service type"
+                  onFocus={() => setShowResourceSuggestions(true)}
+                  onBlur={() => window.setTimeout(() => setShowResourceSuggestions(false), 120)}
+                  placeholder="Search East Bay parks, guides, and resource locations"
                   className="input-field pl-9"
                 />
               </label>
-              <button
-                type="button"
-                onClick={handleUseMyLocation}
-                disabled={detectingLocation}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#52B788]/45 bg-[#eef9f2] px-3 py-2 text-sm font-semibold text-[#1B4332] transition hover:bg-[#e2f5eb] disabled:opacity-70"
-              >
-                {detectingLocation ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
-                Use My Location
-              </button>
+
+              {showResourceSuggestions && resourceLocationSearch.suggestions.length > 0 && (
+                <div className="max-h-48 overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-sm">
+                  {resourceLocationSearch.suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      type="button"
+                      onClick={() => {
+                        setResourceSearch(suggestion.name);
+                        setResourceSelectedLocation(suggestion);
+                        setShowResourceSuggestions(false);
+                      }}
+                      className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                    >
+                      {suggestion.displayName}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {resourceLocationSearch.loading && (
+                <p className="text-xs text-[#1B4332]/70">Searching California trails and parks...</p>
+              )}
+              {resourceLocationSearch.error && <p className="text-xs text-[#8b2c2c]">{resourceLocationSearch.error}</p>}
             </div>
 
-            {resourceSuggestions.length > 0 && (
-              <div className="mt-2 rounded-xl border border-[#D4A373]/30 bg-white shadow-sm">
-                {resourceSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion.id}
-                    type="button"
-                    onClick={() => handleSelectTrailSuggestion('resource', suggestion)}
-                    className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
-                  >
-                    {suggestion.name}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {userCoordinates && (
-              <p className="mt-2 text-xs text-[#1B4332]/70">
-                Location context: {userCoordinates.latitude}, {userCoordinates.longitude}
-              </p>
-            )}
-
-            {resourceLookupLoading && (
-              <p className="mt-2 inline-flex items-center gap-2 text-xs text-[#1B4332]/70">
-                <Loader2 size={12} className="animate-spin" />
-                Refreshing nearby Google Places resources...
-              </p>
+            {resourceSelectedLocation && (
+              <a
+                href={buildGoogleMapsSearchUrl(resourceSelectedLocation.name, resourceSelectedLocation)}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+              >
+                📍 View on Google Maps
+              </a>
             )}
 
             <div className="mt-4 space-y-3">
               {filteredResources.map((resource) => (
-                <div key={resource.id || resource.name} className="rounded-xl border border-[#52B788]/25 bg-[#eef9f2] p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-[#1B4332]">{resource.name}</p>
-                    {resource.source === 'google' && (
-                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-[#1B4332]/70">
-                        Google Places
-                      </span>
-                    )}
-                  </div>
+                <div key={resource.id} className="rounded-xl border border-[#52B788]/25 bg-[#eef9f2] p-3">
+                  <p className="text-sm font-semibold text-[#1B4332]">{resource.name}</p>
                   <p className="text-xs font-medium text-[#1B4332]/70">{resource.type}</p>
                   <p className="mt-1 text-xs text-[#1B4332]/75">{resource.description}</p>
                   <p className="mt-1 text-xs text-[#1B4332]/75">{resource.address}</p>
-                  {resource.phone && (
-                    <p className="text-xs text-[#1B4332]/75">
-                      Phone:{' '}
-                      <a href={`tel:${resource.phone.replace(/[^\d+]/g, '')}`} className="font-semibold underline">
-                        {resource.phone}
-                      </a>
-                    </p>
-                  )}
+                  <p className="text-xs text-[#1B4332]/75">
+                    Phone:{' '}
+                    <a href={`tel:${resource.phone.replace(/[^\d+]/g, '')}`} className="font-semibold underline">
+                      {resource.phone}
+                    </a>
+                  </p>
                   <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-[#1B4332]">
-                    {resource.website && (
-                      <a href={resource.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline">
-                        Official Website <ExternalLink size={12} />
-                      </a>
-                    )}
+                    <a href={resource.website} target="_blank" rel="noreferrer" className="underline">
+                      Official Website
+                    </a>
                     <a
-                      href={resource.mapUrl || buildGoogleMapsSearchUrl(`${resource.mapQuery || resource.name} near ${locationQualifier}`)}
+                      href={buildGoogleMapsSearchUrl(
+                        `${resource.mapQuery} ${resourceSelectedLocation?.name || 'East Bay California'}`
+                      )}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 underline"
+                      className="underline"
                     >
-                      Open in Google Maps <ExternalLink size={12} />
+                      📍 View on Google Maps
                     </a>
                   </div>
                 </div>

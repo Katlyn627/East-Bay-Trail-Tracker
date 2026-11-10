@@ -2,10 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { addDoc, arrayUnion, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Camera, CheckCircle2, Loader2, Trash2, UploadCloud } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import useCaliforniaTrailSearch from '../hooks/useCaliforniaTrailSearch';
 import { db } from '../firebase';
+import { buildGoogleMapsSearchUrl, normalizeCoordinates } from '../utils/maps';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
 
-const SUGGESTED_TRAILS = ['Tilden Regional Park', 'Redwood Regional', 'Mission Peak', 'Joaquin Miller Park'];
 const MAX_PHOTOS = 5;
 
 const LogCleanup = () => {
@@ -22,6 +23,9 @@ const LogCleanup = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedTrailLocation, setSelectedTrailLocation] = useState(null);
+  const [showTrailSuggestions, setShowTrailSuggestions] = useState(false);
+  const trailSearch = useCaliforniaTrailSearch(formData.trailName);
 
   const metricsPreview = useMemo(() => {
     return {
@@ -64,6 +68,8 @@ const LogCleanup = () => {
       notes: '',
     });
     setPhotos([]);
+    setSelectedTrailLocation(null);
+    setShowTrailSuggestions(false);
   };
 
   const handleSubmit = async (event) => {
@@ -91,6 +97,14 @@ const LogCleanup = () => {
       setSubmitting(true);
       const pointsEarned = 25;
       const uploadedPhotoUrls = [];
+      const selectedCoordinates =
+        selectedTrailLocation?.name?.trim().toLowerCase() === trailName.toLowerCase()
+          ? normalizeCoordinates({
+              latitude: selectedTrailLocation.latitude,
+              longitude: selectedTrailLocation.longitude,
+            })
+          : null;
+      const trailMapUrl = buildGoogleMapsSearchUrl(trailName, selectedCoordinates);
 
       for (const photo of photos) {
         const photoUrl = await uploadTrailReportImage(photo, user.uid);
@@ -102,6 +116,8 @@ const LogCleanup = () => {
         userEmail: user.email || '',
         userName: userProfile?.displayName || 'Trail Explorer',
         trailName,
+        trailCoordinates: selectedCoordinates,
+        trailMapUrl,
         bagCount: metricsPreview.bags,
         totalWeightLbs: metricsPreview.weight,
         milesLogged: metricsPreview.miles,
@@ -168,20 +184,60 @@ const LogCleanup = () => {
         <div className="grid gap-4 md:grid-cols-2">
           <label className="md:col-span-2">
             <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Trail / Park Name</span>
-            <input
-              type="text"
-              list="trail-name-suggestions"
-              value={formData.trailName}
-              onChange={(event) => handleFieldChange('trailName', event.target.value)}
-              placeholder="Tilden Regional Park"
-              className="input-field"
-              required
-            />
-            <datalist id="trail-name-suggestions">
-              {SUGGESTED_TRAILS.map((trail) => (
-                <option key={trail} value={trail} />
-              ))}
-            </datalist>
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.trailName}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  handleFieldChange('trailName', value);
+                  if (selectedTrailLocation && selectedTrailLocation.name !== value) {
+                    setSelectedTrailLocation(null);
+                  }
+                  setShowTrailSuggestions(true);
+                }}
+                onFocus={() => setShowTrailSuggestions(true)}
+                onBlur={() => window.setTimeout(() => setShowTrailSuggestions(false), 120)}
+                placeholder="Search any California trail or park"
+                className="input-field"
+                required
+              />
+              {showTrailSuggestions && trailSearch.suggestions.length > 0 && (
+                <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                  {trailSearch.suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      type="button"
+                      onClick={() => {
+                        handleFieldChange('trailName', suggestion.name);
+                        setSelectedTrailLocation(suggestion);
+                        setShowTrailSuggestions(false);
+                      }}
+                      className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                    >
+                      {suggestion.displayName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {trailSearch.loading && <p className="mt-1 text-xs text-[#1B4332]/70">Searching California trails...</p>}
+            {trailSearch.error && <p className="mt-1 text-xs text-[#8b2c2c]">{trailSearch.error}</p>}
+            {formData.trailName && (
+              <a
+                href={buildGoogleMapsSearchUrl(
+                  formData.trailName,
+                  selectedTrailLocation?.name?.trim().toLowerCase() === formData.trailName.trim().toLowerCase()
+                    ? selectedTrailLocation
+                    : null
+                )}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+              >
+                📍 View on Google Maps
+              </a>
+            )}
           </label>
 
           <label>
