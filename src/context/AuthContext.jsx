@@ -12,6 +12,38 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const AuthContext = createContext(null);
 
+const getNumericValue = (primaryValue, fallbackValue = 0) => {
+  if (typeof primaryValue === 'number' && Number.isFinite(primaryValue)) return primaryValue;
+  if (typeof fallbackValue === 'number' && Number.isFinite(fallbackValue)) return fallbackValue;
+  return 0;
+};
+
+const getUniqueTrails = (profile) => {
+  if (Array.isArray(profile?.uniqueTrails)) {
+    return [...new Set(profile.uniqueTrails.filter((trail) => typeof trail === 'string' && trail.trim()))];
+  }
+
+  return [];
+};
+
+const createImpactMetrics = (profile = {}) => {
+  const totalBags = getNumericValue(profile.totalBags, profile.trashBagsCollected);
+  const totalWeightLbs = getNumericValue(profile.totalWeightLbs, 0);
+  const totalMiles = getNumericValue(profile.totalMiles, profile.milesLogged);
+  const totalHours = getNumericValue(profile.totalHours, profile.volunteerHours);
+  const pointsBalance = getNumericValue(profile.pointsBalance, 0);
+  const uniqueTrails = getUniqueTrails(profile);
+
+  return {
+    totalBags,
+    totalWeightLbs,
+    totalMiles,
+    totalHours,
+    uniqueTrails,
+    pointsBalance,
+  };
+};
+
 const createDefaultProfile = (currentUser, overrides = {}) => ({
   uid: currentUser?.uid || overrides.uid || '',
   email: currentUser?.email || overrides.email || '',
@@ -21,15 +53,31 @@ const createDefaultProfile = (currentUser, overrides = {}) => ({
   location: overrides.location || '',
   bio: overrides.bio || '',
   preferredUnits: overrides.preferredUnits || 'miles',
-  milesLogged: 0,
-  volunteerHours: 0,
-  trashBagsCollected: 0,
+  ...createImpactMetrics(overrides),
+  milesLogged: getNumericValue(overrides.milesLogged, overrides.totalMiles),
+  volunteerHours: getNumericValue(overrides.volunteerHours, overrides.totalHours),
+  trashBagsCollected: getNumericValue(overrides.trashBagsCollected, overrides.totalBags),
   issuesReported: 0,
-  pointsBalance: 0,
+  pointsBalance: getNumericValue(overrides.pointsBalance, 0),
   badgesEarned: [],
   createdAt: new Date(),
   updatedAt: new Date(),
 });
+
+const normalizeProfile = (currentUser, profile = {}) => {
+  const defaults = createDefaultProfile(currentUser, profile);
+  const metrics = createImpactMetrics({ ...defaults, ...profile });
+  const mergedProfile = { ...defaults, ...profile, ...metrics };
+
+  return {
+    ...mergedProfile,
+    trashBagsCollected: metrics.totalBags,
+    milesLogged: metrics.totalMiles,
+    volunteerHours: metrics.totalHours,
+    pointsBalance: metrics.pointsBalance,
+    uniqueTrails: metrics.uniqueTrails,
+  };
+};
 
 const profileNeedsSetup = (profile) => {
   if (!profile) return true;
@@ -62,13 +110,21 @@ export const AuthProvider = ({ children }) => {
         const userDoc = await getDoc(userDocRef);
 
         const profile = userDoc.exists()
-          ? { ...createDefaultProfile(currentUser, userDoc.data()), ...userDoc.data() }
-          : createDefaultProfile(currentUser, {
+          ? normalizeProfile(currentUser, userDoc.data())
+          : normalizeProfile(currentUser, {
               displayName: currentUser.displayName || 'Trail Explorer',
             });
 
-        if (!userDoc.exists()) {
-          await setDoc(userDocRef, profile);
+        const needsMetricsBackfill =
+          !userDoc.exists() ||
+          userDoc.data()?.totalBags === undefined ||
+          userDoc.data()?.totalWeightLbs === undefined ||
+          userDoc.data()?.totalMiles === undefined ||
+          userDoc.data()?.totalHours === undefined ||
+          !Array.isArray(userDoc.data()?.uniqueTrails);
+
+        if (needsMetricsBackfill) {
+          await setDoc(userDocRef, profile, { merge: true });
         }
 
         setUserProfile(profile);
@@ -91,17 +147,18 @@ export const AuthProvider = ({ children }) => {
     const existingDoc = await getDoc(userDocRef);
     const nextProfile = existingDoc.exists()
       ? {
-          ...createDefaultProfile(currentUser, existingDoc.data()),
-          ...existingDoc.data(),
+          ...normalizeProfile(currentUser, existingDoc.data()),
           ...profileOverrides,
           updatedAt: new Date(),
         }
-      : createDefaultProfile(currentUser, profileOverrides);
+      : normalizeProfile(currentUser, profileOverrides);
 
-    await setDoc(userDocRef, nextProfile, { merge: true });
-    setUserProfile(nextProfile);
-    setNeedsProfileSetup(profileNeedsSetup(nextProfile));
-    return nextProfile;
+    const normalizedNextProfile = normalizeProfile(currentUser, nextProfile);
+
+    await setDoc(userDocRef, normalizedNextProfile, { merge: true });
+    setUserProfile(normalizedNextProfile);
+    setNeedsProfileSetup(profileNeedsSetup(normalizedNextProfile));
+    return normalizedNextProfile;
   };
 
   const signUp = async (email, password, displayName) => {
@@ -169,11 +226,12 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const userDocRef = doc(db, 'users', user.uid);
-      const nextProfile = {
-        ...(userProfile || createDefaultProfile(user)),
+      const mergedProfile = {
+        ...(userProfile || normalizeProfile(user)),
         ...(updates || {}),
         updatedAt: new Date(),
       };
+      const nextProfile = normalizeProfile(user, mergedProfile);
 
       delete nextProfile.saplings;
       delete nextProfile.saplingsAvailable;
@@ -197,8 +255,8 @@ export const AuthProvider = ({ children }) => {
       throw new Error('You must be logged in before saving your profile.');
     }
 
-    const nextProfile = {
-      ...(userProfile || createDefaultProfile(user)),
+    const nextProfile = normalizeProfile(user, {
+      ...(userProfile || normalizeProfile(user)),
       uid: user.uid,
       email: user.email || userProfile?.email || '',
       displayName: profileData.displayName,
@@ -207,7 +265,7 @@ export const AuthProvider = ({ children }) => {
       bio: profileData.bio,
       preferredUnits: profileData.preferredUnits || 'miles',
       updatedAt: new Date(),
-    };
+    });
 
     await setDoc(doc(db, 'users', user.uid), nextProfile, { merge: true });
     setUserProfile(nextProfile);

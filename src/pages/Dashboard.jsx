@@ -5,8 +5,10 @@ import {
   Award,
   Clock3,
   Edit2,
+  Footprints,
   Loader,
   MapPinned,
+  Mountain,
   Trash2,
 } from 'lucide-react';
 import ReportCleanupModal from '../components/ReportCleanupModal';
@@ -52,26 +54,52 @@ const Dashboard = () => {
     );
   }
 
+  const impactMetrics = {
+    totalBags: userProfile?.totalBags ?? userProfile?.trashBagsCollected ?? 0,
+    totalWeightLbs: userProfile?.totalWeightLbs || 0,
+    totalMiles: userProfile?.totalMiles ?? userProfile?.milesLogged ?? 0,
+    totalHours: userProfile?.totalHours ?? userProfile?.volunteerHours ?? 0,
+    uniqueTrailsCount: Array.isArray(userProfile?.uniqueTrails)
+      ? userProfile.uniqueTrails.length
+      : 0,
+    pointsBalance: userProfile?.pointsBalance || 0,
+  };
+
   const stats = [
     {
       label: 'Trash Bags',
-      value: userProfile?.trashBagsCollected || 0,
-      icon: <Trash2 size={24} className="text-emerald-700" />,
+      value: impactMetrics.totalBags,
+      detail: `${impactMetrics.totalWeightLbs.toFixed(1)} lbs removed`,
+      icon: <Trash2 size={21} className="text-[#1B4332]" />,
+      tone: 'from-[#52B788]/20 to-[#52B788]/5',
     },
     {
-      label: 'Miles Logged',
-      value: userProfile?.milesLogged || 0,
-      icon: <MapPinned size={24} className="text-sky-700" />,
+      label: 'Miles',
+      value: impactMetrics.totalMiles.toFixed(1),
+      detail: 'Distance cleaned',
+      icon: <MapPinned size={21} className="text-[#1B4332]" />,
+      tone: 'from-[#1B4332]/10 to-[#1B4332]/5',
     },
     {
-      label: 'Volunteer Hours',
-      value: userProfile?.volunteerHours || 0,
-      icon: <Clock3 size={24} className="text-amber-700" />,
+      label: 'Hours',
+      value: impactMetrics.totalHours.toFixed(1),
+      detail: 'Volunteer time',
+      icon: <Clock3 size={21} className="text-[#1B4332]" />,
+      tone: 'from-[#D4A373]/25 to-[#D4A373]/10',
     },
     {
-      label: 'Points Balance',
-      value: userProfile?.pointsBalance || 0,
-      icon: <Award size={24} className="text-orange-500" />,
+      label: 'Unique Trails',
+      value: impactMetrics.uniqueTrailsCount,
+      detail: 'Distinct trail routes',
+      icon: <Footprints size={21} className="text-[#1B4332]" />,
+      tone: 'from-[#52B788]/15 to-[#D4A373]/10',
+    },
+    {
+      label: 'Points',
+      value: impactMetrics.pointsBalance,
+      detail: 'Impact rewards earned',
+      icon: <Award size={21} className="text-[#1B4332]" />,
+      tone: 'from-[#D4A373]/25 to-[#52B788]/10',
     },
   ];
 
@@ -105,6 +133,24 @@ const Dashboard = () => {
       </div>
 
       <div className="mx-auto max-w-6xl px-0 sm:px-2">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {stats.map((stat) => (
+            <div
+              key={stat.label}
+              className={`rounded-2xl border border-[#D4A373]/20 bg-gradient-to-br ${stat.tone} p-4 shadow-sm`}
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1B4332]/80">
+                  {stat.label}
+                </span>
+                <div className="rounded-lg border border-[#D4A373]/35 bg-white/85 p-2">{stat.icon}</div>
+              </div>
+              <p className="text-3xl font-bold text-[#1B4332]">{stat.value}</p>
+              <p className="mt-1 text-xs text-[#1B4332]/70">{stat.detail}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="card mb-6 rounded-2xl border border-emerald-100 bg-gradient-to-br from-[#f5f8ef] to-white p-4 sm:p-5">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex-1">
@@ -156,16 +202,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => (
-            <div key={index} className="card mobile-card text-center">
-              <div className="mb-3 flex justify-center">{stat.icon}</div>
-              <p className="mb-1 text-2xl font-bold text-dark sm:text-3xl">{stat.value}</p>
-              <p className="text-xs text-gray-600 sm:text-sm">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
         <div className="mb-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="card">
             <div className="mb-4 flex items-center gap-2">
@@ -203,7 +239,7 @@ const Dashboard = () => {
 
             <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-5 text-white shadow-md">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">Current balance</p>
-              <p className="mt-2 text-4xl font-bold">{userProfile?.pointsBalance || 0}</p>
+              <p className="mt-2 text-4xl font-bold">{impactMetrics.pointsBalance}</p>
               <p className="mt-2 text-sm text-emerald-100">Trail maintenance and cleanup points update instantly.</p>
             </div>
 
@@ -223,22 +259,26 @@ const Dashboard = () => {
 
         <div className="card mb-8">
           <div className="mb-4 flex items-center gap-2">
-            <Trash2 size={22} className="text-emerald-700" />
+            <Mountain size={22} className="text-emerald-700" />
             <h3 className="text-xl font-bold text-dark">Trash & Cleanup Metrics</h3>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-sm text-emerald-700">Total trash bags</p>
-              <p className="mt-2 text-3xl font-bold text-emerald-900">{userProfile?.trashBagsCollected || 0}</p>
+              <p className="mt-2 text-3xl font-bold text-emerald-900">{impactMetrics.totalBags}</p>
             </div>
             <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
               <p className="text-sm text-sky-700">Miles logged</p>
-              <p className="mt-2 text-3xl font-bold text-sky-900">{userProfile?.milesLogged || 0}</p>
+              <p className="mt-2 text-3xl font-bold text-sky-900">{impactMetrics.totalMiles.toFixed(1)}</p>
             </div>
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <p className="text-sm text-amber-700">Volunteer hours</p>
-              <p className="mt-2 text-3xl font-bold text-amber-900">{userProfile?.volunteerHours || 0}</p>
+              <p className="mt-2 text-3xl font-bold text-amber-900">{impactMetrics.totalHours.toFixed(1)}</p>
+            </div>
+            <div className="rounded-2xl border border-[#D4A373]/30 bg-[#fff8f2] p-4">
+              <p className="text-sm text-[#8b6a4f]">Estimated weight removed</p>
+              <p className="mt-2 text-3xl font-bold text-[#5c4433]">{impactMetrics.totalWeightLbs.toFixed(1)} lbs</p>
             </div>
           </div>
         </div>

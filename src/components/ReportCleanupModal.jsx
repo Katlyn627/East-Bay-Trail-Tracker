@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, arrayUnion, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Camera, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
@@ -34,8 +34,11 @@ function ReportCleanupModal({ isOpen, onClose }) {
   const { user, userProfile, updateUserProfile } = useAuth();
   const inputRef = useRef(null);
   const [issueType, setIssueType] = useState('trash');
+  const [trailName, setTrailName] = useState('');
   const [bagCount, setBagCount] = useState(1);
   const [milesLogged, setMilesLogged] = useState('');
+  const [hoursWorked, setHoursWorked] = useState('');
+  const [weightLbs, setWeightLbs] = useState('');
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState([]);
   const [replaceIndex, setReplaceIndex] = useState(null);
@@ -85,8 +88,11 @@ function ReportCleanupModal({ isOpen, onClose }) {
 
   const resetForm = () => {
     setIssueType('trash');
+    setTrailName('');
     setBagCount(1);
     setMilesLogged('');
+    setHoursWorked('');
+    setWeightLbs('');
     setNotes('');
     setPhotos([]);
     setReplaceIndex(null);
@@ -109,6 +115,11 @@ function ReportCleanupModal({ isOpen, onClose }) {
       return;
     }
 
+    if (!trailName.trim()) {
+      setError('Please add the trail name so we can track unique trail impact.');
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -120,15 +131,21 @@ function ReportCleanupModal({ isOpen, onClose }) {
 
       const bagTotal = Number(bagCount || 0);
       const miles = Number(milesLogged || 0);
+      const hours = Number(hoursWorked || 0);
+      const totalWeight = Number(weightLbs || 0);
       const pointsEarned = 25 + bagTotal * 10;
+      const normalizedTrailName = trailName.trim();
 
       await addDoc(collection(db, 'reports'), {
         uid: user.uid,
         userEmail: user.email,
         userName: userProfile?.displayName || 'Trail Explorer',
         issueType,
+        trailName: normalizedTrailName,
         bagCount: bagTotal,
+        totalWeightLbs: totalWeight,
         milesLogged: miles,
+        totalHours: hours,
         notes: notes.trim(),
         photoUrls: uploadedPhotoUrls,
         createdAt: serverTimestamp(),
@@ -138,15 +155,32 @@ function ReportCleanupModal({ isOpen, onClose }) {
 
       await updateDoc(doc(db, 'users', user.uid), {
         pointsBalance: increment(pointsEarned),
+        totalBags: increment(bagTotal),
+        totalWeightLbs: increment(totalWeight),
+        totalMiles: increment(miles),
+        totalHours: increment(hours),
+        uniqueTrails: arrayUnion(normalizedTrailName),
         trashBagsCollected: increment(bagTotal),
         milesLogged: increment(miles),
+        volunteerHours: increment(hours),
         updatedAt: serverTimestamp(),
       });
 
+      const existingTrails = Array.isArray(userProfile?.uniqueTrails) ? userProfile.uniqueTrails : [];
+      const nextUniqueTrails = existingTrails.includes(normalizedTrailName)
+        ? existingTrails
+        : [...existingTrails, normalizedTrailName];
+
       await updateUserProfile({
         pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
+        totalBags: (userProfile?.totalBags ?? userProfile?.trashBagsCollected ?? 0) + bagTotal,
+        totalWeightLbs: (userProfile?.totalWeightLbs || 0) + totalWeight,
+        totalMiles: (userProfile?.totalMiles ?? userProfile?.milesLogged ?? 0) + miles,
+        totalHours: (userProfile?.totalHours ?? userProfile?.volunteerHours ?? 0) + hours,
+        uniqueTrails: nextUniqueTrails,
         trashBagsCollected: (userProfile?.trashBagsCollected || 0) + bagTotal,
         milesLogged: (userProfile?.milesLogged || 0) + miles,
+        volunteerHours: (userProfile?.volunteerHours || 0) + hours,
       });
 
       setSuccess(`Cleanup submitted! You earned ${pointsEarned} points.`);
@@ -216,6 +250,17 @@ function ReportCleanupModal({ isOpen, onClose }) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block sm:col-span-2">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">Trail name</span>
+              <input
+                type="text"
+                value={trailName}
+                onChange={(event) => setTrailName(event.target.value)}
+                placeholder="Redwood Regional Trail"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              />
+            </label>
+
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">Trash bags collected</span>
               <input
@@ -236,6 +281,32 @@ function ReportCleanupModal({ isOpen, onClose }) {
                 value={milesLogged}
                 onChange={(event) => setMilesLogged(event.target.value)}
                 placeholder="0.5"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">Volunteer hours</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={hoursWorked}
+                onChange={(event) => setHoursWorked(event.target.value)}
+                placeholder="1.5"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">Estimated trash weight (lbs)</span>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={weightLbs}
+                onChange={(event) => setWeightLbs(event.target.value)}
+                placeholder="12.5"
                 className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
               />
             </label>
