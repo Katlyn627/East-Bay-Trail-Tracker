@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   addDoc,
   arrayRemove,
@@ -11,25 +11,63 @@ import {
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { CalendarDays, Loader2, MapPin, MessageCircle, Reply, Users } from 'lucide-react';
+import {
+  CalendarDays,
+  ExternalLink,
+  Link2,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  MessageCircle,
+  Reply,
+  Search,
+  Users,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 
-const RESOURCE_PARTNERS = [
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+
+const FALLBACK_RESOURCES = [
   {
+    id: 'ebparks',
     name: 'East Bay Regional Park District',
     type: 'Parks & Access',
-    description: 'Trail maps, maintenance notices, and stewardship volunteer opportunities.',
+    description: 'Trail maps, closures, ranger updates, and stewardship opportunities.',
+    website: 'https://www.ebparks.org',
+    phone: '(888) 327-2757',
+    address: '2950 Peralta Oaks Ct, Oakland, CA 94605',
+    mapQuery: 'East Bay Regional Park District headquarters Oakland',
   },
   {
+    id: 'five-creeks',
     name: 'Friends of Five Creeks',
     type: 'Conservation Group',
-    description: 'Habitat restoration projects and watershed cleanup collaborations.',
+    description: 'Creek restoration, native habitat projects, and local volunteer cleanups.',
+    website: 'https://www.fivecreeks.org',
+    phone: '(510) 848-9358',
+    address: 'Berkeley, CA',
+    mapQuery: 'Friends of Five Creeks Berkeley',
   },
   {
-    name: 'Bay Area Tool Share Network',
-    type: 'Tool-Sharing',
-    description: 'Community loaner tools for trail litter pickup and invasive removal.',
+    id: 'tool-library',
+    name: 'Bay Area Tool Library',
+    type: 'Tool-Sharing Library',
+    description: 'Community access to cleanup tools, gloves, grabbers, and utility equipment.',
+    website: 'https://oaklandlibrary.org/services/tool-lending-library/',
+    phone: '(510) 615-5566',
+    address: '5205 Telegraph Ave, Oakland, CA 94609',
+    mapQuery: 'Tool Lending Library Oakland Telegraph Avenue',
+  },
+  {
+    id: 'ranger-station',
+    name: 'Anthony Chabot Ranger Station',
+    type: 'Ranger Station',
+    description: 'Trail safety updates, hazard escalation support, and ranger coordination.',
+    website: 'https://www.ebparks.org/parks/anthony-chabot',
+    phone: '(510) 247-2526',
+    address: '9999 Redwood Rd, Castro Valley, CA 94546',
+    mapQuery: 'Anthony Chabot Regional Park ranger station',
   },
 ];
 
@@ -39,17 +77,28 @@ const COMMUNITY_GOALS = [
   'Increase new volunteer participation by 25%',
 ];
 
+let googleMapsScriptPromise;
+
 const formatTimestamp = (value) => {
   if (!value) return 'Just now';
-
   try {
-    if (typeof value?.toDate === 'function') {
-      return value.toDate().toLocaleString();
-    }
+    if (typeof value?.toDate === 'function') return value.toDate().toLocaleString();
     return new Date(value).toLocaleString();
   } catch {
     return 'Just now';
   }
+};
+
+const getCoordinatesFromDetails = (details) => {
+  const location = details?.geometry?.location;
+  if (!location) return null;
+  const lat = typeof location.lat === 'function' ? location.lat() : location.lat;
+  const lng = typeof location.lng === 'function' ? location.lng() : location.lng;
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+  return {
+    latitude: Number(lat.toFixed(6)),
+    longitude: Number(lng.toFixed(6)),
+  };
 };
 
 const toDateInputValue = (value) => {
@@ -57,6 +106,53 @@ const toDateInputValue = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return date.toISOString().split('T')[0];
+};
+
+const parseTrailTags = (tagInput) =>
+  [...new Set((tagInput || '').split(',').map((entry) => entry.trim()).filter(Boolean))];
+
+const buildGoogleMapsSearchUrl = (queryText) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryText)}`;
+
+const loadGoogleMapsPlaces = async () => {
+  if (typeof window === 'undefined') return false;
+  if (window.google?.maps?.places) return true;
+  if (!GOOGLE_MAPS_API_KEY) return false;
+
+  if (!googleMapsScriptPromise) {
+    googleMapsScriptPromise = new Promise((resolve, reject) => {
+      const existingScript = document.getElementById('google-maps-places-sdk');
+      if (existingScript) {
+        existingScript.addEventListener('load', () => resolve(true));
+        existingScript.addEventListener('error', () => reject(new Error('Google Maps failed to load.')));
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = 'google-maps-places-sdk';
+      script.async = true;
+      script.defer = true;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.onload = () => resolve(true);
+      script.onerror = () => reject(new Error('Google Maps failed to load.'));
+      document.head.appendChild(script);
+    });
+  }
+
+  try {
+    await googleMapsScriptPromise;
+    return !!window.google?.maps?.places;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+const classifyResourceType = (types = []) => {
+  if (types.includes('park')) return 'Parks & Access';
+  if (types.includes('fire_station') || types.includes('local_government_office')) return 'Ranger Station';
+  if (types.includes('library')) return 'Tool-Sharing Library';
+  return 'Conservation Group';
 };
 
 const CommunityBoard = () => {
@@ -75,9 +171,25 @@ const CommunityBoard = () => {
   const [boardError, setBoardError] = useState('');
   const [boardSuccess, setBoardSuccess] = useState('');
   const [replyDrafts, setReplyDrafts] = useState({});
-  const [postForm, setPostForm] = useState({ title: '', message: '', trailName: '' });
+  const [resourceSearch, setResourceSearch] = useState('');
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [resourceLookupLoading, setResourceLookupLoading] = useState(false);
+  const [userCoordinates, setUserCoordinates] = useState(null);
+  const [googlePlacesReady, setGooglePlacesReady] = useState(false);
+  const [autocompleteStatus, setAutocompleteStatus] = useState('');
+  const [postTrailSuggestions, setPostTrailSuggestions] = useState([]);
+  const [eventTrailSuggestions, setEventTrailSuggestions] = useState([]);
+  const [resourceSuggestions, setResourceSuggestions] = useState([]);
+  const [resourcePlaces, setResourcePlaces] = useState([]);
+  const [postTrailLocation, setPostTrailLocation] = useState(null);
+  const [eventTrailLocation, setEventTrailLocation] = useState(null);
+  const [postForm, setPostForm] = useState({ title: '', message: '', trailName: '', trailTags: '' });
   const [commentDraft, setCommentDraft] = useState('');
   const [eventForm, setEventForm] = useState({ title: '', date: '', trailName: '', details: '' });
+
+  const placesServiceRef = useRef(null);
+  const placesAutocompleteRef = useRef(null);
+  const placesContainerRef = useRef(null);
 
   const boardDisplayName = userProfile?.displayName || user?.displayName || 'Trail Volunteer';
 
@@ -95,7 +207,6 @@ const CommunityBoard = () => {
         setLoadingPosts(false);
       }
     );
-
     return () => unsubscribe();
   }, []);
 
@@ -113,7 +224,6 @@ const CommunityBoard = () => {
         setLoadingEvents(false);
       }
     );
-
     return () => unsubscribe();
   }, []);
 
@@ -124,10 +234,7 @@ const CommunityBoard = () => {
     }
 
     setLoadingComments(true);
-    const commentsQuery = query(
-      collection(db, 'communityPosts', activeThreadPostId, 'comments'),
-      orderBy('createdAt', 'asc')
-    );
+    const commentsQuery = query(collection(db, 'communityPosts', activeThreadPostId, 'comments'), orderBy('createdAt', 'asc'));
     const unsubscribe = onSnapshot(
       commentsQuery,
       (snapshot) => {
@@ -140,14 +247,36 @@ const CommunityBoard = () => {
         setLoadingComments(false);
       }
     );
-
     return () => unsubscribe();
   }, [activeThreadPostId]);
 
-  const rootComments = useMemo(
-    () => comments.filter((entry) => !entry.parentCommentId),
-    [comments]
-  );
+  useEffect(() => {
+    let mounted = true;
+    loadGoogleMapsPlaces().then((ready) => {
+      if (!mounted) return;
+      setGooglePlacesReady(ready);
+      if (!ready) {
+        setAutocompleteStatus(
+          GOOGLE_MAPS_API_KEY
+            ? 'Google Places suggestions unavailable right now.'
+            : 'Set VITE_GOOGLE_MAPS_API_KEY to enable Places autocomplete.'
+        );
+        return;
+      }
+
+      placesAutocompleteRef.current = new window.google.maps.places.AutocompleteService();
+      if (placesContainerRef.current) {
+        placesServiceRef.current = new window.google.maps.places.PlacesService(placesContainerRef.current);
+      }
+      setAutocompleteStatus('');
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const rootComments = useMemo(() => comments.filter((entry) => !entry.parentCommentId), [comments]);
 
   const repliesByParent = useMemo(() => {
     const map = {};
@@ -159,20 +288,227 @@ const CommunityBoard = () => {
     return map;
   }, [comments]);
 
+  const baseResources = useMemo(() => {
+    const normalizedPlaces = resourcePlaces.map((place) => ({
+      id: place.id,
+      name: place.name,
+      type: place.type,
+      description: place.description,
+      website: place.website,
+      phone: place.phone,
+      address: place.address,
+      mapQuery: place.mapQuery,
+      mapUrl: place.mapUrl,
+      source: 'google',
+    }));
+
+    return [...normalizedPlaces, ...FALLBACK_RESOURCES];
+  }, [resourcePlaces]);
+
+  const filteredResources = useMemo(() => {
+    const term = resourceSearch.trim().toLowerCase();
+    if (!term) return baseResources;
+
+    return baseResources.filter((resource) =>
+      [resource.name, resource.type, resource.description, resource.address].join(' ').toLowerCase().includes(term)
+    );
+  }, [baseResources, resourceSearch]);
+
   const setTransientMessage = (type, message) => {
-    if (type === 'error') {
-      setBoardError(message);
-    } else {
-      setBoardSuccess(message);
-    }
+    if (type === 'error') setBoardError(message);
+    else setBoardSuccess(message);
 
     window.setTimeout(() => {
-      if (type === 'error') {
-        setBoardError('');
-      } else {
-        setBoardSuccess('');
-      }
+      if (type === 'error') setBoardError('');
+      else setBoardSuccess('');
     }, 2600);
+  };
+
+  const resolvePlaceDetails = (placeId) =>
+    new Promise((resolve) => {
+      if (!placesServiceRef.current || !placeId || !window.google?.maps?.places) {
+        resolve(null);
+        return;
+      }
+
+      placesServiceRef.current.getDetails(
+        {
+          placeId,
+          fields: ['name', 'formatted_address', 'geometry', 'url', 'website', 'formatted_phone_number', 'types'],
+        },
+        (details, status) => {
+          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !details) {
+            resolve(null);
+            return;
+          }
+          resolve(details);
+        }
+      );
+    });
+
+  const handleSelectTrailSuggestion = async (target, suggestion) => {
+    const details = await resolvePlaceDetails(suggestion.id);
+    const coords = details ? getCoordinatesFromDetails(details) : null;
+    const chosenName = details?.name || details?.formatted_address || suggestion.name;
+    const mapUrl = buildGoogleMapsSearchUrl(chosenName);
+
+    if (target === 'post') {
+      setPostForm((prev) => ({ ...prev, trailName: chosenName }));
+      setPostTrailLocation(
+        coords
+          ? { ...coords, mapUrl }
+          : null
+      );
+      setPostTrailSuggestions([]);
+      return;
+    }
+
+    if (target === 'event') {
+      setEventForm((prev) => ({ ...prev, trailName: chosenName }));
+      setEventTrailLocation(
+        coords
+          ? { ...coords, mapUrl }
+          : null
+      );
+      setEventTrailSuggestions([]);
+      return;
+    }
+
+    if (target === 'resource') {
+      setResourceSearch(chosenName);
+      setResourceSuggestions([]);
+      fetchNearbyResources(userCoordinates, chosenName);
+    }
+  };
+
+  const fetchTrailSuggestions = (inputValue, target) => {
+    if (!googlePlacesReady || !placesAutocompleteRef.current || !inputValue.trim()) {
+      if (target === 'post') setPostTrailSuggestions([]);
+      if (target === 'event') setEventTrailSuggestions([]);
+      if (target === 'resource') setResourceSuggestions([]);
+      return;
+    }
+
+    const request = {
+      input: inputValue.trim(),
+      types: ['establishment'],
+      componentRestrictions: { country: 'us' },
+    };
+
+    placesAutocompleteRef.current.getPlacePredictions(request, (predictions = [], status) => {
+      const ok = status === window.google.maps.places.PlacesServiceStatus.OK;
+      const next = ok
+        ? predictions
+            .filter((prediction) => prediction.types?.some((entry) => ['park', 'natural_feature', 'point_of_interest'].includes(entry)))
+            .slice(0, 6)
+            .map((prediction) => ({
+              id: prediction.place_id,
+              name: prediction.description,
+            }))
+        : [];
+
+      if (target === 'post') setPostTrailSuggestions(next);
+      if (target === 'event') setEventTrailSuggestions(next);
+      if (target === 'resource') setResourceSuggestions(next);
+    });
+  };
+
+  const fetchNearbyResources = async (coords, searchTerm = '') => {
+    if (!googlePlacesReady || !placesServiceRef.current) return;
+    setResourceLookupLoading(true);
+
+    const keyword = searchTerm.trim() || 'park ranger station conservation group tool library';
+    const handleResults = async (results = [], status) => {
+      if (status !== window.google.maps.places.PlacesServiceStatus.OK) {
+        setResourceLookupLoading(false);
+        return;
+      }
+
+      const topPlaces = results.slice(0, 8);
+      const detailedPlaces = await Promise.all(
+        topPlaces.map(
+          (place) =>
+            new Promise((resolve) => {
+              placesServiceRef.current.getDetails(
+                {
+                  placeId: place.place_id,
+                  fields: ['name', 'formatted_address', 'formatted_phone_number', 'website', 'url', 'types'],
+                },
+                (details, detailStatus) => {
+                  if (detailStatus !== window.google.maps.places.PlacesServiceStatus.OK || !details) {
+                    resolve(null);
+                    return;
+                  }
+                  resolve({
+                    id: `google-${place.place_id}`,
+                    name: details.name || place.name || 'Local resource',
+                    type: classifyResourceType(details.types || place.types || []),
+                    description: 'Nearby community stewardship resource from Google Places.',
+                    website: details.website || '',
+                    phone: details.formatted_phone_number || '',
+                    address: details.formatted_address || place.vicinity || '',
+                    mapQuery: details.name || place.name || 'resource',
+                    mapUrl: details.url || buildGoogleMapsSearchUrl(details.name || place.name || 'resource'),
+                  });
+                }
+              );
+            })
+        )
+      );
+
+      setResourcePlaces(detailedPlaces.filter(Boolean));
+      setResourceLookupLoading(false);
+    };
+
+    if (coords) {
+      const nearbyRequest = {
+        location: new window.google.maps.LatLng(Number(coords.latitude), Number(coords.longitude)),
+        radius: 15000,
+        keyword,
+      };
+      placesServiceRef.current.nearbySearch(nearbyRequest, handleResults);
+      return;
+    }
+
+    const textRequest = {
+      query: `${keyword} in East Bay California`,
+    };
+    placesServiceRef.current.textSearch(textRequest, handleResults);
+  };
+
+  useEffect(() => {
+    if (!googlePlacesReady || resourceSearch.trim().length < 3) return undefined;
+    const handle = window.setTimeout(() => {
+      fetchNearbyResources(userCoordinates, resourceSearch);
+    }, 450);
+    return () => window.clearTimeout(handle);
+  }, [resourceSearch, userCoordinates, googlePlacesReady]);
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      setTransientMessage('error', 'Geolocation is not available in this browser.');
+      return;
+    }
+
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          latitude: position.coords.latitude.toFixed(5),
+          longitude: position.coords.longitude.toFixed(5),
+        };
+        setUserCoordinates(coords);
+        fetchNearbyResources(coords, resourceSearch);
+        setTransientMessage('success', 'Location captured. Nearby resources refreshed.');
+        setDetectingLocation(false);
+      },
+      (error) => {
+        console.error('Unable to fetch user location:', error);
+        setTransientMessage('error', 'Could not capture location. You can still search manually.');
+        setDetectingLocation(false);
+      },
+      { timeout: 7000 }
+    );
   };
 
   const handleCreatePost = async (event) => {
@@ -187,18 +523,33 @@ const CommunityBoard = () => {
       return;
     }
 
+    const trailTags = parseTrailTags(`${postForm.trailTags},${postForm.trailName}`);
+    const postTrailName = postForm.trailName.trim();
+    const trailMapUrl = buildGoogleMapsSearchUrl(postTrailName || postForm.title.trim());
+    const trailCoordinates = postTrailLocation
+      ? {
+          latitude: postTrailLocation.latitude,
+          longitude: postTrailLocation.longitude,
+        }
+      : null;
+
     try {
       setPosting(true);
       await addDoc(collection(db, 'communityPosts'), {
         title: postForm.title.trim(),
         message: postForm.message.trim(),
-        trailName: postForm.trailName.trim(),
+        trailName: postTrailName,
+        trailTags,
+        trailMapUrl,
+        trailCoordinates,
         authorUid: user.uid,
         authorName: boardDisplayName,
         createdAt: serverTimestamp(),
       });
 
-      setPostForm({ title: '', message: '', trailName: '' });
+      setPostForm({ title: '', message: '', trailName: '', trailTags: '' });
+      setPostTrailSuggestions([]);
+      setPostTrailLocation(null);
       setTransientMessage('success', 'Post shared with the community board.');
     } catch (error) {
       console.error('Unable to create post:', error);
@@ -222,10 +573,19 @@ const CommunityBoard = () => {
 
     try {
       setCreatingEvent(true);
+      const eventTrailName = eventForm.trailName.trim();
+      const trailMapUrl = buildGoogleMapsSearchUrl(eventTrailName);
       await addDoc(collection(db, 'communityEvents'), {
         title: eventForm.title.trim(),
         eventDate: eventForm.date,
-        trailName: eventForm.trailName.trim(),
+        trailName: eventTrailName,
+        trailMapUrl,
+        trailCoordinates: eventTrailLocation
+          ? {
+              latitude: eventTrailLocation.latitude,
+              longitude: eventTrailLocation.longitude,
+            }
+          : null,
         details: eventForm.details.trim(),
         organizerUid: user.uid,
         organizerName: boardDisplayName,
@@ -234,6 +594,8 @@ const CommunityBoard = () => {
       });
 
       setEventForm({ title: '', date: '', trailName: '', details: '' });
+      setEventTrailSuggestions([]);
+      setEventTrailLocation(null);
       setTransientMessage('success', 'Cleanup event posted. You are auto-joined.');
     } catch (error) {
       console.error('Unable to create event:', error);
@@ -313,7 +675,6 @@ const CommunityBoard = () => {
         authorName: boardDisplayName,
         createdAt: serverTimestamp(),
       });
-
       setReplyDrafts((prev) => ({ ...prev, [parentCommentId]: '' }));
       setTransientMessage('success', 'Reply posted.');
     } catch (error) {
@@ -324,17 +685,21 @@ const CommunityBoard = () => {
     }
   };
 
+  const locationQualifier = resourceSearch.trim() || (userCoordinates ? `${userCoordinates.latitude}, ${userCoordinates.longitude}` : 'East Bay');
+
   return (
     <div className="space-y-6">
-      {(boardError || boardSuccess) && (
+      <div ref={placesContainerRef} className="hidden" />
+
+      {(boardError || boardSuccess || autocompleteStatus) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm font-medium ${
-            boardError
-              ? 'border-red-200 bg-red-50 text-red-700'
+            boardError || autocompleteStatus
+              ? 'border-amber-200 bg-amber-50 text-amber-800'
               : 'border-[#52B788]/35 bg-[#ecf9f1] text-[#1B4332]'
           }`}
         >
-          {boardError || boardSuccess}
+          {boardError || autocompleteStatus || boardSuccess}
         </div>
       )}
 
@@ -343,7 +708,7 @@ const CommunityBoard = () => {
           <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
             <h2 className="text-2xl font-bold text-[#1B4332]">Community Feed & Message Board</h2>
             <p className="mt-2 text-sm text-[#1B4332]/75">
-              Share trail conditions, celebrate wins, and coordinate local stewardship efforts.
+              Share trail conditions, cleanup wins, and operational notes with the East Bay volunteer network.
             </p>
 
             <form onSubmit={handleCreatePost} className="mt-4 grid gap-3">
@@ -351,21 +716,54 @@ const CommunityBoard = () => {
                 type="text"
                 value={postForm.title}
                 onChange={(event) => setPostForm((prev) => ({ ...prev, title: event.target.value }))}
-                placeholder="Post title (e.g., Redwood trailhead cleanup update)"
+                placeholder="Post title"
                 className="input-field"
               />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={postForm.trailName}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setPostForm((prev) => ({ ...prev, trailName: value }));
+                    setPostTrailLocation(null);
+                    fetchTrailSuggestions(value, 'post');
+                  }}
+                  placeholder="Primary trail / park"
+                  className="input-field"
+                />
+                {postTrailSuggestions.length > 0 && (
+                  <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                    {postTrailSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        onClick={() => handleSelectTrailSuggestion('post', suggestion)}
+                        className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                      >
+                        {suggestion.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {postTrailLocation && (
+                <p className="text-xs text-[#1B4332]/75">
+                  Coordinates: {postTrailLocation.latitude}, {postTrailLocation.longitude}
+                </p>
+              )}
               <input
                 type="text"
-                value={postForm.trailName}
-                onChange={(event) => setPostForm((prev) => ({ ...prev, trailName: event.target.value }))}
-                placeholder="Trail / Park"
+                value={postForm.trailTags}
+                onChange={(event) => setPostForm((prev) => ({ ...prev, trailTags: event.target.value }))}
+                placeholder="Additional trail tags (comma-separated)"
                 className="input-field"
               />
               <textarea
                 rows={3}
                 value={postForm.message}
                 onChange={(event) => setPostForm((prev) => ({ ...prev, message: event.target.value }))}
-                placeholder="Share an update, ask for support, or post a field note..."
+                placeholder="Share field updates, route conditions, or notes for other volunteers..."
                 className="input-field"
               />
               <button
@@ -393,119 +791,152 @@ const CommunityBoard = () => {
                 No posts yet. Be the first to share a trail update.
               </div>
             ) : (
-              posts.map((post) => (
-                <article key={post.id} className="rounded-2xl border border-[#D4A373]/25 bg-white p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-[#1B4332]">{post.title}</h3>
-                      <p className="text-xs text-[#1B4332]/65">
-                        {post.authorName || 'Community member'} · {formatTimestamp(post.createdAt)}
-                      </p>
-                    </div>
-                    {post.trailName && (
-                      <span className="rounded-full border border-[#52B788]/40 bg-[#eef9f2] px-2 py-1 text-xs font-semibold text-[#1B4332]">
-                        {post.trailName}
-                      </span>
+              posts.map((post) => {
+                const trailTags = Array.isArray(post.trailTags) && post.trailTags.length
+                  ? post.trailTags
+                  : post.trailName
+                    ? [post.trailName]
+                    : [];
+
+                return (
+                  <article key={post.id} className="rounded-2xl border border-[#D4A373]/25 bg-white p-4 shadow-sm">
+                    <h3 className="text-lg font-bold text-[#1B4332]">{post.title}</h3>
+                    <p className="text-xs text-[#1B4332]/65">
+                      {post.authorName || 'Community member'} · {formatTimestamp(post.createdAt)}
+                    </p>
+
+                    {trailTags.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {trailTags.map((tag) => (
+                          <a
+                            key={`${post.id}-${tag}`}
+                            href={buildGoogleMapsSearchUrl(`${tag} East Bay trail`)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 rounded-full border border-[#52B788]/40 bg-[#eef9f2] px-2 py-1 text-xs font-semibold text-[#1B4332] transition hover:bg-[#e2f5eb]"
+                          >
+                            <MapPin size={12} />
+                            {tag}
+                            <ExternalLink size={11} />
+                          </a>
+                        ))}
+                      </div>
                     )}
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-[#1B4332]/80">{post.message}</p>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveThreadPostId((prev) => (prev === post.id ? null : post.id))}
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#D4A373]/35 bg-[#fff8f2] px-3 py-1.5 text-xs font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
-                  >
-                    <MessageCircle size={14} />
-                    {activeThreadPostId === post.id ? 'Hide Thread' : 'Open Thread'}
-                  </button>
+                    <a
+                      href={post.trailMapUrl || buildGoogleMapsSearchUrl(`${post.trailName || post.title} East Bay trail`)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+                    >
+                      <Link2 size={12} />
+                      Directions
+                      <ExternalLink size={12} />
+                    </a>
 
-                  {activeThreadPostId === post.id && (
-                    <div className="mt-4 rounded-xl border border-[#D4A373]/25 bg-[#fcf8f4] p-3">
-                      <h4 className="text-sm font-semibold text-[#1B4332]">Comments & Replies</h4>
-                      {loadingComments ? (
-                        <p className="mt-2 text-xs text-[#1B4332]/70">Loading comments...</p>
-                      ) : (
-                        <div className="mt-2 space-y-3">
-                          {rootComments.length === 0 ? (
-                            <p className="text-xs text-[#1B4332]/70">No comments yet. Start the discussion.</p>
-                          ) : (
-                            rootComments.map((comment) => (
-                              <div key={comment.id} className="rounded-lg border border-[#D4A373]/20 bg-white px-3 py-2">
-                                <p className="text-xs font-semibold text-[#1B4332]">
-                                  {comment.authorName || 'Volunteer'} · {formatTimestamp(comment.createdAt)}
-                                </p>
-                                <p className="mt-1 text-sm text-[#1B4332]/80">{comment.message}</p>
+                    {post.trailCoordinates && (
+                      <p className="mt-1 text-xs text-[#1B4332]/65">
+                        Coordinates: {post.trailCoordinates.latitude}, {post.trailCoordinates.longitude}
+                      </p>
+                    )}
 
-                                <div className="mt-2 space-y-2">
-                                  {(repliesByParent[comment.id] || []).map((reply) => (
-                                    <div key={reply.id} className="rounded-md border border-[#52B788]/25 bg-[#eef9f2] px-2 py-1.5">
-                                      <p className="text-[11px] font-semibold text-[#1B4332]">
-                                        {reply.authorName || 'Volunteer'} · {formatTimestamp(reply.createdAt)}
-                                      </p>
-                                      <p className="text-xs text-[#1B4332]/80">{reply.message}</p>
-                                    </div>
-                                  ))}
+                    <p className="mt-3 whitespace-pre-wrap text-sm text-[#1B4332]/80">{post.message}</p>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveThreadPostId((prev) => (prev === post.id ? null : post.id))}
+                      className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#D4A373]/35 bg-[#fff8f2] px-3 py-1.5 text-xs font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
+                    >
+                      <MessageCircle size={14} />
+                      {activeThreadPostId === post.id ? 'Hide Thread' : 'Open Thread'}
+                    </button>
+
+                    {activeThreadPostId === post.id && (
+                      <div className="mt-4 rounded-xl border border-[#D4A373]/25 bg-[#fcf8f4] p-3">
+                        <h4 className="text-sm font-semibold text-[#1B4332]">Comments & Replies</h4>
+                        {loadingComments ? (
+                          <p className="mt-2 text-xs text-[#1B4332]/70">Loading comments...</p>
+                        ) : (
+                          <div className="mt-2 space-y-3">
+                            {rootComments.length === 0 ? (
+                              <p className="text-xs text-[#1B4332]/70">No comments yet. Start the discussion.</p>
+                            ) : (
+                              rootComments.map((comment) => (
+                                <div key={comment.id} className="rounded-lg border border-[#D4A373]/20 bg-white px-3 py-2">
+                                  <p className="text-xs font-semibold text-[#1B4332]">
+                                    {comment.authorName || 'Volunteer'} · {formatTimestamp(comment.createdAt)}
+                                  </p>
+                                  <p className="mt-1 text-sm text-[#1B4332]/80">{comment.message}</p>
+
+                                  <div className="mt-2 space-y-2">
+                                    {(repliesByParent[comment.id] || []).map((reply) => (
+                                      <div key={reply.id} className="rounded-md border border-[#52B788]/25 bg-[#eef9f2] px-2 py-1.5">
+                                        <p className="text-[11px] font-semibold text-[#1B4332]">
+                                          {reply.authorName || 'Volunteer'} · {formatTimestamp(reply.createdAt)}
+                                        </p>
+                                        <p className="text-xs text-[#1B4332]/80">{reply.message}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className="mt-2 flex gap-2">
+                                    <input
+                                      type="text"
+                                      value={replyDrafts[comment.id] || ''}
+                                      onChange={(event) => setReplyDrafts((prev) => ({ ...prev, [comment.id]: event.target.value }))}
+                                      placeholder="Reply to this comment..."
+                                      className="input-field py-2 text-sm"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAddReply(comment.id)}
+                                      disabled={submittingReplyTo === comment.id}
+                                      className="inline-flex items-center gap-1 rounded-md bg-[#1B4332] px-3 text-xs font-semibold text-white transition hover:bg-[#22523f] disabled:opacity-70"
+                                    >
+                                      {submittingReplyTo === comment.id ? (
+                                        <Loader2 size={12} className="animate-spin" />
+                                      ) : (
+                                        <Reply size={12} />
+                                      )}
+                                      Reply
+                                    </button>
+                                  </div>
                                 </div>
+                              ))
+                            )}
+                          </div>
+                        )}
 
-                                <div className="mt-2 flex gap-2">
-                                  <input
-                                    type="text"
-                                    value={replyDrafts[comment.id] || ''}
-                                    onChange={(event) =>
-                                      setReplyDrafts((prev) => ({ ...prev, [comment.id]: event.target.value }))
-                                    }
-                                    placeholder="Reply to this comment..."
-                                    className="input-field py-2 text-sm"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAddReply(comment.id)}
-                                    disabled={submittingReplyTo === comment.id}
-                                    className="inline-flex items-center gap-1 rounded-md bg-[#1B4332] px-3 text-xs font-semibold text-white transition hover:bg-[#22523f] disabled:opacity-70"
-                                  >
-                                    {submittingReplyTo === comment.id ? (
-                                      <Loader2 size={12} className="animate-spin" />
-                                    ) : (
-                                      <Reply size={12} />
-                                    )}
-                                    Reply
-                                  </button>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
-
-                      <form onSubmit={handleAddComment} className="mt-3 flex gap-2">
-                        <input
-                          type="text"
-                          value={commentDraft}
-                          onChange={(event) => setCommentDraft(event.target.value)}
-                          placeholder="Add a comment to this post..."
-                          className="input-field py-2 text-sm"
-                        />
-                        <button
-                          type="submit"
-                          disabled={submittingComment}
-                          className="rounded-md bg-[#1B4332] px-3 text-xs font-semibold text-white transition hover:bg-[#22523f] disabled:opacity-70"
-                        >
-                          {submittingComment ? 'Posting...' : 'Comment'}
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                </article>
-              ))
+                        <form onSubmit={handleAddComment} className="mt-3 flex gap-2">
+                          <input
+                            type="text"
+                            value={commentDraft}
+                            onChange={(event) => setCommentDraft(event.target.value)}
+                            placeholder="Add a comment to this post..."
+                            className="input-field py-2 text-sm"
+                          />
+                          <button
+                            type="submit"
+                            disabled={submittingComment}
+                            className="rounded-md bg-[#1B4332] px-3 text-xs font-semibold text-white transition hover:bg-[#22523f] disabled:opacity-70"
+                          >
+                            {submittingComment ? 'Posting...' : 'Comment'}
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </article>
+                );
+              })
             )}
           </div>
         </section>
 
         <section className="space-y-5">
           <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
-            <h3 className="text-xl font-bold text-[#1B4332]">Volunteer Events & Cleanup Hikes</h3>
+            <h3 className="text-xl font-bold text-[#1B4332]">Volunteer Events & Cleanup Hikes Coordinator</h3>
             <p className="mt-2 text-sm text-[#1B4332]/75">
-              Organize weekend cleanups and let volunteers RSVP directly.
+              Organize weekend cleanups or group hikes and let volunteers RSVP with one click.
             </p>
 
             <form onSubmit={handleCreateEvent} className="mt-4 grid gap-3">
@@ -522,13 +953,39 @@ const CommunityBoard = () => {
                 onChange={(event) => setEventForm((prev) => ({ ...prev, date: event.target.value }))}
                 className="input-field"
               />
-              <input
-                type="text"
-                value={eventForm.trailName}
-                onChange={(event) => setEventForm((prev) => ({ ...prev, trailName: event.target.value }))}
-                placeholder="Trail location"
-                className="input-field"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={eventForm.trailName}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setEventForm((prev) => ({ ...prev, trailName: value }));
+                    setEventTrailLocation(null);
+                    fetchTrailSuggestions(value, 'event');
+                  }}
+                  placeholder="Trail location"
+                  className="input-field"
+                />
+                {eventTrailSuggestions.length > 0 && (
+                  <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                    {eventTrailSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        onClick={() => handleSelectTrailSuggestion('event', suggestion)}
+                        className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                      >
+                        {suggestion.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {eventTrailLocation && (
+                <p className="text-xs text-[#1B4332]/75">
+                  Coordinates: {eventTrailLocation.latitude}, {eventTrailLocation.longitude}
+                </p>
+              )}
               <textarea
                 rows={2}
                 value={eventForm.details}
@@ -581,7 +1038,7 @@ const CommunityBoard = () => {
                             : 'bg-[#1B4332] text-white hover:bg-[#22523f]'
                         }`}
                       >
-                        {joined ? 'Leave Event' : 'Join Event'}
+                        {joined ? 'Leave Event' : 'Join Cleanup'}
                       </button>
                     </div>
 
@@ -600,6 +1057,20 @@ const CommunityBoard = () => {
                       </p>
                     </div>
                     {communityEvent.details && <p className="mt-2 text-sm text-[#1B4332]/75">{communityEvent.details}</p>}
+                    <a
+                      href={communityEvent.trailMapUrl || buildGoogleMapsSearchUrl(`${communityEvent.trailName} trail`)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+                    >
+                      Open trail in Google Maps
+                      <ExternalLink size={12} />
+                    </a>
+                    {communityEvent.trailCoordinates && (
+                      <p className="mt-1 text-xs text-[#1B4332]/65">
+                        Coordinates: {communityEvent.trailCoordinates.latitude}, {communityEvent.trailCoordinates.longitude}
+                      </p>
+                    )}
                   </div>
                 );
               })
@@ -607,13 +1078,102 @@ const CommunityBoard = () => {
           </div>
 
           <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
-            <h3 className="text-xl font-bold text-[#1B4332]">Community Resources & Local Goals</h3>
+            <h3 className="text-xl font-bold text-[#1B4332]">Community Resources & Local Guides Finder</h3>
+            <p className="mt-2 text-sm text-[#1B4332]/75">
+              Find nearby ranger stations, conservation groups, and tool-sharing resources with contact info and official links.
+            </p>
+
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <label className="relative flex-1">
+                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#1B4332]/60" />
+                <input
+                  type="text"
+                  value={resourceSearch}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setResourceSearch(value);
+                    fetchTrailSuggestions(value, 'resource');
+                  }}
+                  placeholder="Search by city, partner name, or service type"
+                  className="input-field pl-9"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={handleUseMyLocation}
+                disabled={detectingLocation}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#52B788]/45 bg-[#eef9f2] px-3 py-2 text-sm font-semibold text-[#1B4332] transition hover:bg-[#e2f5eb] disabled:opacity-70"
+              >
+                {detectingLocation ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
+                Use My Location
+              </button>
+            </div>
+
+            {resourceSuggestions.length > 0 && (
+              <div className="mt-2 rounded-xl border border-[#D4A373]/30 bg-white shadow-sm">
+                {resourceSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.id}
+                    type="button"
+                    onClick={() => handleSelectTrailSuggestion('resource', suggestion)}
+                    className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                  >
+                    {suggestion.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {userCoordinates && (
+              <p className="mt-2 text-xs text-[#1B4332]/70">
+                Location context: {userCoordinates.latitude}, {userCoordinates.longitude}
+              </p>
+            )}
+
+            {resourceLookupLoading && (
+              <p className="mt-2 inline-flex items-center gap-2 text-xs text-[#1B4332]/70">
+                <Loader2 size={12} className="animate-spin" />
+                Refreshing nearby Google Places resources...
+              </p>
+            )}
+
             <div className="mt-4 space-y-3">
-              {RESOURCE_PARTNERS.map((partner) => (
-                <div key={partner.name} className="rounded-xl border border-[#52B788]/25 bg-[#eef9f2] p-3">
-                  <p className="text-sm font-semibold text-[#1B4332]">{partner.name}</p>
-                  <p className="text-xs font-medium text-[#1B4332]/70">{partner.type}</p>
-                  <p className="mt-1 text-xs text-[#1B4332]/75">{partner.description}</p>
+              {filteredResources.map((resource) => (
+                <div key={resource.id || resource.name} className="rounded-xl border border-[#52B788]/25 bg-[#eef9f2] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-[#1B4332]">{resource.name}</p>
+                    {resource.source === 'google' && (
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-[#1B4332]/70">
+                        Google Places
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-medium text-[#1B4332]/70">{resource.type}</p>
+                  <p className="mt-1 text-xs text-[#1B4332]/75">{resource.description}</p>
+                  <p className="mt-1 text-xs text-[#1B4332]/75">{resource.address}</p>
+                  {resource.phone && (
+                    <p className="text-xs text-[#1B4332]/75">
+                      Phone:{' '}
+                      <a href={`tel:${resource.phone.replace(/[^\d+]/g, '')}`} className="font-semibold underline">
+                        {resource.phone}
+                      </a>
+                    </p>
+                  )}
+                  <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-[#1B4332]">
+                    {resource.website && (
+                      <a href={resource.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline">
+                        Official Website <ExternalLink size={12} />
+                      </a>
+                    )}
+                    <a
+                      href={resource.mapUrl || buildGoogleMapsSearchUrl(`${resource.mapQuery || resource.name} near ${locationQualifier}`)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 underline"
+                    >
+                      Open in Google Maps <ExternalLink size={12} />
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>
