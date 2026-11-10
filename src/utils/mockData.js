@@ -84,6 +84,8 @@ export const DEMO_COMMUNITY_POSTS = [
         authorName: 'Volunteer Katlyn',
         message: 'The Creekside loop looks much better. Thanks for coordinating the volunteer lane.',
         createdAt: '2025-10-04T08:12:00.000Z',
+        likes: 12,
+        likedBy: ['demo-marcus-ranger', 'demo-elena-hiker'],
         replies: [
           {
             id: 'seed-reply-1',
@@ -91,6 +93,8 @@ export const DEMO_COMMUNITY_POSTS = [
             authorName: 'Hiker Elena',
             message: 'I saw the erosion repair starting to settle in. Great work.',
             createdAt: '2025-10-04T08:18:00.000Z',
+            likes: 7,
+            likedBy: ['demo-katlyn-volunteer'],
           },
         ],
       },
@@ -117,6 +121,8 @@ export const DEMO_COMMUNITY_POSTS = [
         authorName: 'Ranger Marcus',
         message: 'I am adding it to the next maintenance cycle. Thanks for flagging it.',
         createdAt: '2025-10-08T17:42:00.000Z',
+        likes: 5,
+        likedBy: ['demo-katlyn-volunteer'],
         replies: [],
       },
     ],
@@ -142,6 +148,8 @@ export const DEMO_COMMUNITY_POSTS = [
         authorName: 'Ranger Marcus',
         message: 'I am notifying the crew. We will route traffic away from that stretch this afternoon.',
         createdAt: '2025-10-10T06:25:00.000Z',
+        likes: 9,
+        likedBy: ['demo-katlyn-volunteer'],
         replies: [
           {
             id: 'seed-reply-2',
@@ -149,6 +157,8 @@ export const DEMO_COMMUNITY_POSTS = [
             authorName: 'Volunteer Katlyn',
             message: 'Perfect. I can bring a supply pack to help with signage.',
             createdAt: '2025-10-10T06:34:00.000Z',
+            likes: 3,
+            likedBy: ['demo-marcus-ranger'],
           },
         ],
       },
@@ -171,8 +181,18 @@ export const DEMO_EVENTS = [
     hostContact: { name: 'Ranger Marcus', email: 'ranger.marcus@eastbaytrailtracker.test', phone: '(510) 555-0156' },
     rsvpUserIds: ['demo-katlyn-volunteer', 'demo-elena-hiker'],
     attendeeProfiles: [
-      { name: 'Volunteer Katlyn', role: 'Trail Volunteer' },
-      { name: 'Hiker Elena', role: 'Hiker' },
+      {
+        uid: 'demo-katlyn-volunteer',
+        name: 'Volunteer Katlyn',
+        role: 'Trail Volunteer',
+        photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
+      },
+      {
+        uid: 'demo-elena-hiker',
+        name: 'Hiker Elena',
+        role: 'Hiker',
+        photoURL: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=600&q=80',
+      },
     ],
     createdAt: '2025-10-12T10:00:00.000Z',
     hearts: 18,
@@ -192,8 +212,18 @@ export const DEMO_EVENTS = [
     hostContact: { name: 'Volunteer Katlyn', email: 'katlyn.volunteer@eastbaytrailtracker.test', phone: '(415) 555-0131' },
     rsvpUserIds: ['demo-marcus-ranger', 'demo-elena-hiker'],
     attendeeProfiles: [
-      { name: 'Ranger Marcus', role: 'Ranger' },
-      { name: 'Hiker Elena', role: 'Hiker' },
+      {
+        uid: 'demo-marcus-ranger',
+        name: 'Ranger Marcus',
+        role: 'Ranger',
+        photoURL: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80',
+      },
+      {
+        uid: 'demo-elena-hiker',
+        name: 'Hiker Elena',
+        role: 'Hiker',
+        photoURL: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=600&q=80',
+      },
     ],
     createdAt: '2025-10-14T15:30:00.000Z',
     hearts: 12,
@@ -266,4 +296,7 @@ export const buildDemoEventPost = (event) => ({
   likedBy: Array.isArray(event.likedBy) ? event.likedBy : [],
   comments: [],
   linkedEventId: event.id,
+  hostContact: event.hostContact || null,
+  attendeeProfiles: Array.isArray(event.attendeeProfiles) ? event.attendeeProfiles : [],
+  rsvpUserIds: Array.isArray(event.rsvpUserIds) ? event.rsvpUserIds : [],
 });
