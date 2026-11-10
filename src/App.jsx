@@ -2,11 +2,15 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import AppShell from './components/AppShell';
 import Home from './pages/Home';
 import LogIn from './components/LogIn';
 import SignUp from './components/SignUp';
 import Dashboard from './pages/Dashboard';
-import TrailReportForm from './components/TrailReportForm';
+import LogCleanup from './pages/LogCleanup';
+import ReportIncident from './pages/ReportIncident';
+import Leaderboard from './pages/Leaderboard';
+import Profile from './pages/Profile';
 import './styles/index.css';
 
 function App() {
@@ -20,23 +24,22 @@ function App() {
             <Route path="/login" element={<LogIn />} />
             <Route path="/signup" element={<SignUp />} />
 
-            {/* Protected routes */}
+            {/* Protected app routes */}
             <Route
-              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <AppShell />
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="/report"
-              element={
-                <ProtectedRoute>
-                  <TrailReportForm />
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/log-cleanup" element={<LogCleanup />} />
+              <Route path="/report-incident" element={<ReportIncident />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/report" element={<Navigate to="/report-incident" replace />} />
+            </Route>
+
             {/* Catch-all redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

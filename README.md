@@ -13,6 +13,7 @@ The application combines Firebase authentication, Firestore data persistence, an
 - Gamified virtual forest and achievement system
 - Points, saplings, and cleanup stats tracked in Firestore
 - Mobile-friendly dashboard experience for volunteers and trail stewards
+- Branded in-app navigation with dedicated Dashboard, Log Cleanup, Report Incident, Leaderboard, and Profile views
 
 ## Tech Stack
 
@@ -149,4 +150,3 @@ This project is licensed under the MIT license. See [LICENSE](LICENSE) for detai
 ## Contributing
 
 Contributions are welcome. For larger changes, please open an issue or pull request with a clear explanation of the proposed feature or fix.
-

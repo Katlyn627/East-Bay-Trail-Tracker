@@ -4,17 +4,18 @@
 
 :root {
   --forest-900: #1B4332;
-  --forest-800: #2D5A27;
+  --forest-800: #22523f;
   --forest-700: #3E6F45;
-  --forest-500: #6FA36C;
-  --earth-700: #5C4033;
-  --earth-600: #8B5A2B;
-  --amber-500: #FFB703;
+  --forest-500: #52B788;
+  --earth-700: #8b6a4f;
+  --earth-600: #D4A373;
+  --amber-500: #D4A373;
+  --interactive-500: #52B788;
   --mist-100: #F4F6F0;
   --mist-200: #E6EDE1;
   --brown-100: #EADCCF;
-  --card-strong: rgba(255, 255, 255, 0.82);
-  --card-soft: rgba(244, 246, 240, 0.72);
+  --card-strong: #ffffff;
+  --card-soft: #f4f6f0;
 }
 
 * {
@@ -57,7 +58,7 @@ button {
 }
 
 .card {
-  @apply rounded-2xl border border-white/60 bg-white/80 shadow-md backdrop-blur-sm transition-shadow hover:shadow-lg;
+  @apply rounded-2xl border border-[#D4A373]/25 bg-white shadow-md transition-shadow hover:shadow-lg;
 }
 
 .mobile-card {
@@ -65,15 +66,15 @@ button {
 }
 
 .btn-primary {
-  @apply rounded-xl bg-gradient-to-r from-[#2D5A27] to-[#1B4332] px-4 py-2 font-semibold text-white shadow-sm transition-transform duration-150 hover:translate-y-[-1px] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply rounded-xl bg-[#52B788] px-4 py-2 font-semibold text-[#1B4332] shadow-sm transition-transform duration-150 hover:translate-y-[-1px] hover:bg-[#43a676] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .btn-secondary {
-  @apply rounded-xl bg-[#5C4033] px-4 py-2 font-semibold text-white shadow-sm transition-transform duration-150 hover:translate-y-[-1px] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply rounded-xl bg-[#D4A373] px-4 py-2 font-semibold text-[#1B4332] shadow-sm transition-transform duration-150 hover:translate-y-[-1px] hover:bg-[#c49366] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .btn-accent {
-  @apply rounded-xl bg-[#FFB703] px-4 py-2 font-semibold text-[#1B4332] shadow-sm transition-transform duration-150 hover:translate-y-[-1px] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply rounded-xl border border-[#D4A373] bg-white px-4 py-2 font-semibold text-[#1B4332] shadow-sm transition-transform duration-150 hover:translate-y-[-1px] hover:bg-[#fff8f1] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .btn-outline {
@@ -81,7 +82,7 @@ button {
 }
 
 .input-field {
-  @apply w-full rounded-xl border border-emerald-200 bg-white/90 px-4 py-3 text-[#1B4332] shadow-sm outline-none transition focus:border-[#2D5A27] focus:ring-2 focus:ring-[#7BB57A]/40;
+  @apply w-full rounded-xl border border-[#52B788]/30 bg-white px-4 py-3 text-[#1B4332] shadow-sm outline-none transition focus:border-[#52B788] focus:ring-2 focus:ring-[#52B788]/25;
 }
 
 .badge {

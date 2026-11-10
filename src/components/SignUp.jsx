@@ -41,8 +41,8 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8">
+    <div className="flex min-h-screen items-center justify-center bg-[#F4F6F0] px-4">
+      <div className="w-full max-w-md rounded-lg border border-[#D4A373]/30 bg-white p-8 shadow-xl">
         <h1 className="text-3xl font-bold text-dark mb-2 text-center">Join the Trail</h1>
         <p className="text-gray-600 text-center mb-6">Create your account and start making an impact</p>
 
@@ -131,7 +131,7 @@ const SignUp = () => {
 
         <p className="text-center text-gray-600 mt-4">
           Already have an account?{' '}
-          <a href="/login" className="text-primary font-semibold hover:underline">
+          <a href="/login" className="font-semibold text-[#52B788] hover:underline">
             Log In
           </a>
         </p>

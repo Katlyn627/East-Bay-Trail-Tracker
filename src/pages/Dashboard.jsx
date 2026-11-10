@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   Award,
   Clock3,
   Edit2,
   Loader,
-  LogOut,
   MapPinned,
   Trash2,
 } from 'lucide-react';
@@ -15,8 +13,7 @@ import ReportCleanupModal from '../components/ReportCleanupModal';
 import ReportIssueModal from '../components/ReportIssueModal';
 
 const Dashboard = () => {
-  const { user, userProfile, loading, logOut, updateUserProfile } = useAuth();
-  const navigate = useNavigate();
+  const { user, userProfile, loading, updateUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(userProfile?.displayName || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -28,15 +25,6 @@ const Dashboard = () => {
       setDisplayName(userProfile.displayName);
     }
   }, [userProfile?.displayName]);
-
-  const handleLogOut = async () => {
-    try {
-      await logOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
 
   const handleSaveProfile = async () => {
     if (!displayName.trim()) {
@@ -111,20 +99,9 @@ const Dashboard = () => {
 
   return (
     <div className="page-container min-h-screen bg-transparent">
-      <div className="sticky top-0 z-10 mb-4 rounded-2xl border border-emerald-100 bg-white/80 shadow-sm backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-3 sm:px-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">Operations dashboard</p>
-            <h1 className="text-xl font-bold text-[#1B4332] sm:text-2xl">East Bay Trail Tracker</h1>
-          </div>
-          <button
-            onClick={handleLogOut}
-            className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100"
-          >
-            <LogOut size={18} />
-            Logout
-          </button>
-        </div>
+      <div className="mb-6 rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4A373]">Dashboard</p>
+        <h2 className="mt-2 text-2xl font-bold text-[#1B4332] sm:text-3xl">Trail Impact Snapshot</h2>
       </div>
 
       <div className="mx-auto max-w-6xl px-0 sm:px-2">
