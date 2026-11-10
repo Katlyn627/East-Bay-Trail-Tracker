@@ -11,10 +11,11 @@ The application combines Firebase authentication, Firestore data persistence, an
 - Trail cleanup reporting with issue type selection and optional photo upload
 - Firebase Storage uploads for maintenance and cleanup images
 - Community board for trail updates, discussions, events, and shared resources
-- Community board supports trail-tagged posts, threaded comments/replies, event RSVPs, and map-linked partner resources
+- Community board supports trail-tagged posts, threaded comments/replies, event RSVPs, and map-linked East Bay partner resources
 - California-wide trail and park autocomplete powered by a built-in local dataset for posts, events, and cleanup logs
 - Core impact metrics tracked in Firestore (`totalBags`, `totalWeightLbs`, `totalMiles`, `totalHours`, `uniqueTrails`, `pointsBalance`)
 - Dedicated interactive pages for cleanup logging and hazard reporting with photo uploads, GPS capture, and instant points updates
+- Profile page includes impact rollups, badges, and milestone tier reward progress indicators
 - Mobile-friendly dashboard experience for volunteers and trail stewards
 - Branded in-app navigation with dedicated Dashboard, Community Board, and Profile views
 
