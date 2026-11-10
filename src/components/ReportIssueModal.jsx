@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { AlertCircle, Camera, CheckCircle, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
+import { AlertCircle, Camera, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
@@ -32,7 +32,7 @@ const readFileAsPreview = (file) =>
     reader.readAsDataURL(file);
   });
 
-function ReportIssueModal({ isOpen, onClose }) {
+function ReportIssueModal({ isOpen, onClose, onSuccess }) {
   const { user, userProfile, updateUserProfile } = useAuth();
   const inputRef = useRef(null);
   const [formData, setFormData] = useState({
@@ -47,7 +47,6 @@ function ReportIssueModal({ isOpen, onClose }) {
   const [replaceIndex, setReplaceIndex] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
 
   useEffect(() => {
@@ -124,13 +123,11 @@ function ReportIssueModal({ isOpen, onClose }) {
     setPhotos([]);
     setReplaceIndex(null);
     setError('');
-    setSuccess(false);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-    setSuccess(false);
 
     if (!user) {
       setError('You must be signed in before reporting a trail issue.');
@@ -186,11 +183,9 @@ function ReportIssueModal({ isOpen, onClose }) {
         issuesReported: (userProfile?.issuesReported || 0) + 1,
       });
 
-      setSuccess(true);
+      onSuccess?.('Issue reported! You earned 50 points.');
       resetForm();
-      window.setTimeout(() => {
-        onClose?.();
-      }, 900);
+      onClose?.();
     } catch (err) {
       console.error('Report submission error:', err);
       setError(err.message || 'Failed to submit report. Please try again.');
@@ -225,15 +220,6 @@ function ReportIssueModal({ isOpen, onClose }) {
         <form onSubmit={handleSubmit} className="space-y-3 p-4 sm:space-y-4 sm:p-5">
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
-          )}
-
-          {success && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-              <div className="flex items-center gap-2">
-                <CheckCircle size={16} className="text-green-600" />
-                <span>Issue reported! You earned 50 points.</span>
-              </div>
-            </div>
           )}
 
           <div>

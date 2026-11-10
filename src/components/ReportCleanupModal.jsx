@@ -30,7 +30,7 @@ const readFileAsPreview = (file) =>
     reader.readAsDataURL(file);
   });
 
-function ReportCleanupModal({ isOpen, onClose }) {
+function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
   const { user, userProfile, updateUserProfile } = useAuth();
   const inputRef = useRef(null);
   const [issueType, setIssueType] = useState('trash');
@@ -44,7 +44,6 @@ function ReportCleanupModal({ isOpen, onClose }) {
   const [replaceIndex, setReplaceIndex] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const handlePhotoSelection = async (event) => {
     const incomingFiles = Array.from(event.target.files || []);
@@ -97,13 +96,11 @@ function ReportCleanupModal({ isOpen, onClose }) {
     setPhotos([]);
     setReplaceIndex(null);
     setError('');
-    setSuccess('');
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-    setSuccess('');
 
     if (!user) {
       setError('You must be signed in to record a cleanup.');
@@ -133,7 +130,7 @@ function ReportCleanupModal({ isOpen, onClose }) {
       const miles = Number(milesLogged || 0);
       const hours = Number(hoursWorked || 0);
       const totalWeight = Number(weightLbs || 0);
-      const pointsEarned = 25 + bagTotal * 10;
+      const pointsEarned = 25;
       const normalizedTrailName = trailName.trim();
 
       await addDoc(collection(db, 'reports'), {
@@ -183,12 +180,9 @@ function ReportCleanupModal({ isOpen, onClose }) {
         volunteerHours: (userProfile?.volunteerHours || 0) + hours,
       });
 
-      setSuccess(`Cleanup submitted! You earned ${pointsEarned} points.`);
+      onSuccess?.(`Cleanup submitted! You earned ${pointsEarned} points.`);
       resetForm();
-
-      setTimeout(() => {
-        onClose?.();
-      }, 600);
+      onClose?.();
     } catch (err) {
       console.error('Cleanup submission error:', err);
       setError(err.message || 'Unable to log this cleanup. Please try again.');
@@ -225,10 +219,6 @@ function ReportCleanupModal({ isOpen, onClose }) {
           {error && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
           )}
-          {success && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{success}</div>
-          )}
-
           <div>
             <label className="mb-3 block text-sm font-semibold text-slate-700">Issue type</label>
             <div className="grid grid-cols-2 gap-3">
