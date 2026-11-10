@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Loader, Chrome } from 'lucide-react';
+import { Mail, Lock, Loader, Chrome, Sprout } from 'lucide-react';
+import { DEMO_USERS } from '../utils/mockData';
 
 const LogIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { logIn, signInWithGoogle } = useAuth();
+  const { logIn, signInWithGoogle, loginDemoAccount } = useAuth();
   const navigate = useNavigate();
 
   const handleEmailSubmit = async (e) => {
@@ -37,6 +38,20 @@ const LogIn = () => {
       if (err.code !== 'auth/popup-closed-by-user') {
         setError(err.message || 'Failed to sign in with Google');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (demoProfile) => {
+    setError('');
+    setLoading(true);
+
+    try {
+      await loginDemoAccount(demoProfile.email);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Unable to switch to the selected demo account.');
     } finally {
       setLoading(false);
     }
@@ -108,6 +123,28 @@ const LogIn = () => {
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white text-gray-500">Or continue with</span>
           </div>
+        </div>
+
+        <div className="mb-6 space-y-2">
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#1B4332]">
+            <Sprout size={14} />
+            Demo test accounts
+          </div>
+          {DEMO_USERS.map((demoProfile) => (
+            <button
+              key={demoProfile.uid}
+              type="button"
+              onClick={() => handleDemoLogin(demoProfile)}
+              disabled={loading}
+              className="flex w-full items-center justify-between rounded-xl border border-[#D4A373]/35 bg-[#F8FBF8] px-3 py-2 text-left text-sm font-medium text-[#1B4332] transition hover:border-[#52B788]/45 hover:bg-[#edf9f2] disabled:opacity-60"
+            >
+              <span>
+                <span className="block font-semibold">{demoProfile.displayName}</span>
+                <span className="text-xs text-[#1B4332]/70">{demoProfile.role}</span>
+              </span>
+              <span className="text-xs text-[#2D6A4F]">Use account</span>
+            </button>
+          ))}
         </div>
 
         <button

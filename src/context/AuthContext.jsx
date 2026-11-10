@@ -9,6 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { DEMO_SESSION_KEY, getDemoProfileByEmail, getStoredDemoProfile, setStoredDemoProfile } from '../utils/mockData';
 
 const AuthContext = createContext(null);
 
@@ -85,6 +86,37 @@ const profileNeedsSetup = (profile) => {
   return !profile.displayName || !profile.homeTrail || !profile.location || !profile.bio || !profile.preferredUnits;
 };
 
+const getDemoSessionUser = () => {
+  if (typeof window === 'undefined') return null;
+
+  const activeEmail = window.localStorage.getItem(DEMO_SESSION_KEY);
+  if (!activeEmail) return null;
+
+  const baseProfile = getDemoProfileByEmail(activeEmail) || getStoredDemoProfile();
+  if (!baseProfile) return null;
+
+  const storedProfile = getStoredDemoProfile();
+  const mergedProfile = storedProfile ? { ...baseProfile, ...storedProfile } : baseProfile;
+  return {
+    user: {
+      uid: mergedProfile.uid,
+      email: mergedProfile.email,
+      displayName: mergedProfile.displayName,
+      photoURL: mergedProfile.photoURL || '',
+      metadata: { creationTime: mergedProfile.createdAt },
+    },
+    profile: normalizeProfile(
+      {
+        uid: mergedProfile.uid,
+        email: mergedProfile.email,
+        displayName: mergedProfile.displayName,
+        photoURL: mergedProfile.photoURL || '',
+      },
+      mergedProfile
+    ),
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
@@ -93,6 +125,15 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const demoSession = getDemoSessionUser();
+    if (demoSession) {
+      setUser(demoSession.user);
+      setUserProfile(demoSession.profile);
+      setNeedsProfileSetup(false);
+      setLoading(false);
+      return undefined;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       try {
         setError(null);
@@ -161,6 +202,44 @@ export const AuthProvider = ({ children }) => {
     return normalizedNextProfile;
   };
 
+  const loginDemoAccount = async (email) => {
+    const demoProfile = getDemoProfileByEmail(email);
+    if (!demoProfile) {
+      throw new Error('Demo account not found.');
+    }
+
+    const profile = {
+      ...demoProfile,
+      photoURL: demoProfile.photoURL || '',
+      createdAt: demoProfile.createdAt || new Date().toISOString(),
+    };
+    const normalizedProfile = normalizeProfile(
+      {
+        uid: profile.uid,
+        email: profile.email,
+        displayName: profile.displayName,
+        photoURL: profile.photoURL,
+      },
+      profile
+    );
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(DEMO_SESSION_KEY, profile.email);
+      setStoredDemoProfile(normalizedProfile);
+    }
+
+    setUser({
+      uid: profile.uid,
+      email: profile.email,
+      displayName: profile.displayName,
+      photoURL: profile.photoURL,
+      metadata: { creationTime: profile.createdAt },
+    });
+    setUserProfile(normalizedProfile);
+    setNeedsProfileSetup(false);
+    return { user: { uid: profile.uid, email: profile.email, displayName: profile.displayName }, profile: normalizedProfile };
+  };
+
   const signUp = async (email, password, displayName) => {
     try {
       setError(null);
@@ -181,6 +260,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logIn = async (email, password) => {
+    const demoProfile = getDemoProfileByEmail(email);
+    if (demoProfile) {
+      const result = await loginDemoAccount(email);
+      return result.user;
+    }
+
     try {
       setError(null);
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -210,6 +295,10 @@ export const AuthProvider = ({ children }) => {
   const logOut = async () => {
     try {
       setError(null);
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem(DEMO_SESSION_KEY);
+        window.localStorage.removeItem('east-bay-trail-tracker:demo-profile');
+      }
       await signOut(auth);
       setUser(null);
       setUserProfile(null);
@@ -225,7 +314,6 @@ export const AuthProvider = ({ children }) => {
 
     try {
       setError(null);
-      const userDocRef = doc(db, 'users', user.uid);
       const mergedProfile = {
         ...(userProfile || normalizeProfile(user)),
         ...(updates || {}),
@@ -233,7 +321,14 @@ export const AuthProvider = ({ children }) => {
       };
       const nextProfile = normalizeProfile(user, mergedProfile);
 
-      await setDoc(userDocRef, nextProfile, { merge: true });
+      if (typeof window !== 'undefined' && user.uid.startsWith('demo-')) {
+        setStoredDemoProfile(nextProfile);
+      }
+
+      if (user.uid && !user.uid.startsWith('demo-')) {
+        const userDocRef = doc(db, 'users', user.uid);
+        await setDoc(userDocRef, nextProfile, { merge: true });
+      }
       setUserProfile(nextProfile);
       setNeedsProfileSetup(profileNeedsSetup(nextProfile));
       return nextProfile;
@@ -276,6 +371,7 @@ export const AuthProvider = ({ children }) => {
         needsProfileSetup,
         signUp,
         logIn,
+        loginDemoAccount,
         signInWithGoogle,
         logOut,
         updateUserProfile,

@@ -4,6 +4,7 @@ import {
   AlertCircle,
   Clock3,
   Footprints,
+  Leaf,
   Loader,
   MapPinned,
   PanelRight,
@@ -90,55 +91,91 @@ const Dashboard = () => {
 
       <div className="mx-auto max-w-6xl px-0 sm:px-2">
         <div className="mb-8 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="card">
-            <div className="mb-4 flex items-center gap-2">
-              <MapPinned size={22} className="text-[#1B4332]" />
-              <h3 className="text-xl font-bold text-dark">Impact Metrics</h3>
+          <div className="card relative overflow-hidden border-[#D9EEDF] bg-[linear-gradient(160deg,#F4F9F4_0%,#EEF7F1_36%,#F9FBF9_100%)] p-5 shadow-[0_18px_38px_rgba(17,42,31,0.06)]">
+            <div className="pointer-events-none absolute -right-8 -top-6 h-24 w-24 rounded-full bg-[#52B788]/10 blur-xl" />
+            <div className="pointer-events-none absolute bottom-2 right-4 text-[#2D6A4F]/10">
+              <Leaf size={52} />
+            </div>
+            <div className="mb-5 flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1B4332] text-[#DDF4E7] shadow-sm">
+                <MapPinned size={18} />
+              </div>
+              <h3 className="text-xl font-black tracking-tight text-[#112A1F]">Impact Metrics</h3>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-[#52B788]/35 bg-[#eef9f2] p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Trash2 size={18} className="text-[#1B4332]" />
-                  <p className="text-sm font-semibold text-[#1B4332]">Total Trash / Weight</p>
+              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#A7D7B8] bg-[linear-gradient(135deg,#ECF8F0_0%,#DFF3E8_48%,#F3FBF6_100%)] p-4 shadow-sm">
+                <div className="absolute -right-2 -top-3 rotate-12 rounded-full bg-[#1B4332]/5 p-2 text-[#1B4332]/30">
+                  <Leaf size={18} />
                 </div>
-                <p className="text-2xl font-bold text-[#1B4332]">{impactMetrics.totalBags} bags</p>
-                <p className="mt-1 text-xs text-[#1B4332]/70">{impactMetrics.totalWeightLbs.toFixed(1)} lbs removed</p>
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1B4332]/10 text-[#1B4332]">
+                    <Trash2 size={16} />
+                  </div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#1B4332]">Total Trash</p>
+                </div>
+                <p className="text-3xl font-black leading-none text-[#1B4332]">{impactMetrics.totalBags}</p>
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#1B4332]/70">bags collected</p>
+                <p className="mt-1 text-sm text-[#1B4332]/80">{impactMetrics.totalWeightLbs.toFixed(1)} lbs removed</p>
               </div>
 
-              <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <MapPinned size={18} className="text-sky-800" />
-                  <p className="text-sm font-semibold text-sky-900">Miles Logged</p>
+              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#B9DDE6] bg-[linear-gradient(135deg,#EAF9FB_0%,#DCF5F8_42%,#F5FCFF_100%)] p-4 shadow-sm">
+                <div className="absolute -right-2 -top-3 rounded-full bg-[#2D6A4F]/5 p-2 text-[#234F64]/25">
+                  <Leaf size={18} />
                 </div>
-                <p className="text-2xl font-bold text-sky-900">{impactMetrics.totalMiles.toFixed(1)}</p>
-                <p className="mt-1 text-xs text-sky-800/75">Distance cleaned across trail sessions</p>
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0F4C5C]/10 text-[#1E4D5F]">
+                    <MapPinned size={16} />
+                  </div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#1E4D5F]">Miles Logged</p>
+                </div>
+                <p className="text-3xl font-black leading-none text-[#123A46]">{impactMetrics.totalMiles.toFixed(1)}</p>
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#1E4D5F]/75">trail distance</p>
+                <p className="mt-1 text-sm text-[#1E4D5F]/80">Across woodland routes and creek loops</p>
               </div>
 
-              <div className="rounded-xl border border-[#D4A373]/45 bg-[#fff5ea] p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Clock3 size={18} className="text-[#8b6a4f]" />
-                  <p className="text-sm font-semibold text-[#6f5038]">Volunteer Hours</p>
+              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#E2CDB1] bg-[linear-gradient(135deg,#FFF8EE_0%,#F8EEDB_42%,#FFFDF9_100%)] p-4 shadow-sm">
+                <div className="absolute -right-2 -top-3 rounded-full bg-[#8B6A4F]/5 p-2 text-[#8B6A4F]/30">
+                  <Leaf size={18} />
                 </div>
-                <p className="text-2xl font-bold text-[#6f5038]">{impactMetrics.totalHours.toFixed(1)}</p>
-                <p className="mt-1 text-xs text-[#6f5038]/75">Community maintenance time contributed</p>
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#8B6A4F]/10 text-[#6f5038]">
+                    <Clock3 size={16} />
+                  </div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#6f5038]">Volunteer Hours</p>
+                </div>
+                <p className="text-3xl font-black leading-none text-[#5C4737]">{impactMetrics.totalHours.toFixed(1)}</p>
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#6f5038]/75">hours served</p>
+                <p className="mt-1 text-sm text-[#6f5038]/80">Community maintenance time contributed</p>
               </div>
 
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Footprints size={18} className="text-emerald-900" />
-                  <p className="text-sm font-semibold text-emerald-900">Unique Trails Cleaned</p>
+              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#C8E0CE] bg-[linear-gradient(135deg,#F2FAF4_0%,#E6F3E7_48%,#F8FCF9_100%)] p-4 shadow-sm">
+                <div className="absolute -right-2 -top-3 rounded-full bg-[#2D6A4F]/5 p-2 text-[#2D6A4F]/30">
+                  <Leaf size={18} />
                 </div>
-                <p className="text-2xl font-bold text-emerald-900">{impactMetrics.uniqueTrailsCount}</p>
-                <p className="mt-1 text-xs text-emerald-900/75">Distinct parks and routes helped</p>
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2D6A4F]/10 text-[#1B4332]">
+                    <Footprints size={16} />
+                  </div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#1B4332]">Unique Trails</p>
+                </div>
+                <p className="text-3xl font-black leading-none text-[#112A1F]">{impactMetrics.uniqueTrailsCount}</p>
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#1B4332]/75">parks visited</p>
+                <p className="mt-1 text-sm text-[#1B4332]/80">Distinct routes restored and stewarded</p>
               </div>
             </div>
           </div>
 
-          <div className="card border-[#52B788]/35 bg-gradient-to-br from-[#eef9f2] to-white">
-            <div className="mb-4 flex items-center gap-2">
-              <AlertCircle size={22} className="text-amber-600" />
-              <h3 className="text-xl font-bold text-dark">Incident & Maintenance Reporting</h3>
+          <div className="card relative overflow-hidden border-[#D3E7D8] bg-[linear-gradient(135deg,#F7FAF7_0%,#EEF7F0_38%,#FFFFFF_100%)] p-5 shadow-[0_18px_38px_rgba(17,42,31,0.06)]">
+            <div className="absolute -left-8 top-5 h-20 w-20 rounded-full bg-[#52B788]/10 blur-2xl" />
+            <div className="pointer-events-none absolute right-5 top-3 text-[#2D6A4F]/10">
+              <Leaf size={38} />
+            </div>
+            <div className="mb-5 flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4A373]/15 text-[#8B6A4F] shadow-sm">
+                <AlertCircle size={18} />
+              </div>
+              <h3 className="text-xl font-black tracking-tight text-[#112A1F]">Incident & Maintenance Reporting</h3>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -147,17 +184,23 @@ const Dashboard = () => {
                   key={title}
                   type="button"
                   onClick={onClick}
-                  className={`rounded-2xl border p-4 text-left transition hover:shadow-md ${
+                  className={`group relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                     tone === 'amber'
-                      ? 'border-amber-200 bg-amber-50/70'
-                      : 'border-emerald-200 bg-emerald-50/70'
+                      ? 'border-[#E6D0A3] bg-[linear-gradient(135deg,#FFF9F1_0%,#F9F0E1_100%)]'
+                      : 'border-[#CFE7D6] bg-[linear-gradient(135deg,#F5FBF7_0%,#EAF8F0_100%)]'
                   }`}
                 >
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
-                    <Icon size={22} className={tone === 'amber' ? 'text-amber-700' : 'text-emerald-700'} />
+                  <div className="absolute right-3 top-3 text-[#2D6A4F]/10">
+                    <Leaf size={24} />
                   </div>
-                  <h4 className="text-base font-bold text-slate-800">{title}</h4>
-                  <p className="mt-1 text-sm text-slate-600">{description}</p>
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 shadow-sm ring-1 ring-[#D2E7D8]">
+                    <Icon size={22} className={tone === 'amber' ? 'text-[#8B6A4F]' : 'text-[#2D6A4F]'} />
+                  </div>
+                  <h4 className="text-base font-black text-[#112A1F]">{title}</h4>
+                  <p className="mt-1 text-sm leading-relaxed text-[#1B4332]/75">{description}</p>
+                  <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#1B4332] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm">
+                    {tone === 'amber' ? 'Log issue' : 'Track cleanup'}
+                  </div>
                 </button>
               ))}
             </div>
