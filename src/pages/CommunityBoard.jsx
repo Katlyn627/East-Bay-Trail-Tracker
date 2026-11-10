@@ -1081,6 +1081,16 @@ const CommunityBoard = () => {
                         type="button"
                         onClick={(event) => {
                           event.stopPropagation();
+                          setSelectedEvent(communityEvent);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-[#D4A373]/35 bg-[#fff8f2] px-2.5 py-1.5 text-[11px] font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
+                      >
+                        View Details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
                           handleShareContent({
                             title: communityEvent.title,
                             text: `Join me for ${communityEvent.title} in ${communityEvent.trailName}.`,
