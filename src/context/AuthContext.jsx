@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db, googleProvider } from '../services/firebase';
+import { auth, db, googleProvider } from '../firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -22,15 +22,10 @@ const createDefaultProfile = (currentUser, overrides = {}) => ({
   bio: overrides.bio || '',
   preferredUnits: overrides.preferredUnits || 'miles',
   milesLogged: 0,
+  volunteerHours: 0,
   trashBagsCollected: 0,
   issuesReported: 0,
   pointsBalance: 0,
-  saplings: 0,
-  saplingsAvailable: 0,
-  seeds: 0,
-  plantedTrees: [],
-  treesPlanted: 0,
-  treeHistory: [],
   badgesEarned: [],
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -174,19 +169,18 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const userDocRef = doc(db, 'users', user.uid);
-      const nextSaplings = updates?.saplings ?? updates?.saplingsAvailable ?? (userProfile?.saplings ?? userProfile?.saplingsAvailable ?? userProfile?.seeds ?? 0);
-      const nextSaplingsAvailable = updates?.saplingsAvailable ?? updates?.saplings ?? (userProfile?.saplingsAvailable ?? userProfile?.saplings ?? userProfile?.seeds ?? 0);
       const nextProfile = {
         ...(userProfile || createDefaultProfile(user)),
-        ...updates,
-        saplings: nextSaplings,
-        saplingsAvailable: nextSaplingsAvailable,
-        seeds: updates?.seeds ?? nextSaplings,
-        plantedTrees: updates?.plantedTrees ?? (userProfile?.plantedTrees ?? userProfile?.treeHistory ?? []),
-        treesPlanted: updates?.treesPlanted ?? (userProfile?.treesPlanted ?? 0),
-        treeHistory: updates?.treeHistory ?? (userProfile?.treeHistory ?? []),
+        ...(updates || {}),
         updatedAt: new Date(),
       };
+
+      delete nextProfile.saplings;
+      delete nextProfile.saplingsAvailable;
+      delete nextProfile.seeds;
+      delete nextProfile.plantedTrees;
+      delete nextProfile.treeHistory;
+      delete nextProfile.treesPlanted;
 
       await setDoc(userDocRef, nextProfile, { merge: true });
       setUserProfile(nextProfile);

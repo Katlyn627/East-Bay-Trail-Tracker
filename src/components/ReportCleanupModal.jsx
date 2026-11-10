@@ -1,8 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Camera, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../services/firebase';
+import { db } from '../firebase';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
 
 const ISSUE_TYPES = [
@@ -42,14 +42,6 @@ function ReportCleanupModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  const currentTreeHistory = useMemo(() => {
-    if (!Array.isArray(userProfile?.treeHistory)) {
-      return [];
-    }
-
-    return userProfile.treeHistory;
-  }, [userProfile?.treeHistory]);
 
   const handlePhotoSelection = async (event) => {
     const incomingFiles = Array.from(event.target.files || []);
@@ -129,9 +121,8 @@ function ReportCleanupModal({ isOpen, onClose }) {
       const bagTotal = Number(bagCount || 0);
       const miles = Number(milesLogged || 0);
       const pointsEarned = 25 + bagTotal * 10;
-      const saplingsAwarded = Math.max(1, Math.ceil(bagTotal / 3));
 
-      const reportRef = await addDoc(collection(db, 'reports'), {
+      await addDoc(collection(db, 'reports'), {
         uid: user.uid,
         userEmail: user.email,
         userName: userProfile?.displayName || 'Trail Explorer',
@@ -145,44 +136,20 @@ function ReportCleanupModal({ isOpen, onClose }) {
         status: 'submitted',
       });
 
-      const currentSaplings = Number(userProfile?.saplings ?? userProfile?.saplingsAvailable ?? userProfile?.seeds ?? 0) || 0;
-
       await updateDoc(doc(db, 'users', user.uid), {
         pointsBalance: increment(pointsEarned),
         trashBagsCollected: increment(bagTotal),
-        saplings: increment(saplingsAwarded),
-        saplingsAvailable: increment(saplingsAwarded),
-        seeds: increment(saplingsAwarded),
+        milesLogged: increment(miles),
         updatedAt: serverTimestamp(),
       });
-
-      const nextTreeHistory = [
-        ...currentTreeHistory,
-        ...Array.from({ length: saplingsAwarded }, (_, index) => ({
-          id: `${reportRef.id}-${index}-${Date.now()}`,
-          plantedAt: new Date().toISOString(),
-          cleanupReportId: reportRef.id,
-          issueType,
-          trashBagsCollected: bagTotal,
-          milesLogged: miles,
-          title: `${issueType.replace(/_/g, ' ')} cleanup`,
-          stage: index < 2 ? 'sprout' : 'young tree',
-        })),
-      ];
-
-      const nextSaplings = currentSaplings + saplingsAwarded;
 
       await updateUserProfile({
         pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
         trashBagsCollected: (userProfile?.trashBagsCollected || 0) + bagTotal,
-        saplings: nextSaplings,
-        saplingsAvailable: nextSaplings,
-        seeds: nextSaplings,
-        treesPlanted: (userProfile?.treesPlanted || 0) + saplingsAwarded,
-        treeHistory: nextTreeHistory,
+        milesLogged: (userProfile?.milesLogged || 0) + miles,
       });
 
-      setSuccess(`Cleanup submitted! You earned ${pointsEarned} points and ${saplingsAwarded} sapling${saplingsAwarded > 1 ? 's' : ''}.`);
+      setSuccess(`Cleanup submitted! You earned ${pointsEarned} points.`);
       resetForm();
 
       setTimeout(() => {

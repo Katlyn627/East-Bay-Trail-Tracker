@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../services/firebase';
+import { db } from '../firebase';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
 import {
   collection,

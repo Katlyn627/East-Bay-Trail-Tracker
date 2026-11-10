@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { AlertCircle, Camera, CheckCircle, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../services/firebase';
+import { db } from '../firebase';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
 
 const ISSUE_TYPES = [
