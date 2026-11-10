@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Trees, Shovel, Sparkles, X, Trash2 } from 'lucide-react';
+import { Trees, Shovel, Sparkles, X } from 'lucide-react';
 
 const getTreeStage = (tree) => {
   if (!tree?.timestamp) return 'Seed';
@@ -9,7 +9,8 @@ const getTreeStage = (tree) => {
 
   const ageHours = (Date.now() - plantedAt) / (1000 * 60 * 60);
 
-  if (ageHours < 24) return 'Seed';
+  if (ageHours < 12) return 'Seed';
+  if (ageHours < 72) return 'Sprout';
   if (ageHours < 168) return 'Sapling';
   return 'Mature Canopy';
 };
@@ -17,14 +18,15 @@ const getTreeStage = (tree) => {
 const renderTreeSprite = (tree, index, stageOnly = false) => {
   const stage = tree?.stage || getTreeStage(tree);
   const isSeed = stage === 'Seed';
+  const isSprout = stage === 'Sprout';
   const isSapling = stage === 'Sapling';
   const isMature = stage === 'Mature Canopy';
 
-  const size = isSeed ? 54 : isSapling ? 82 : 122;
-  const trunkHeight = isSeed ? 16 : isSapling ? 24 : 36;
-  const canopySize = isSeed ? 26 : isSapling ? 42 : 62;
-  const canopyColor = isSeed ? '#a6d96a' : isSapling ? '#64b96f' : '#2f7d4a';
-  const glow = isMature ? 'rgba(196, 255, 162, 0.6)' : 'rgba(166, 217, 106, 0.35)';
+  const size = isSeed ? 52 : isSprout ? 72 : isSapling ? 92 : 132;
+  const trunkHeight = isSeed ? 14 : isSprout ? 18 : isSapling ? 26 : 38;
+  const canopySize = isSeed ? 22 : isSprout ? 34 : isSapling ? 46 : 64;
+  const canopyColor = isSeed ? '#a8d76f' : isSprout ? '#60bb6d' : isSapling ? '#5dbe72' : '#2e7d4d';
+  const glow = isMature ? 'rgba(196, 255, 162, 0.7)' : 'rgba(166, 217, 106, 0.35)';
 
   return (
     <div
@@ -59,17 +61,17 @@ const renderTreeSprite = (tree, index, stageOnly = false) => {
         }}
       />
 
-      {isSapling && (
+      {(isSprout || isSapling) && (
         <div
           className="absolute rounded-full"
           style={{
-            background: '#7cc77a',
+            background: isSprout ? '#7ed57f' : '#89d889',
             left: '50%',
-            bottom: `${trunkHeight + 14}px`,
+            bottom: `${trunkHeight + 12}px`,
             transform: 'translateX(-50%)',
-            width: `${canopySize * 0.72}px`,
-            height: `${canopySize * 0.72}px`,
-            boxShadow: '0 0 16px rgba(255,255,255,0.25)',
+            width: `${canopySize * (isSprout ? 0.68 : 0.76)}px`,
+            height: `${canopySize * (isSprout ? 0.68 : 0.76)}px`,
+            boxShadow: '0 0 16px rgba(255,255,255,0.22)',
           }}
         />
       )}
@@ -116,8 +118,10 @@ export default function VirtualForest({ userStats, onPlantTree }) {
   const [animationStep, setAnimationStep] = useState('idle');
   const [growthProgress, setGrowthProgress] = useState(0);
   const [selectedTree, setSelectedTree] = useState(null);
-  const [showMascot, setShowMascot] = useState(true);
+  const [showVideoOverlay, setShowVideoOverlay] = useState(false);
+  const [videoFallback, setVideoFallback] = useState(false);
   const timeoutRefs = useRef([]);
+  const plantingCompleteRef = useRef(false);
 
   const saplingCount = Number(userStats?.saplings ?? userStats?.saplingsAvailable ?? userStats?.seeds ?? 0) || 0;
   const plantedTrees = Array.isArray(userStats?.plantedTrees)
@@ -142,24 +146,30 @@ export default function VirtualForest({ userStats, onPlantTree }) {
   };
 
   useEffect(() => {
-    const greetingTimer = setTimeout(() => setShowMascot(false), 5000);
-    return () => {
-      clearTimeout(greetingTimer);
-      clearTimers();
-    };
+    return () => clearTimers();
   }, []);
 
   useEffect(() => {
-    if (animationStep === 'watering') {
+    if (animationStep === 'roots' || animationStep === 'growth' || animationStep === 'mature' || animationStep === 'reveal') {
       const intervalId = setInterval(() => {
-        setGrowthProgress((current) => Math.min(current + 14, 100));
+        setGrowthProgress((current) => Math.min(current + (animationStep === 'roots' ? 18 : animationStep === 'growth' ? 24 : 20), 100));
       }, 180);
       return () => clearInterval(intervalId);
     }
+
     if (animationStep === 'idle') {
       setGrowthProgress(0);
     }
   }, [animationStep]);
+
+  const finishPlanting = () => {
+    if (plantingCompleteRef.current) return;
+    plantingCompleteRef.current = true;
+    setShowVideoOverlay(false);
+    setAnimationStep('idle');
+    setGrowthProgress(100);
+    onPlantTree?.();
+  };
 
   const handlePlantSequence = () => {
     if (saplingCount <= 0) {
@@ -168,37 +178,52 @@ export default function VirtualForest({ userStats, onPlantTree }) {
     }
 
     clearTimers();
+    plantingCompleteRef.current = false;
     setSelectedTree(null);
     setGrowthProgress(0);
-    setAnimationStep('bear-enter');
+    setAnimationStep('seed');
+    setVideoFallback(false);
+    setShowVideoOverlay(true);
 
     timeoutRefs.current = [
-      setTimeout(() => setAnimationStep('trash-to-seed'), 900),
-      setTimeout(() => setAnimationStep('digging'), 2200),
-      setTimeout(() => setAnimationStep('planting'), 3600),
-      setTimeout(() => setAnimationStep('watering'), 5000),
+      setTimeout(() => setAnimationStep('roots'), 1000),
+      setTimeout(() => setAnimationStep('growth'), 2600),
+      setTimeout(() => setAnimationStep('mature'), 4400),
       setTimeout(() => {
+        setAnimationStep('reveal');
         setGrowthProgress(100);
-        setAnimationStep('complete');
-      }, 7100),
-      setTimeout(() => {
-        setAnimationStep('idle');
-        onPlantTree?.();
-      }, 9300),
+      }, 6200),
+      setTimeout(() => finishPlanting(), 8000),
     ];
+  };
+
+  const handleVideoEnded = () => {
+    finishPlanting();
+  };
+
+  const handleVideoError = () => {
+    setVideoFallback(true);
   };
 
   const treeStageLabels = {
     Seed: { emoji: '🌱', label: 'Seed' },
+    Sprout: { emoji: '🌿', label: 'Sprout' },
     Sapling: { emoji: '🌿', label: 'Sapling' },
     'Mature Canopy': { emoji: '🌲', label: 'Mature Canopy' },
   };
 
   const renderForestLandscape = () => (
-    <div className="relative h-[420px] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-[#2a4c36] bg-[radial-gradient(circle_at_top,_rgba(184,232,143,0.2),_transparent_38%),linear-gradient(180deg,#1a4f3a_0%,#173f34_18%,#1b4d32_50%,#112d20_100%)] shadow-[inset_0_0_60px_rgba(13,31,17,0.42)]">
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#1f3f2a] via-[#32573c] to-[#3b6547]" />
-      <div className="absolute inset-x-0 bottom-14 h-10 rounded-full bg-[#4d7d57]/80 blur-md" />
-      <div className="absolute inset-x-0 bottom-8 h-2 bg-[#4a6c47]/70" />
+    <div
+      className="relative h-[500px] min-h-[500px] w-full overflow-hidden rounded-[30px] border border-[#35684f] bg-cover bg-center shadow-[inset_0_0_90px_rgba(9,20,13,0.55)]"
+      style={{
+        backgroundImage:
+          "linear-gradient(180deg, rgba(13,21,15,0.22) 0%, rgba(12,26,19,0.32) 20%, rgba(8,20,14,0.58) 100%), radial-gradient(circle at top, rgba(160,244,180,0.18), transparent 25%), linear-gradient(180deg, #2b5e46 0%, #1d4738 24%, #14382d 48%, #0f2a22 100%)",
+      }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(180,255,170,0.16),_transparent_36%),linear-gradient(180deg,_rgba(12,19,16,0.18),_rgba(9,18,13,0.72))]" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#1d3827] via-[#31573b] to-[#446e4d]" />
+      <div className="absolute inset-x-0 bottom-14 h-16 rounded-full bg-[#4d7d57]/75 blur-xl" />
+      <div className="absolute inset-x-0 bottom-10 h-2 bg-[#4a6c47]/70" />
 
       {Array.from({ length: 9 }).map((_, idx) => (
         <div
@@ -216,22 +241,22 @@ export default function VirtualForest({ userStats, onPlantTree }) {
       ))}
 
       {forestTrees.map((tree, idx) => {
-        const xPercent = 8 + ((idx * 86) / Math.max(1, forestTrees.length || 1)) + (idx % 2) * 4;
-        const sizeScale = tree.stage === 'Seed' ? 0.85 : tree.stage === 'Sapling' ? 1.1 : 1.4;
+        const xPercent = 12 + ((idx * 76) / Math.max(1, forestTrees.length || 1)) + (idx % 2) * 4;
+        const sizeScale = tree.stage === 'Seed' ? 0.9 : tree.stage === 'Sprout' ? 1.05 : tree.stage === 'Sapling' ? 1.2 : 1.6;
 
         return (
           <button
             key={tree.id || `forest-tree-${idx}`}
             type="button"
             onClick={() => setSelectedTree(tree)}
-            className="absolute bottom-[42px] flex -translate-x-1/2 flex-col items-center justify-end transition duration-200 hover:scale-[1.03]"
+            className="absolute bottom-[42px] flex -translate-x-1/2 flex-col items-center justify-end transition duration-200 hover:scale-[1.04]"
             style={{
-              left: `${Math.min(92, xPercent)}%`,
+              left: `${Math.min(90, xPercent)}%`,
               transform: `translateX(-50%) scale(${sizeScale})`,
             }}
           >
             {renderTreeSprite(tree, idx, true)}
-            <span className="mt-1 rounded-full bg-[#112a1c]/70 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#edf9e7]">
+            <span className="mt-1 rounded-full border border-[#d6f5d9]/20 bg-[#112a1c]/70 px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#edf9e7] shadow-lg">
               {tree.stage || 'Seed'}
             </span>
           </button>
@@ -246,107 +271,98 @@ export default function VirtualForest({ userStats, onPlantTree }) {
     </div>
   );
 
-  const renderScene = () => {
-    const activeProgress = animationStep === 'complete' ? 100 : animationStep === 'watering' ? growthProgress : 0;
-    const stageText = {
-      'bear-enter': 'Park ranger bear is on the trail...',
-      'trash-to-seed': 'Turning collected trash into a glowing seed...',
-      digging: 'Digging a cozy hole in the rich soil...',
-      planting: 'Planting the seed in the forest floor...',
-      watering: 'Watering and nurturing the new growth...',
-      complete: 'A new tree joins the canopy!',
-    };
+  const renderCinematicScene = () => {
+    const growthValue = animationStep === 'reveal' ? 100 : growthProgress;
+    const seedVisible = animationStep === 'seed' || animationStep === 'roots' || animationStep === 'growth' || animationStep === 'mature' || animationStep === 'reveal';
+    const rootVisible = animationStep === 'roots' || animationStep === 'growth' || animationStep === 'mature' || animationStep === 'reveal';
+    const sproutVisible = animationStep === 'growth' || animationStep === 'mature' || animationStep === 'reveal';
+    const canopyVisible = animationStep === 'mature' || animationStep === 'reveal';
 
     return (
-      <div className="relative h-[420px] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-[#3a2d1c] bg-[radial-gradient(circle_at_top,_rgba(217,255,184,0.12),transparent_28%),linear-gradient(180deg,#274b36_0%,#1c3a2c_38%,#142d22_100%)] shadow-inner">
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#2b4a35] via-[#3f5d3f] to-[#4d7757]" />
+      <div className="relative h-[400px] w-full overflow-hidden rounded-[26px] border border-[#2f3721] bg-[radial-gradient(circle_at_top,_rgba(198,236,165,0.18),transparent_32%),linear-gradient(180deg,#223d31_0%,#173427_30%,#10241d_100%)] shadow-inner">
+        <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),transparent_56%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#2c3e2b] via-[#3d563c] to-[#4b7058]" />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#5c4033] to-[#4a311f]" />
-        <div className="absolute inset-x-4 bottom-12 h-4 rounded-full bg-[#4e7d59] shadow-[0_0_30px_rgba(93,151,83,0.5)]" />
+        <div className="absolute inset-x-6 bottom-12 h-4 rounded-full bg-[#5e8a60]/90 shadow-[0_0_30px_rgba(115,164,100,0.55)]" />
 
-        <div
-          className={`absolute bottom-8 text-[5.5rem] ${animationStep === 'bear-enter' ? 'bear-walk-in' : animationStep === 'complete' ? 'bear-walk-away' : 'bear-slide'}`}
-          style={{
-            left: animationStep === 'bear-enter' ? '8%' : animationStep === 'complete' ? '82%' : '12%',
-            transformOrigin: 'center bottom',
-          }}
-        >
-          🐻
+        <div className="absolute left-1/2 top-8 h-40 w-40 -translate-x-1/2 rounded-full bg-[#f7d98b]/10 blur-3xl macro-growth-glow" />
+        <div className="absolute left-1/2 top-14 h-24 w-[110%] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent)] rotate-[-2deg]" />
+
+        <div className="absolute inset-0 opacity-80">
+          {Array.from({ length: 18 }).map((_, idx) => (
+            <span
+              key={`particle-${idx}`}
+              className="absolute rounded-full bg-[#fef3c7] shadow-[0_0_16px_rgba(255,245,181,0.8)]"
+              style={{
+                left: `${8 + idx * 5}%`,
+                top: `${16 + (idx % 6) * 10}%`,
+                width: `${2 + (idx % 3)}px`,
+                height: `${2 + (idx % 3)}px`,
+                opacity: 0.18 + (idx % 4) * 0.15,
+                animation: `floatParticle ${4 + idx * 0.4}s ease-in-out infinite`,
+              }}
+            />
+          ))}
         </div>
 
-        {animationStep === 'bear-enter' && (
-          <div className="absolute bottom-12 left-1/2 flex -translate-x-1/2 items-end gap-3">
-            <div className="rounded-2xl border border-[#f3e9cf] bg-[#f6f7ef] px-4 py-3 text-sm font-semibold text-[#1a3a2a] shadow-xl">
-              Welcome back! <span className="inline-block animate-wave">👋</span>
-              <div className="mt-1 text-xs text-[#4d5e56]">"Welcome back! What trails have you cleaned up recently?"</div>
+        <div className="absolute left-1/2 bottom-[46px] h-28 w-28 -translate-x-1/2 rounded-full bg-[#5c4033] shadow-[0_0_30px_rgba(92,64,51,0.9)]" />
+        <div className="absolute left-1/2 bottom-[66px] h-16 w-16 -translate-x-1/2 rounded-full bg-[#3d2b22] opacity-90" />
+
+        {animationStep === 'seed' && (
+          <>
+            <div className="absolute left-[22%] top-[50%] flex -translate-y-1/2 items-center gap-3 opacity-80">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d7f8d0] bg-[#1f3f2d] text-2xl shadow-lg">🧤</div>
+              <div className="h-3 w-16 rounded-full bg-[#d6e5d1]/80" />
             </div>
-            <div className="mb-3 text-5xl">👜</div>
+            <div className="absolute right-[20%] top-[52%] flex -translate-y-1/2 items-center gap-3 opacity-80">
+              <div className="h-3 w-16 rounded-full bg-[#d6e5d1]/80" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#d7f8d0] bg-[#1f3f2d] text-2xl shadow-lg">👜</div>
+            </div>
+            <div className="absolute left-[50%] top-[46%] h-8 w-8 -translate-x-1/2 rounded-2xl bg-[#203d2d] shadow-[0_0_25px_rgba(118,164,100,0.6)]" />
+            <div className="absolute left-[50%] top-[32%] h-10 w-10 -translate-x-1/2 rounded-full border-4 border-[#d8e4d6]/70 bg-[#eaf3d0] shadow-[0_0_30px_rgba(255,214,94,0.75)]" />
+            <div className="absolute left-[50%] top-[24%] text-4xl -translate-x-1/2">✨</div>
+          </>
+        )}
+
+        {seedVisible && (
+          <div className="seed-core absolute left-1/2 top-[22%] h-16 w-16 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,#fdf7ef_0%,#f4d17a_30%,#d7ae41_62%,#8d5a18_100%)] shadow-[0_0_28px_rgba(255,209,104,0.8)]" />
+        )}
+
+        {rootVisible && (
+          <div className="absolute left-1/2 bottom-[60px] h-24 w-24 -translate-x-1/2">
+            <div className="absolute inset-0 rounded-full border-[2px] border-[#73d485]/80 opacity-90" style={{ transform: `scale(${0.72 + growthValue / 180})` }} />
+            <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full border-[2px] border-[#9ae69a]/80 opacity-80" style={{ transform: `translate(-50%, -50%) rotate(45deg) scale(${0.8 + growthValue / 200})` }} />
+            <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border-[2px] border-[#b1f8a9]/80 opacity-70" style={{ transform: `translate(-50%, -50%) scale(${0.7 + growthValue / 220})` }} />
           </div>
         )}
 
-        {(animationStep === 'trash-to-seed' || animationStep === 'digging' || animationStep === 'planting' || animationStep === 'watering' || animationStep === 'complete') && (
+        {sproutVisible && (
+          <div className="absolute left-1/2 bottom-[112px] -translate-x-1/2 transition-all duration-500" style={{ transform: `translateX(-50%) scale(${0.75 + growthValue / 180})` }}>
+            <div className="absolute left-1/2 top-10 h-10 w-1.5 -translate-x-1/2 rounded-full bg-[#623d28]" />
+            <div className="absolute left-1/2 top-2 h-8 w-8 -translate-x-1/2 rounded-full bg-[#7fdc6e] shadow-[0_0_18px_rgba(126,220,110,0.75)]" />
+            <div className="absolute left-[calc(50%-26px)] top-[16px] h-5 w-5 rotate-[-28deg] rounded-full bg-[#7fdc6e] shadow-[0_0_18px_rgba(126,220,110,0.75)]" />
+            <div className="absolute left-[calc(50%+8px)] top-[16px] h-5 w-5 rotate-[28deg] rounded-full bg-[#7fdc6e] shadow-[0_0_18px_rgba(126,220,110,0.75)]" />
+          </div>
+        )}
+
+        {canopyVisible && (
+          <div className="absolute left-1/2 bottom-[120px] -translate-x-1/2 transition-all duration-700" style={{ transform: `translateX(-50%) scale(${0.85 + growthValue / 150})` }}>
+            <div className="absolute left-1/2 top-[-26px] h-20 w-2 -translate-x-1/2 rounded-full bg-[#6b4633]" />
+            <div className="absolute left-1/2 top-[-18px] h-20 w-20 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,#6fcf70_0%,#3e9b58_30%,#23553d_100%)] shadow-[0_0_30px_rgba(168,255,167,0.45)]" />
+            <div className="absolute left-[calc(50%-26px)] top-[-6px] h-14 w-14 rounded-full bg-[#5ecb63]" />
+            <div className="absolute left-[calc(50%+18px)] top-[-8px] h-14 w-14 rounded-full bg-[#69d279]" />
+            <div className="absolute left-[calc(50%-6px)] top-[-26px] h-12 w-12 rounded-full bg-[#7ae383]" />
+          </div>
+        )}
+
+        {(animationStep === 'mature' || animationStep === 'reveal') && (
           <div className="absolute inset-0">
-            <div className="absolute left-1/2 top-8 h-20 w-20 -translate-x-1/2 rounded-full bg-[#f7e7a3]/35 blur-3xl" />
-            <div className="absolute bottom-10 left-[18%] text-5xl">🐻</div>
-            <div className="absolute bottom-16 left-[24%] text-4xl animate-bag-bounce">👜</div>
-            <div className="absolute left-1/2 top-10 flex -translate-x-1/2 items-center gap-4 text-6xl">
-              <Trash2 className="h-10 w-10 text-[#FFB703] drop-shadow-[0_0_16px_rgba(255,183,3,0.8)] animate-pulse" />
-              <span className="text-4xl">➡️</span>
-              <span className="animate-pulse drop-shadow-[0_0_18px_rgba(255,255,255,0.9)]">✨🌱</span>
-            </div>
+            <div className="absolute left-1/2 bottom-[110px] h-8 w-8 -translate-x-1/2 rounded-full bg-[#fef3c7] opacity-75 blur-md" />
+            <div className="absolute left-[26%] top-[16%] text-4xl text-[#dff7cc] opacity-70 animate-pulse">✦</div>
+            <div className="absolute left-[70%] top-[18%] text-4xl text-[#dff7cc] opacity-60 animate-pulse">✦</div>
+            <div className="absolute left-[44%] top-[10%] text-4xl text-[#dff7cc] opacity-75 animate-pulse">✦</div>
           </div>
         )}
-
-        {animationStep === 'digging' && (
-          <div className="absolute inset-0">
-            <div className="absolute left-1/2 bottom-12 flex -translate-x-1/2 items-center justify-center">
-              <div className="absolute h-16 w-20 rounded-full bg-[#5c4033] shadow-[0_0_24px_rgba(92,64,51,0.8)]" />
-              <div className="absolute bottom-4 h-7 w-7 rounded-full bg-[#3b2c23]" />
-              <Shovel className="h-12 w-12 -translate-y-1 text-[#eadbca]" />
-            </div>
-          </div>
-        )}
-
-        {animationStep === 'planting' && (
-          <div className="absolute inset-0">
-            <div className="absolute left-1/2 bottom-12 h-12 w-12 -translate-x-1/2 rounded-full bg-[#5c4033] shadow-[0_0_26px_rgba(92,64,51,0.8)]" />
-            <div className="absolute left-1/2 top-16 h-16 w-16 -translate-x-1/2 rounded-full bg-[#a5d95d] shadow-[0_0_20px_rgba(165,217,93,0.9)] seed-drop" />
-          </div>
-        )}
-
-        {animationStep === 'watering' && (
-          <div className="absolute inset-0">
-            <div className="absolute right-[20%] top-11 rotate-[-18deg] text-5xl text-[#7dd3fc] animate-pulse">💧</div>
-            <div className="absolute left-[22%] top-16 rotate-[18deg] text-5xl text-[#7dd3fc] animate-pulse">💧</div>
-            <div className="absolute left-1/2 bottom-14 h-24 w-3 -translate-x-1/2 rounded-full bg-[#7b4d2b] transition-all duration-300" style={{ height: `${Math.max(30, activeProgress * 0.58)}px` }} />
-            <div className="absolute left-1/2 bottom-20 flex -translate-x-1/2 items-center justify-center transition-all duration-300" style={{ transform: `translateX(-50%) scale(${0.8 + activeProgress / 120})` }}>
-              <span className="text-5xl">🌿</span>
-              <span className="text-6xl">🌲</span>
-            </div>
-            <div className="absolute left-1/2 bottom-12 flex -translate-x-1/2 gap-5 text-4xl">
-              <Sparkles className="h-5 w-5 animate-ping text-[#FDE68A]" />
-              <Sparkles className="h-5 w-5 animate-ping text-[#FDE68A]" />
-            </div>
-          </div>
-        )}
-
-        {animationStep === 'complete' && (
-          <div className="absolute inset-0">
-            <div className="absolute left-1/2 bottom-14 h-28 w-4 -translate-x-1/2 rounded-full bg-[#7b4d2b]" />
-            <div className="absolute left-1/2 bottom-24 flex -translate-x-1/2 items-center justify-center gap-2">
-              <span className="text-6xl">🌲</span>
-              <span className="text-5xl">✨</span>
-              <span className="text-6xl">🌲</span>
-            </div>
-            <div className="absolute left-1/2 bottom-12 flex -translate-x-1/2 gap-5 text-4xl">
-              <Sparkles className="h-5 w-5 animate-ping text-[#FDE68A]" />
-              <Sparkles className="h-6 w-6 animate-ping text-[#FDE68A]" />
-              <Sparkles className="h-5 w-5 animate-ping text-[#FDE68A]" />
-            </div>
-            <div className="absolute bottom-8 right-12 text-6xl bear-walk-away">🐻</div>
-          </div>
-        )}
-
-        <div className="absolute inset-x-0 bottom-0 z-30 h-14 bg-gradient-to-t from-[#1b3124] to-transparent" />
       </div>
     );
   };
@@ -354,46 +370,24 @@ export default function VirtualForest({ userStats, onPlantTree }) {
   return (
     <>
       <style>{`
-        @keyframes slideInBear {
-          0% { transform: translateX(-120%) scale(0.9); opacity: 0; }
-          55% { transform: translateX(12%) scale(1.02); opacity: 1; }
-          100% { transform: translateX(0) scale(1); opacity: 1; }
+        @keyframes floatParticle {
+          0%, 100% { transform: translateY(0px) scale(1); opacity: 0.2; }
+          50% { transform: translateY(-18px) scale(1.3); opacity: 0.9; }
         }
-        @keyframes wave {
-          0%,100% { transform: rotate(0deg); }
-          25% { transform: rotate(18deg); }
-          50% { transform: rotate(-12deg); }
-          75% { transform: rotate(16deg); }
+        @keyframes seedPulse {
+          0%, 100% { transform: translate(-50%, 0) scale(0.96); box-shadow: 0 0 20px rgba(255, 212, 112, 0.5); }
+          50% { transform: translate(-50%, -8px) scale(1.08); box-shadow: 0 0 32px rgba(255, 212, 112, 0.9); }
         }
-        @keyframes bagBounce {
-          0%,100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(10deg); }
+        @keyframes macroGlow {
+          0%, 100% { opacity: 0.7; transform: scale(0.96); }
+          50% { opacity: 1; transform: scale(1.08); }
         }
-        @keyframes bearWalkAway {
-          0% { transform: translateX(0); opacity: 1; }
-          100% { transform: translateX(115px); opacity: 0; }
-        }
-        @keyframes bearWalkIn {
-          0% { transform: translateX(-180px) scale(0.85); opacity: 0; }
-          30% { opacity: 1; }
-          100% { transform: translateX(150px) scale(1); opacity: 1; }
-        }
-        @keyframes seedDrop {
-          0% { transform: translate(-50%, -50px) scale(0.8); opacity: 0.2; }
-          30% { transform: translate(-50%, 30px) scale(1); opacity: 1; }
-          70% { transform: translate(-50%, 90px) scale(1.15); opacity: 1; }
-          100% { transform: translate(-50%, 116px) scale(0.8); opacity: 0.9; }
-        }
-        .bear-slide { animation: slideInBear 0.8s ease-out forwards; }
-        .bear-walk-in { animation: bearWalkIn 2.1s ease-in-out forwards; }
-        .animate-wave { display: inline-block; animation: wave 1.1s ease-in-out infinite; }
-        .animate-bag-bounce { animation: bagBounce 1.2s ease-in-out infinite; }
-        .bear-walk-away { animation: bearWalkAway 1.2s ease-in forwards; }
-        .seed-drop { animation: seedDrop 1.3s ease-in forwards; }
+        .seed-core { animation: seedPulse 1.2s ease-in-out infinite; }
+        .macro-growth-glow { animation: macroGlow 2s ease-in-out infinite; }
       `}</style>
 
-      <div className="mx-auto min-h-[500px] w-full max-w-6xl rounded-[32px] border border-[#38624e] bg-[#12372d] p-4 shadow-[0_24px_60px_rgba(6,18,12,0.38)] sm:p-6">
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative mx-auto w-full max-w-6xl rounded-[32px] border border-[#38624e] bg-[#12372d] p-3 shadow-[0_24px_60px_rgba(6,18,12,0.38)] sm:p-5">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="mb-1 flex items-center gap-2 text-xl font-bold text-[#f6f9f2] sm:text-2xl">
               <Trees className="h-6 w-6 text-[#ffb703]" /> East Bay Canopy
@@ -408,34 +402,45 @@ export default function VirtualForest({ userStats, onPlantTree }) {
           </div>
         </div>
 
-        {showMascot && (
-          <div className="mb-4 flex items-end gap-3">
-            <div className="text-6xl bear-slide">🐻</div>
-            <div className="max-w-[320px] rounded-[22px] border border-[#e9dec3] bg-[#f6f5ef] px-4 py-3 text-sm font-medium text-[#1a3b2d] shadow-xl">
-              <div className="inline-flex items-center gap-2">Hello! <span className="animate-wave">👋</span></div>
-              <div className="mt-1 text-xs text-[#485c4f]">"Welcome back! What trails have you cleaned up recently?"</div>
+        <div className="relative h-[500px] min-h-[500px] w-full overflow-hidden rounded-[30px] border border-[#40755e] bg-[#183d31]/70">
+          {showVideoOverlay ? (
+            <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#081b16]/80 p-4 backdrop-blur-sm">
+              <div className="relative h-[400px] w-full max-w-3xl overflow-hidden rounded-[26px] border border-[#7ad7a3]/30 bg-[#102d24] shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+                {videoFallback ? (
+                  <div className="h-full w-full">{renderCinematicScene()}</div>
+                ) : (
+                  <video
+                    src="/assets/seed-to-tree-timelapse.webm"
+                    autoPlay
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover"
+                    onEnded={handleVideoEnded}
+                    onError={handleVideoError}
+                  />
+                )}
+                {!videoFallback && <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#081810]/60 via-transparent to-[#0e1d18]/20" />}
+              </div>
             </div>
-          </div>
-        )}
+          ) : null}
 
-        <div className="relative min-h-[420px] overflow-hidden rounded-[28px] border border-[#40755e] bg-[#183d31]/70 p-3 sm:p-5">
-          {animationStep !== 'idle' ? (
+          {animationStep !== 'idle' && !showVideoOverlay ? (
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#102d24]/90 p-4 backdrop-blur-sm">
-              <div className="mb-4 w-full max-w-[820px] animate-[fadeIn_0.45s_ease-in-out]">{renderScene()}</div>
+              <div className="mb-4 w-full max-w-[820px]">{renderCinematicScene()}</div>
               <div className="mb-3 h-2.5 w-48 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-[#A3D65C] via-[#7AD7A3] to-[#FFB703] transition-all duration-300"
-                  style={{ width: `${Math.min(100, animationStep === 'complete' ? 100 : animationStep === 'watering' ? growthProgress : animationStep === 'planting' ? 70 : 20)}%` }}
+                  style={{ width: `${Math.min(100, growthProgress)}%` }}
                 />
               </div>
               <h3 className="mb-1 text-lg font-bold text-[#FFB703]">
-                {animationStep === 'bear-enter' ? 'Park ranger bear is on the trail...' : animationStep === 'trash-to-seed' ? 'Turning collected trash into a glowing seed...' : animationStep === 'digging' ? 'Digging a cozy hole in the rich soil...' : animationStep === 'planting' ? 'Planting the seed in the forest floor...' : animationStep === 'watering' ? 'Watering and nurturing the new growth...' : animationStep === 'complete' ? 'A new tree joins the canopy!' : 'Planting new forest life...'}
+                {animationStep === 'seed' ? 'Trail cleanup in progress...' : animationStep === 'roots' ? 'Trash transformed into native seed...' : animationStep === 'growth' ? 'Restoring soil and roots...' : animationStep === 'mature' ? 'Native canopy expanding...' : animationStep === 'reveal' ? 'Forest restored.' : 'Planting new forest life...'}
               </h3>
-              <p className="text-xs text-[#d8f3dc]">Each cleanup helps restore the trail canopy.</p>
+              <p className="text-xs text-[#d8f3dc]">From East Bay cleanup to native restoration and growth.</p>
             </div>
-          ) : (
-            renderForestLandscape()
-          )}
+          ) : null}
+
+          {!showVideoOverlay && animationStep === 'idle' ? renderForestLandscape() : null}
         </div>
 
         <div className="mt-5 flex justify-center">
@@ -474,8 +479,8 @@ export default function VirtualForest({ userStats, onPlantTree }) {
                 </div>
 
                 <p><strong>Planted On:</strong> {new Date(selectedTree.timestamp || Date.now()).toLocaleDateString()}</p>
-                <p><strong>Cleanup Report:</strong> #{selectedTree.cleanupId || 'Trail Maintenance'}</p>
-                <p><strong>Forest Role:</strong> {selectedTree.stage === 'Mature Canopy' ? 'Full canopy tree' : selectedTree.stage === 'Sapling' ? 'Growing forest tree' : 'Newly planted sapling'}</p>
+              <p><strong>Cleanup Report:</strong> {selectedTree.cleanupId ? `#${selectedTree.cleanupId}` : 'Trail Maintenance'}</p>
+              <p><strong>Forest Role:</strong> {selectedTree.stage === 'Mature Canopy' ? 'Full canopy tree' : selectedTree.stage === 'Sapling' || selectedTree.stage === 'Sprout' ? 'Growing forest tree' : 'Newly planted seedling'}</p>
               </div>
             </div>
           </div>
