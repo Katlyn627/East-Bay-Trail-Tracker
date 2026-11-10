@@ -1,6 +1,6 @@
 # East Bay Trail Tracker
 
-East Bay Trail Tracker is a community-minded trail maintenance and outdoor activity app designed to help hikers and volunteers log cleanup efforts, report trail issues, and grow a virtual forest as a reward for positive environmental impact.
+East Bay Trail Tracker is a community-minded trail maintenance and outdoor activity app designed to help hikers and volunteers log cleanup efforts, report trail issues, and coordinate stewardship efforts with measurable impact.
 
 The application combines Firebase authentication, Firestore data persistence, and Firebase Storage for photo uploads. It is built with React, Vite, and Tailwind CSS, with a mobile-first UX tailored to trail reporting and on-the-go cleanup tracking.
 
@@ -10,11 +10,11 @@ The application combines Firebase authentication, Firestore data persistence, an
 - User profile creation and trail preference setup
 - Trail cleanup reporting with issue type selection and optional photo upload
 - Firebase Storage uploads for maintenance and cleanup images
-- Gamified virtual forest and achievement system
+- Community board for trail updates, discussions, events, and shared resources
 - Core impact metrics tracked in Firestore (`totalBags`, `totalWeightLbs`, `totalMiles`, `totalHours`, `uniqueTrails`, `pointsBalance`)
 - Dedicated interactive pages for cleanup logging and hazard reporting with photo uploads, GPS capture, and instant points updates
 - Mobile-friendly dashboard experience for volunteers and trail stewards
-- Branded in-app navigation with dedicated Dashboard, Log Cleanup, Report Incident, Leaderboard, and Profile views
+- Branded in-app navigation with dedicated Dashboard, Community Board, and Profile views
 
 ## Tech Stack
 
@@ -68,13 +68,7 @@ East-Bay-Trail-Tracker/
 - Capture bag counts and notes
 - Upload cleanup photos to Firebase Storage
 - Save report objects to a `reports` collection in Firestore
-- Reward users with points and saplings for participation
-
-### Gamification
-
-- Points and saplings accrue for cleanup work
-- Users can plant virtual saplings in a forest plot
-- Achievement badges unlock based on milestones such as cleanup volume, tree growth, and logged miles
+- Reward users with points and badges for participation
 
 ## Local Development Setup
 

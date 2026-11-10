@@ -9,7 +9,7 @@ import SignUp from './components/SignUp';
 import Dashboard from './pages/Dashboard';
 import LogCleanup from './pages/LogCleanup';
 import ReportIncident from './pages/ReportIncident';
-import Leaderboard from './pages/Leaderboard';
+import CommunityBoard from './pages/CommunityBoard';
 import Profile from './pages/Profile';
 import './styles/index.css';
 
@@ -35,7 +35,8 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/log-cleanup" element={<LogCleanup />} />
               <Route path="/report-incident" element={<ReportIncident />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/community-board" element={<CommunityBoard />} />
+              <Route path="/leaderboard" element={<Navigate to="/community-board" replace />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/report" element={<Navigate to="/report-incident" replace />} />
             </Route>

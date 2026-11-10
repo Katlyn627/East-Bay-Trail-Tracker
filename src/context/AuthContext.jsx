@@ -233,13 +233,6 @@ export const AuthProvider = ({ children }) => {
       };
       const nextProfile = normalizeProfile(user, mergedProfile);
 
-      delete nextProfile.saplings;
-      delete nextProfile.saplingsAvailable;
-      delete nextProfile.seeds;
-      delete nextProfile.plantedTrees;
-      delete nextProfile.treeHistory;
-      delete nextProfile.treesPlanted;
-
       await setDoc(userDocRef, nextProfile, { merge: true });
       setUserProfile(nextProfile);
       setNeedsProfileSetup(profileNeedsSetup(nextProfile));
