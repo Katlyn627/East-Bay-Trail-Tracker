@@ -8,7 +8,6 @@ import {
   Footprints,
   Loader,
   MapPinned,
-  Mountain,
   Trash2,
 } from 'lucide-react';
 import ReportCleanupModal from '../components/ReportCleanupModal';
@@ -257,31 +256,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="card mb-8">
-          <div className="mb-4 flex items-center gap-2">
-            <Mountain size={22} className="text-emerald-700" />
-            <h3 className="text-xl font-bold text-dark">Trash & Cleanup Metrics</h3>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-sm text-emerald-700">Total trash bags</p>
-              <p className="mt-2 text-3xl font-bold text-emerald-900">{impactMetrics.totalBags}</p>
-            </div>
-            <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
-              <p className="text-sm text-sky-700">Miles logged</p>
-              <p className="mt-2 text-3xl font-bold text-sky-900">{impactMetrics.totalMiles.toFixed(1)}</p>
-            </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm text-amber-700">Volunteer hours</p>
-              <p className="mt-2 text-3xl font-bold text-amber-900">{impactMetrics.totalHours.toFixed(1)}</p>
-            </div>
-            <div className="rounded-2xl border border-[#D4A373]/30 bg-[#fff8f2] p-4">
-              <p className="text-sm text-[#8b6a4f]">Estimated weight removed</p>
-              <p className="mt-2 text-3xl font-bold text-[#5c4433]">{impactMetrics.totalWeightLbs.toFixed(1)} lbs</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <ReportIssueModal isOpen={isIssueModalOpen} onClose={() => setIsIssueModalOpen(false)} />

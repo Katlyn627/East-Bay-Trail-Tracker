@@ -12,6 +12,7 @@ The application combines Firebase authentication, Firestore data persistence, an
 - Firebase Storage uploads for maintenance and cleanup images
 - Gamified virtual forest and achievement system
 - Core impact metrics tracked in Firestore (`totalBags`, `totalWeightLbs`, `totalMiles`, `totalHours`, `uniqueTrails`, `pointsBalance`)
+- Dedicated interactive pages for cleanup logging and hazard reporting with photo uploads, GPS capture, and instant points updates
 - Mobile-friendly dashboard experience for volunteers and trail stewards
 - Branded in-app navigation with dedicated Dashboard, Log Cleanup, Report Incident, Leaderboard, and Profile views
 
