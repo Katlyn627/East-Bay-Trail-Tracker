@@ -90,6 +90,7 @@ const COMMUNITY_GOALS = [
   'Host at least 6 weekend cleanup hikes this quarter',
   'Increase new volunteer participation by 25%',
 ];
+const EBTT_LOGO_SRC = '/ebtt-logo-badge.svg';
 
 const formatTimestamp = (value) => {
   if (!value) return 'Just now';
@@ -107,7 +108,7 @@ const getMemberLookup = () =>
       member.uid,
       {
         ...member,
-        photoURL: member.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.displayName || 'Trail Member')}&background=1B4332&color=ffffff`,
+        photoURL: member.photoURL || EBTT_LOGO_SRC,
       },
     ])
   );
@@ -118,7 +119,7 @@ const getMemberProfile = (uid) => {
     uid,
     displayName: 'Community member',
     role: 'Volunteer',
-    photoURL: 'https://ui-avatars.com/api/?name=Community+Member&background=2D6A4F&color=ffffff',
+    photoURL: EBTT_LOGO_SRC,
   };
 };
 
@@ -557,6 +558,14 @@ const CommunityBoard = () => {
 
   return (
     <div className="space-y-6">
+      <section className="brand-hero-banner">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Community coordination</p>
+        <h2 className="mt-1 text-3xl font-black text-white">Community Board & Volunteer Events</h2>
+        <p className="mt-2 max-w-3xl text-sm text-white/90">
+          Broadcast trail updates, coordinate cleanup events, and mobilize volunteers with shared map-ready details.
+        </p>
+      </section>
+
       {(boardError || boardSuccess) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm font-medium ${
@@ -571,7 +580,7 @@ const CommunityBoard = () => {
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="space-y-5">
-          <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
+          <div className="organic-card border border-[#D4A373]/30 bg-white p-5 shadow-sm">
             <h2 className="text-2xl font-bold text-[#1B4332]">Community Feed & Message Board</h2>
             <p className="mt-2 text-sm text-[#1B4332]/75">
               Share trail conditions, cleanup wins, and operational notes with the East Bay volunteer network.
@@ -688,7 +697,7 @@ const CommunityBoard = () => {
                     : [];
 
                 return (
-                  <article key={post.id} className="rounded-2xl border border-[#D4A373]/25 bg-white p-4 shadow-sm">
+                  <article key={post.id} className="organic-card border border-[#D4A373]/25 bg-white p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold text-[#1B4332]">{post.title}</h3>
@@ -869,7 +878,7 @@ const CommunityBoard = () => {
         </section>
 
         <section className="space-y-5">
-          <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
+          <div className="organic-card border border-[#D4A373]/30 bg-white p-5 shadow-sm">
             <h3 className="text-xl font-bold text-[#1B4332]">Volunteer Events & Cleanup Hikes Coordinator</h3>
             <p className="mt-2 text-sm text-[#1B4332]/75">
               Organize weekend cleanups or group hikes and let volunteers RSVP with one click.
@@ -1051,7 +1060,7 @@ const CommunityBoard = () => {
                         {eventAttendeeProfiles(communityEvent).slice(0, 4).map((attendee, index) => (
                           <img
                             key={`${communityEvent.id}-${attendee.uid || attendee.name || index}`}
-                            src={attendee.photoURL || 'https://ui-avatars.com/api/?name=Volunteer&background=1B4332&color=ffffff'}
+                            src={attendee.photoURL || EBTT_LOGO_SRC}
                             alt={attendee.name || 'Volunteer'}
                             title={attendee.name || 'Volunteer'}
                             className="h-8 w-8 rounded-full border-2 border-white object-cover"

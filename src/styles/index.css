@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,7 +12,7 @@
   --ebtt-white: #FFFFFF;
   --ebtt-forest-glow: #EAF3EE;
   --ebtt-ridge: #D8E7D9;
-  --ebtt-text: #1B1F1B;
+  --ebtt-text: #555555;
 }
 
 * {
@@ -161,6 +159,46 @@ a {
 .brand-mark svg {
   width: 32px;
   height: 32px;
+}
+
+.brand-mark img {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-hero-banner {
+  @apply relative overflow-hidden border border-[rgba(210,180,140,0.35)] bg-[linear-gradient(130deg,#1A4D3A_0%,#2D6C54_32%,#4A90E2_72%,#F7B733_100%)] p-5 text-white shadow-[0_18px_42px_rgba(26,77,58,0.18)] sm:p-6;
+  border-top-left-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+  border-top-right-radius: 0.9rem;
+  border-bottom-left-radius: 0.9rem;
+}
+
+.brand-hero-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 18% 25%, rgba(255, 255, 255, 0.24), transparent 25%),
+    radial-gradient(circle at 80% 20%, rgba(247, 183, 51, 0.35), transparent 20%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(26, 77, 58, 0.2));
+  pointer-events: none;
+}
+
+.brand-hero-banner > * {
+  position: relative;
+  z-index: 1;
+}
+
+.organic-card {
+  border-top-left-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+  border-top-right-radius: 0.9rem;
+  border-bottom-left-radius: 0.9rem;
+}
+
+.logo-avatar {
+  @apply rounded-full border-2 border-[rgba(210,180,140,0.85)] bg-white object-cover shadow-sm;
 }
 
 @media (max-width: 640px) {
