@@ -59,7 +59,11 @@ const LogIn = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F4F6F0] px-4">
-      <div className="w-full max-w-md rounded-lg border border-[#D4A373]/30 bg-white p-8 shadow-xl">
+      <div className="w-full max-w-md organic-card brand-card brand-glass-panel p-8 shadow-xl">
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <img src="/ebtt-app-icon.png" alt="East Bay Trail Tracker icon" className="logo-avatar h-12 w-12 p-0" />
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#1B4332]">EAST BAY TRAIL TRACKER</p>
+        </div>
         <h1 className="text-3xl font-bold text-dark mb-2 text-center">Welcome Back</h1>
         <p className="text-gray-600 text-center mb-6">Log in to continue tracking your trail impact</p>
 
@@ -142,7 +146,7 @@ const LogIn = () => {
                 <span className="block font-semibold">{demoProfile.displayName}</span>
                 <span className="text-xs text-[#1B4332]/70">{demoProfile.role}</span>
               </span>
-              <span className="text-xs text-[#2D6A4F]">Use account</span>
+              <span className="text-xs text-[var(--ebtt-sky-blue)]">Use account</span>
             </button>
           ))}
         </div>
@@ -159,7 +163,7 @@ const LogIn = () => {
 
         <p className="text-center text-gray-600 mt-4">
           Don't have an account?{' '}
-          <a href="/signup" className="font-semibold text-[#52B788] hover:underline">
+          <a href="/signup" className="font-semibold text-[var(--ebtt-sky-blue)] hover:underline">
             Sign Up
           </a>
         </p>

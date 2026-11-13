@@ -58,8 +58,8 @@ const WILDLIFE_BADGES = [
     accent: 'from-[#1B4332] via-[#2D6A4F] to-[#95D5B2]',
   },
   {
-    id: 'grizzly-steward',
-    title: 'California Grizzly Steward',
+    id: 'grizzly-community-champion',
+    title: 'California Grizzly Community Champion',
     milestone: 'Top community contributor',
     icon: Trees,
     progress: (stats) => stats.pointsBalance,
@@ -69,11 +69,13 @@ const WILDLIFE_BADGES = [
 ];
 
 const TIER_MILESTONES = [
-  { name: 'Sprout Tier', target: 100, perk: 'Starter stewardship badge bundle' },
+  { name: 'Sprout Tier', target: 100, perk: 'Starter impact badge bundle' },
   { name: 'Canopy Tier', target: 300, perk: 'Priority RSVP badge + recognition highlight' },
   { name: 'Ridge Tier', target: 600, perk: 'Community leader spotlight + partner perks' },
-  { name: 'Summit Tier', target: 1000, perk: 'Top steward status and annual impact honors' },
+  { name: 'Summit Tier', target: 1000, perk: 'Top community contributor status and annual impact honors' },
 ];
+
+const EBTT_LOGO_SRC = '/ebtt-app-icon.png';
 
 const toNumber = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
 const clampPercent = (value) => Math.max(0, Math.min(100, value));
@@ -185,7 +187,7 @@ const Profile = () => {
 
   return (
     <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-[28px] border border-[#CFE8D5] bg-[linear-gradient(135deg,#F4F9F4_0%,#EBF7EF_46%,#F8FBF8_100%)] p-5 shadow-[0_18px_46px_rgba(17,42,31,0.08)] sm:p-6">
+      <section className="brand-hero-banner">
         <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#52B788]/15 blur-2xl" />
         <div className="pointer-events-none absolute bottom-0 left-0 h-28 w-28 rounded-full bg-[#D4A373]/10 blur-2xl" />
         <div className="relative">
@@ -201,7 +203,7 @@ const Profile = () => {
                   {profileImage ? (
                     <img src={profileImage} alt={displayName} className="h-full w-full object-cover" />
                   ) : (
-                    <Leaf className="text-[#95D5B2]" size={28} />
+                    <img src={EBTT_LOGO_SRC} alt="East Bay Trail Tracker logo" className="h-full w-full object-cover p-1.5" />
                   )}
                   <span className="absolute inset-0 flex items-center justify-center bg-[#112A1F]/60 opacity-0 transition group-hover:opacity-100">
                     <Camera size={16} className="text-white" />
@@ -226,14 +228,14 @@ const Profile = () => {
                 )}
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/85">
                   {userProfile?.role || user?.role || 'Trail Volunteer'}
                 </p>
-                <h2 className="mt-1 text-3xl font-black tracking-tight text-[#112A1F]">{displayName}</h2>
-                <p className="mt-2 max-w-xl text-sm text-[#1B4332]/75">
+                <h2 className="mt-1 text-3xl font-black tracking-tight text-white">{displayName}</h2>
+                <p className="mt-2 max-w-xl text-sm text-white/90">
                   Protecting trails, tracking cleanups, and growing a healthier East Bay landscape one mile at a time.
                 </p>
-                {uploadMessage && <p className="mt-2 text-xs text-[#8B6A4F]">{uploadMessage}</p>}
+                {uploadMessage && <p className="mt-2 text-xs text-[#F7B733]">{uploadMessage}</p>}
               </div>
             </div>
 
@@ -269,20 +271,20 @@ const Profile = () => {
                 <User size={15} className="text-[#2D6A4F]" />
                 <span className="text-xs font-semibold uppercase tracking-[0.15em]">Profile</span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-[#112A1F]">Trail volunteer • habitat steward</p>
+              <p className="mt-2 text-sm font-semibold text-[#112A1F]">Trail volunteer • park advocate</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-[#D4A373]/25 bg-white p-5 shadow-[0_16px_32px_rgba(17,42,31,0.06)] sm:p-6">
+      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">Impact</p>
-            <h3 className="text-2xl font-black text-[#112A1F]">Impact snapshot</h3>
+            <h3 className="text-2xl font-black text-[var(--ebtt-deep-forest)]">Impact snapshot</h3>
           </div>
           <div className="rounded-full border border-[#D4A373]/25 bg-[#FFF8EE] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#2D6A4F]">
-            Stewardship summary
+            Impact summary
           </div>
         </div>
 
@@ -313,7 +315,7 @@ const Profile = () => {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-[#D4A373]/20 bg-[#FDFCF9] p-5 shadow-[0_16px_32px_rgba(17,42,31,0.06)] sm:p-6">
+      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">Badges</p>
@@ -382,7 +384,7 @@ const Profile = () => {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-[#D4A373]/20 bg-white p-5 shadow-[0_16px_32px_rgba(17,42,31,0.06)] sm:p-6">
+      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
         <div className="flex items-center gap-2">
           <Award size={18} className="text-[#2D6A4F]" />
           <h3 className="text-2xl font-black text-[#112A1F]">Tier rewards</h3>

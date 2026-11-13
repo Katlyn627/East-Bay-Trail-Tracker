@@ -34,54 +34,204 @@ import { buildGoogleMapsSearchUrl, normalizeCoordinates } from '../utils/maps';
 
 const RESOURCE_PARTNERS = [
   {
-    id: 'ebparks',
-    name: 'East Bay Regional Park District',
-    type: 'Regional Parks & Stewardship',
-    description: 'Official park maps, trail conditions, ranger services, and volunteer stewardship programs.',
+    id: 'ebparks-hq',
+    directoryGroup: 'rangerStations',
+    name: 'East Bay Regional Park District Headquarters',
+    type: 'Regional Park Agency Headquarters',
+    description: 'Official agency headquarters for East Bay Regional Park District maps, ranger services, and community support operations.',
     website: 'https://www.ebparks.org',
     phone: '(888) 327-2757',
     address: '2950 Peralta Oaks Ct, Oakland, CA 94605',
     mapQuery: 'East Bay Regional Park District headquarters Oakland',
+    categories: ['regional parks', 'park headquarters', 'ranger services'],
+    keywords: ['east bay', 'regional park district', 'ranger', 'park headquarters', 'park services'],
+  },
+  {
+    id: 'tilden-visitor-center',
+    directoryGroup: 'rangerStations',
+    name: 'Tilden Nature Area & Visitor Center',
+    type: 'Regional Park Ranger Station',
+    description: 'Visitor center with ranger support, trail maps, and naturalist programming for Tilden Regional Park.',
+    website: 'https://www.ebparks.org/parks/tilden-nature-area',
+    phone: '(510) 544-2233',
+    address: '1500 Central Park Dr, Berkeley, CA 94708',
+    mapQuery: 'Tilden Nature Area and Visitor Center',
+    categories: ['ranger station', 'regional park', 'visitor center'],
+    keywords: ['tilden', 'ranger', 'berkeley', 'regional park', 'visitor center'],
+  },
+  {
+    id: 'redwood-ranger-office',
+    directoryGroup: 'rangerStations',
+    name: 'Redwood Regional Park Ranger Office',
+    type: 'Regional Park Ranger Station',
+    description: 'Official ranger station for Redwood Regional Park with safety guidance and route support.',
+    website: 'https://www.ebparks.org/parks/redwood',
+    phone: '(510) 544-3166',
+    address: '7867 Redwood Rd, Oakland, CA 94619',
+    mapQuery: 'Redwood Regional Park Ranger Office',
+    categories: ['ranger station', 'regional park'],
+    keywords: ['redwood', 'ranger office', 'oakland', 'regional park', 'forest trail'],
+  },
+  {
+    id: 'mount-diablo-hq',
+    directoryGroup: 'rangerStations',
+    name: 'Mount Diablo State Park Headquarters',
+    type: 'State Park Headquarters',
+    description: 'California State Parks headquarters and ranger support point for Mount Diablo trail systems.',
+    website: 'https://www.parks.ca.gov/?page_id=517',
+    phone: '(925) 837-2525',
+    address: '96 Mitchell Canyon Rd, Clayton, CA 94517',
+    mapQuery: 'Mount Diablo State Park Headquarters',
+    categories: ['state park', 'park headquarters', 'ranger station'],
+    keywords: ['mount diablo', 'state park', 'ranger', 'headquarters', 'clayton'],
+  },
+  {
+    id: 'point-reyes-visitor-center',
+    directoryGroup: 'rangerStations',
+    name: 'Point Reyes National Seashore Visitor Center',
+    type: 'National Park Service Visitor Center',
+    description: 'National Park Service visitor center with ranger-led orientation and coastal trail support.',
+    website: 'https://www.nps.gov/pore/planyourvisit/visitorcenters.htm',
+    phone: '(415) 464-5100',
+    address: '1 Bear Valley Rd, Point Reyes Station, CA 94956',
+    mapQuery: 'Point Reyes National Seashore Visitor Center',
+    categories: ['national park', 'visitor center', 'ranger station'],
+    keywords: ['point reyes', 'national seashore', 'ranger', 'visitor center', 'coastal trails'],
   },
   {
     id: 'save-mount-diablo',
+    directoryGroup: 'volunteerOrganizations',
     name: 'Save Mount Diablo',
-    type: 'Land Conservation Nonprofit',
-    description: 'Land conservation, guided hikes, habitat protection, and stewardship initiatives around Mount Diablo.',
+    type: 'Conservation & Volunteer Organization',
+    description: 'Land conservation nonprofit with guided hikes, habitat restoration, and volunteer trail events.',
     website: 'https://savemountdiablo.org',
     phone: '(925) 947-3535',
     address: '1901 Olympic Blvd, Walnut Creek, CA 94596',
     mapQuery: 'Save Mount Diablo Walnut Creek',
-  },
-  {
-    id: 'california-state-parks-foundation',
-    name: 'California State Parks Foundation',
-    type: 'Statewide Parks Advocacy',
-    description: 'State park protection, community volunteer programs, and policy advocacy for public lands.',
-    website: 'https://www.calparks.org',
-    phone: '(415) 262-4400',
-    address: '50 Francisco St, Suite 110, San Francisco, CA 94133',
-    mapQuery: 'California State Parks Foundation San Francisco',
+    categories: ['conservation organization', 'volunteer events'],
+    keywords: ['save mount diablo', 'volunteer', 'conservation', 'trail care'],
   },
   {
     id: 'watershed-project',
+    directoryGroup: 'volunteerOrganizations',
     name: 'The Watershed Project',
-    type: 'Watershed Restoration & Education',
-    description: 'Urban watershed restoration, shoreline cleanups, and environmental education in Contra Costa County.',
+    type: 'Watershed Conservation Organization',
+    description: 'Watershed restoration, shoreline cleanups, and environmental education across the East Bay.',
     website: 'https://thewatershedproject.org',
     phone: '(510) 665-3430',
     address: '1327 S 46th St, Richmond, CA 94804',
     mapQuery: 'The Watershed Project Richmond CA',
+    categories: ['watershed organization', 'volunteer cleanups'],
+    keywords: ['watershed', 'volunteer', 'shoreline', 'restoration', 'richmond'],
   },
   {
-    id: 'ebmud-trails',
-    name: 'East Bay Municipal Utility District (EBMUD Trails)',
-    type: 'Watershed Trails & Permits',
-    description: 'Official information for EBMUD watershed recreation trails, permits, access rules, and closures.',
+    id: 'ca-state-parks-foundation',
+    directoryGroup: 'volunteerOrganizations',
+    name: 'California State Parks Foundation',
+    type: 'Statewide Conservation & Volunteer Organization',
+    description: 'Statewide parks advocacy and volunteer support programs for park access and community care.',
+    website: 'https://www.calparks.org',
+    phone: '(415) 262-4400',
+    address: '50 Francisco St, Suite 110, San Francisco, CA 94133',
+    mapQuery: 'California State Parks Foundation San Francisco',
+    categories: ['conservation organization', 'statewide volunteer group'],
+    keywords: ['california state parks foundation', 'parks', 'volunteer', 'conservation'],
+  },
+  {
+    id: 'friends-sf-estuary',
+    directoryGroup: 'volunteerOrganizations',
+    name: 'Friends of the San Francisco Estuary',
+    type: 'Estuary Conservation & Community Volunteer Group',
+    description: 'Supports habitat restoration, shoreline cleanups, and community science volunteer efforts.',
+    website: 'https://www.sfestuary.org/friends/',
+    phone: '(510) 746-7334',
+    address: '1755 Embarcadero, Oakland, CA 94606',
+    mapQuery: 'Friends of the San Francisco Estuary Oakland',
+    categories: ['conservation organization', 'community help group'],
+    keywords: ['estuary', 'san francisco estuary', 'volunteer', 'conservation', 'shoreline'],
+  },
+  {
+    id: 'ebrpd-volunteer-program',
+    directoryGroup: 'volunteerOrganizations',
+    name: 'East Bay Regional Park District Volunteer Program',
+    type: 'Regional Park Volunteer Program',
+    description: 'Official volunteer portal for habitat restoration, trail maintenance, and community volunteer projects.',
+    website: 'https://www.ebparks.org/get-involved/volunteer',
+    phone: '(510) 544-2229',
+    address: '2950 Peralta Oaks Ct, Oakland, CA 94605',
+    mapQuery: 'East Bay Regional Park District Volunteer Program',
+    categories: ['volunteer organization', 'regional park volunteer program'],
+    keywords: ['east bay volunteer', 'trail maintenance', 'community help', 'regional park'],
+  },
+  {
+    id: 'sibley-trailhead',
+    directoryGroup: 'trailheadsHelpHubs',
+    name: 'Sibley Volcanic Regional Preserve Trailhead',
+    type: 'Regional Preserve Trailhead',
+    description: 'Primary staging area for Sibley Volcanic trails and preserve access loops.',
+    website: 'https://www.ebparks.org/parks/sibley',
+    phone: '(888) 327-2757',
+    address: '6800 Skyline Blvd, Oakland, CA 94611',
+    mapQuery: 'Sibley Volcanic Regional Preserve Trailhead',
+    categories: ['trailhead', 'regional preserve'],
+    keywords: ['sibley', 'trailhead', 'volcanic preserve', 'oakland', 'hiking'],
+  },
+  {
+    id: 'mission-peak-staging',
+    directoryGroup: 'trailheadsHelpHubs',
+    name: 'Mission Peak Regional Preserve Staging Area',
+    type: 'Regional Park Trailhead',
+    description: 'Popular Mission Peak trailhead and staging area for volunteer hikes and community meetups.',
+    website: 'https://www.ebparks.org/parks/mission',
+    phone: '(888) 327-2757',
+    address: '43600 Mission Blvd, Fremont, CA 94539',
+    mapQuery: 'Mission Peak Regional Preserve Staging Area',
+    categories: ['trailhead', 'regional preserve', 'community meetup'],
+    keywords: ['mission peak', 'staging area', 'trailhead', 'fremont', 'regional preserve'],
+  },
+  {
+    id: 'chabot-space-science-trailhead',
+    directoryGroup: 'trailheadsHelpHubs',
+    name: 'Chabot Space & Science Center Trailhead Access',
+    type: 'Community Trailhead Help Hub',
+    description: 'Trail access point connecting redwood and skyline routes near Chabot Space & Science Center.',
+    website: 'https://chabotspace.org',
+    phone: '(510) 336-7300',
+    address: '10000 Skyline Blvd, Oakland, CA 94619',
+    mapQuery: 'Chabot Space and Science Center trailhead access',
+    categories: ['trailhead', 'community help hub'],
+    keywords: ['chabot', 'space and science center', 'trailhead', 'skyline', 'oakland'],
+  },
+  {
+    id: 'ebmud-watershed-office',
+    directoryGroup: 'trailheadsHelpHubs',
+    name: 'EBMUD Watershed Recreation Office',
+    type: 'Watershed Trails & Permits Help Hub',
+    description: 'Official EBMUD office for watershed trail permits, seasonal access, and recreation guidance.',
     website: 'https://www.ebmud.com/recreation',
     phone: '(866) 403-2683',
     address: '375 11th St, Oakland, CA 94607',
-    mapQuery: 'EBMUD recreation trails Oakland',
+    mapQuery: 'EBMUD Watershed Recreation Office Oakland',
+    categories: ['watershed trails', 'permits office', 'community help hub'],
+    keywords: ['ebmud', 'watershed', 'permits', 'trail access', 'recreation office'],
+  },
+];
+
+const RESOURCE_GROUPS = [
+  {
+    id: 'rangerStations',
+    title: 'Ranger Stations & Park Headquarters',
+    description: 'Official ranger offices, visitor centers, and park headquarters.',
+  },
+  {
+    id: 'volunteerOrganizations',
+    title: 'Volunteer & Conservation Organizations',
+    description: 'Verified conservation, trail care, and community volunteer organizations.',
+  },
+  {
+    id: 'trailheadsHelpHubs',
+    title: 'Trailheads & Community Help Hubs',
+    description: 'Trailhead staging areas, permit offices, and on-the-ground community access points.',
   },
 ];
 
@@ -90,6 +240,7 @@ const COMMUNITY_GOALS = [
   'Host at least 6 weekend cleanup hikes this quarter',
   'Increase new volunteer participation by 25%',
 ];
+const EBTT_LOGO_SRC = '/ebtt-app-icon.png';
 
 const formatTimestamp = (value) => {
   if (!value) return 'Just now';
@@ -107,7 +258,7 @@ const getMemberLookup = () =>
       member.uid,
       {
         ...member,
-        photoURL: member.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.displayName || 'Trail Member')}&background=1B4332&color=ffffff`,
+        photoURL: member.photoURL || EBTT_LOGO_SRC,
       },
     ])
   );
@@ -118,7 +269,7 @@ const getMemberProfile = (uid) => {
     uid,
     displayName: 'Community member',
     role: 'Volunteer',
-    photoURL: 'https://ui-avatars.com/api/?name=Community+Member&background=2D6A4F&color=ffffff',
+    photoURL: EBTT_LOGO_SRC,
   };
 };
 
@@ -131,6 +282,33 @@ const toDateInputValue = (value) => {
 
 const parseTrailTags = (tagInput) =>
   [...new Set((tagInput || '').split(',').map((entry) => entry.trim()).filter(Boolean))];
+
+const buildMapsSearchUrl = (query) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+const normalizeSearchTokens = (text) =>
+  text
+    .toLowerCase()
+    .trim()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+
+const getResourceSearchIndex = (resource) =>
+  [
+    resource.name,
+    resource.type,
+    resource.description,
+    resource.address,
+    resource.mapQuery,
+    resource.phone,
+    resource.website,
+    RESOURCE_GROUPS.find((group) => group.id === resource.directoryGroup)?.title || '',
+    RESOURCE_GROUPS.find((group) => group.id === resource.directoryGroup)?.description || '',
+    ...(Array.isArray(resource.categories) ? resource.categories : []),
+    ...(Array.isArray(resource.keywords) ? resource.keywords : []),
+  ]
+    .join(' ')
+    .toLowerCase();
 
 const CommunityBoard = () => {
   const { user, userProfile } = useAuth();
@@ -240,16 +418,32 @@ const CommunityBoard = () => {
   }, [comments]);
 
   const filteredResources = useMemo(() => {
-    const term = resourceSearch.trim().toLowerCase();
-    if (!term) return RESOURCE_PARTNERS;
-    const matches = RESOURCE_PARTNERS.filter((resource) =>
-      [resource.name, resource.type, resource.description, resource.address, resource.mapQuery]
-        .join(' ')
-        .toLowerCase()
-        .includes(term)
-    );
-    return matches.length > 0 || !resourceSelectedLocation ? matches : RESOURCE_PARTNERS;
-  }, [resourceSearch, resourceSelectedLocation]);
+    const searchTokens = normalizeSearchTokens(resourceSearch);
+    if (searchTokens.length === 0) return RESOURCE_PARTNERS;
+
+    return RESOURCE_PARTNERS
+      .map((resource) => {
+        const searchIndex = getResourceSearchIndex(resource);
+        const matchedTokens = searchTokens.filter((token) => searchIndex.includes(token)).length;
+        const score = matchedTokens / searchTokens.length;
+        return { resource, score, matchedTokens };
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.matchedTokens - a.matchedTokens;
+      })
+      .map((entry) => entry.resource);
+  }, [resourceSearch]);
+
+  const groupedResources = useMemo(
+    () =>
+      RESOURCE_GROUPS.map((group) => ({
+        ...group,
+        resources: filteredResources.filter((resource) => resource.directoryGroup === group.id),
+      })).filter((group) => group.resources.length > 0),
+    [filteredResources]
+  );
 
   const setTransientMessage = (type, message) => {
     if (type === 'error') setBoardError(message);
@@ -557,6 +751,14 @@ const CommunityBoard = () => {
 
   return (
     <div className="space-y-6">
+      <section className="brand-hero-banner">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Community coordination</p>
+        <h2 className="mt-1 text-3xl font-black text-white">Community Board & Volunteer Events</h2>
+        <p className="mt-2 max-w-3xl text-sm text-white/90">
+          Broadcast trail updates, coordinate cleanup events, and mobilize volunteers with shared map-ready details.
+        </p>
+      </section>
+
       {(boardError || boardSuccess) && (
         <div
           className={`rounded-xl border px-4 py-3 text-sm font-medium ${
@@ -571,7 +773,7 @@ const CommunityBoard = () => {
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="space-y-5">
-          <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
+          <div className="organic-card brand-card brand-glass-panel p-5">
             <h2 className="text-2xl font-bold text-[#1B4332]">Community Feed & Message Board</h2>
             <p className="mt-2 text-sm text-[#1B4332]/75">
               Share trail conditions, cleanup wins, and operational notes with the East Bay volunteer network.
@@ -688,7 +890,7 @@ const CommunityBoard = () => {
                     : [];
 
                 return (
-                  <article key={post.id} className="rounded-2xl border border-[#D4A373]/25 bg-white p-4 shadow-sm">
+                  <article key={post.id} className="organic-card brand-card brand-glass-panel p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold text-[#1B4332]">{post.title}</h3>
@@ -869,7 +1071,7 @@ const CommunityBoard = () => {
         </section>
 
         <section className="space-y-5">
-          <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
+          <div className="organic-card brand-card brand-glass-panel p-5">
             <h3 className="text-xl font-bold text-[#1B4332]">Volunteer Events & Cleanup Hikes Coordinator</h3>
             <p className="mt-2 text-sm text-[#1B4332]/75">
               Organize weekend cleanups or group hikes and let volunteers RSVP with one click.
@@ -1051,7 +1253,7 @@ const CommunityBoard = () => {
                         {eventAttendeeProfiles(communityEvent).slice(0, 4).map((attendee, index) => (
                           <img
                             key={`${communityEvent.id}-${attendee.uid || attendee.name || index}`}
-                            src={attendee.photoURL || 'https://ui-avatars.com/api/?name=Volunteer&background=1B4332&color=ffffff'}
+                            src={attendee.photoURL || EBTT_LOGO_SRC}
                             alt={attendee.name || 'Volunteer'}
                             title={attendee.name || 'Volunteer'}
                             className="h-8 w-8 rounded-full border-2 border-white object-cover"
@@ -1077,6 +1279,16 @@ const CommunityBoard = () => {
                       >
                         📍 View on Google Maps
                       </a>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelectedEvent(communityEvent);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-[#D4A373]/35 bg-[#fff8f2] px-2.5 py-1.5 text-[11px] font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
+                      >
+                        View Details
+                      </button>
                       <button
                         type="button"
                         onClick={(event) => {
@@ -1225,10 +1437,10 @@ const CommunityBoard = () => {
             </div>
           )}
 
-          <div className="rounded-2xl border border-[#D4A373]/30 bg-white p-5 shadow-sm">
-            <h3 className="text-xl font-bold text-[#1B4332]">Community Resources & Local Guides Finder</h3>
-            <p className="mt-2 text-sm text-[#1B4332]/75">
-              Search local ranger stations, conservation groups, and tool-sharing hubs in the East Bay.
+          <div className="organic-card brand-card brand-glass-panel p-5">
+            <h3 className="text-xl font-bold text-[var(--ebtt-deep-forest)]">Volunteer Organizations & Community Help</h3>
+            <p className="mt-2 text-sm text-[var(--ebtt-slate)]">
+              Curated directory of official ranger stations, regional parks, trailheads, and verified conservation and community volunteer organizations.
             </p>
 
             <div className="mt-4 space-y-2">
@@ -1247,7 +1459,7 @@ const CommunityBoard = () => {
                   }}
                   onFocus={() => setShowResourceSuggestions(true)}
                   onBlur={() => window.setTimeout(() => setShowResourceSuggestions(false), 120)}
-                  placeholder="Search East Bay parks, guides, and resource locations"
+                  placeholder="Search park names, ranger stations, trailheads, wilderness areas, and community volunteer organizations"
                   className="input-field pl-9"
                 />
               </label>
@@ -1279,45 +1491,59 @@ const CommunityBoard = () => {
 
             {resourceSelectedLocation && (
               <a
-                href={buildGoogleMapsSearchUrl(resourceSelectedLocation.name, resourceSelectedLocation)}
+                href={buildMapsSearchUrl(resourceSelectedLocation.name)}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[var(--ebtt-deep-forest)] underline decoration-[var(--ebtt-sky-blue)] underline-offset-2"
               >
                 📍 View on Google Maps
               </a>
             )}
 
             <div className="mt-4 space-y-3">
-              {filteredResources.map((resource) => (
-                <div key={resource.id} className="rounded-xl border border-[#52B788]/25 bg-[#eef9f2] p-3">
-                  <p className="text-sm font-semibold text-[#1B4332]">{resource.name}</p>
-                  <p className="text-xs font-medium text-[#1B4332]/70">{resource.type}</p>
-                  <p className="mt-1 text-xs text-[#1B4332]/75">{resource.description}</p>
-                  <p className="mt-1 text-xs text-[#1B4332]/75">{resource.address}</p>
-                  <p className="text-xs text-[#1B4332]/75">
-                    Phone:{' '}
-                    <a href={`tel:${resource.phone.replace(/[^\d+]/g, '')}`} className="font-semibold underline">
-                      {resource.phone}
-                    </a>
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-[#1B4332]">
-                    <a href={resource.website} target="_blank" rel="noreferrer" className="underline">
-                      Official Website
-                    </a>
-                    <a
-                      href={buildGoogleMapsSearchUrl(
-                        `${resource.mapQuery} ${resourceSelectedLocation?.name || 'East Bay California'}`
-                      )}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline"
-                    >
-                      📍 View on Google Maps
-                    </a>
-                  </div>
+              {groupedResources.length === 0 ? (
+                <div className="rounded-xl border border-[rgba(139,94,60,0.25)] bg-[rgba(210,180,140,0.18)] p-3 text-xs text-[var(--ebtt-slate)]">
+                  No matching resources yet. Try keywords like &quot;volunteer&quot;, &quot;ranger&quot;, &quot;park&quot;, &quot;watershed&quot;, &quot;trailhead&quot;, or specific names like &quot;Point Reyes&quot; and &quot;Mission Peak&quot;.
                 </div>
-              ))}
+              ) : (
+                groupedResources.map((group) => (
+                  <div key={group.id} className="space-y-2">
+                    <div className="rounded-xl border border-[rgba(139,94,60,0.2)] bg-[rgba(210,180,140,0.16)] px-3 py-2">
+                      <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--ebtt-deep-forest)]">{group.title}</p>
+                      <p className="text-xs text-[var(--ebtt-slate)]">{group.description}</p>
+                    </div>
+                    {group.resources.map((resource) => (
+                      <div key={resource.id} className="rounded-xl border border-[rgba(139,94,60,0.24)] bg-[rgba(210,180,140,0.2)] p-3">
+                        <p className="text-sm font-semibold text-[var(--ebtt-deep-forest)]">{resource.name}</p>
+                        <p className="text-xs font-medium text-[var(--ebtt-slate)]">{resource.type}</p>
+                        <p className="mt-1 text-xs text-[var(--ebtt-slate)]">{resource.description}</p>
+                        <p className="mt-1 text-xs text-[var(--ebtt-slate)]">{resource.address}</p>
+                        <p className="text-xs text-[var(--ebtt-slate)]">
+                          Phone:{' '}
+                          <a href={`tel:${resource.phone.replace(/[^\d+]/g, '')}`} className="font-semibold underline">
+                            {resource.phone}
+                          </a>
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-[var(--ebtt-deep-forest)]">
+                          <a href={resource.website} target="_blank" rel="noreferrer" className="underline">
+                            Official Website
+                          </a>
+                          <a
+                            href={buildMapsSearchUrl(
+                              `${resource.mapQuery} ${resourceSelectedLocation?.name || 'East Bay California'}`
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="underline"
+                          >
+                            📍 View on Google Maps
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))
+              )}
             </div>
 
             <div className="mt-4 rounded-xl border border-[#D4A373]/35 bg-[#fff8f2] p-3">

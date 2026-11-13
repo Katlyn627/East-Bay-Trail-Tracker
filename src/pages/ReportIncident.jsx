@@ -173,7 +173,7 @@ const ReportIncident = () => {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-[#D4A373]/35 bg-white p-5 shadow-sm">
+      <div className="organic-card brand-card brand-glass-panel p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4A373]">Trail Safety</p>
         <h2 className="mt-2 text-2xl font-bold text-[#1B4332] sm:text-3xl">Report Incident</h2>
         <p className="mt-2 text-sm text-[#1B4332]/75">
@@ -181,7 +181,7 @@ const ReportIncident = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-[#D4A373]/25 bg-white p-5 shadow-sm">
+      <form onSubmit={handleSubmit} className="organic-card brand-card brand-glass-panel p-5">
         <div className="grid gap-4 md:grid-cols-2">
           <label>
             <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Trail Name</span>

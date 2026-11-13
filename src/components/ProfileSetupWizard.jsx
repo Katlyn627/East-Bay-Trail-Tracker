@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { MapPin, Sparkles, Target, Trophy, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { MapPin, Search, Sparkles, Target, Trophy, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import useCaliforniaTrailSearch from '../hooks/useCaliforniaTrailSearch';
+import { buildGoogleMapsSearchUrl } from '../utils/maps';
 
 const defaultFormValues = {
   displayName: '',
@@ -15,6 +17,9 @@ function ProfileSetupWizard() {
   const [formValues, setFormValues] = useState(defaultFormValues);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showHomeTrailSuggestions, setShowHomeTrailSuggestions] = useState(false);
+  const [googleHomeTrailSuggestions, setGoogleHomeTrailSuggestions] = useState([]);
+  const homeTrailSearch = useCaliforniaTrailSearch(formValues.homeTrail, { limit: 6, minQueryLength: 1 });
 
   useEffect(() => {
     if (userProfile) {
@@ -35,6 +40,69 @@ function ProfileSetupWizard() {
       [name]: value,
     }));
   };
+
+  useEffect(() => {
+    const query = formValues.homeTrail.trim();
+    if (query.length < 2) {
+      setGoogleHomeTrailSuggestions([]);
+      return;
+    }
+
+    if (typeof window === 'undefined' || !window.google?.maps?.places?.AutocompleteService) {
+      setGoogleHomeTrailSuggestions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const autocompleteService = new window.google.maps.places.AutocompleteService();
+    autocompleteService.getPlacePredictions(
+      {
+        input: query,
+        componentRestrictions: { country: 'us' },
+        types: ['establishment', 'geocode'],
+      },
+      (predictions, status) => {
+        if (cancelled) return;
+        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !Array.isArray(predictions)) {
+          setGoogleHomeTrailSuggestions([]);
+          return;
+        }
+
+        const mappedPredictions = predictions.slice(0, 5).map((prediction) => ({
+          id: prediction.place_id,
+          name: prediction.structured_formatting?.main_text || prediction.description,
+          displayName: prediction.description,
+          source: 'google',
+        }));
+
+        setGoogleHomeTrailSuggestions(mappedPredictions);
+      }
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formValues.homeTrail]);
+
+  const homeTrailSuggestions = useMemo(() => {
+    const uniqueSuggestions = new Map();
+
+    homeTrailSearch.suggestions.forEach((suggestion) => {
+      uniqueSuggestions.set(suggestion.name.trim().toLowerCase(), {
+        ...suggestion,
+        source: 'local',
+      });
+    });
+
+    googleHomeTrailSuggestions.forEach((suggestion) => {
+      const suggestionKey = suggestion.name.trim().toLowerCase();
+      if (!uniqueSuggestions.has(suggestionKey)) {
+        uniqueSuggestions.set(suggestionKey, suggestion);
+      }
+    });
+
+    return Array.from(uniqueSuggestions.values()).slice(0, 8);
+  }, [googleHomeTrailSuggestions, homeTrailSearch.suggestions]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -73,7 +141,7 @@ function ProfileSetupWizard() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
+      <div className="brand-card brand-glass-panel w-full max-w-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">
@@ -119,14 +187,52 @@ function ProfileSetupWizard() {
                 <MapPin size={16} className="text-emerald-600" />
                 Home Trail
               </span>
-              <input
-                type="text"
-                name="homeTrail"
-                value={formValues.homeTrail}
-                onChange={handleChange}
-                placeholder="Tilden Regional Park"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="homeTrail"
+                  value={formValues.homeTrail}
+                  onChange={(event) => {
+                    handleChange(event);
+                    setShowHomeTrailSuggestions(true);
+                  }}
+                  onFocus={() => setShowHomeTrailSuggestions(true)}
+                  onBlur={() => window.setTimeout(() => setShowHomeTrailSuggestions(false), 120)}
+                  placeholder="Search any California trail or park"
+                  className="input-field pr-9"
+                />
+                <Search size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1B4332]/55" />
+                {showHomeTrailSuggestions && homeTrailSuggestions.length > 0 && (
+                  <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                    {homeTrailSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        onClick={() => {
+                          setFormValues((prev) => ({ ...prev, homeTrail: suggestion.name }));
+                          setShowHomeTrailSuggestions(false);
+                        }}
+                        className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] transition hover:bg-[#f5f8ef]"
+                      >
+                        <span>{suggestion.displayName}</span>
+                        {suggestion.source === 'google' && (
+                          <span className="ml-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#2D6A4F]/75">Google</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {formValues.homeTrail.trim() && (
+                <a
+                  href={buildGoogleMapsSearchUrl(formValues.homeTrail)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+                >
+                  📍 View on Google Maps
+                </a>
+              )}
             </label>
 
             <label className="space-y-2">
