@@ -140,53 +140,57 @@ function ProfileSetupWizard() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8 backdrop-blur-sm">
-      <div className="brand-card brand-glass-panel w-full max-w-2xl overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-deep/60 px-4 py-8 backdrop-blur-md">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-[2.5rem] bg-sage-mist/95 shadow-2xl border border-white/20">
+        <div className="flex items-center justify-between border-b border-forest-light/10 bg-white/80 backdrop-blur-md px-6 py-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">
-              Welcome aboard
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest-moss">
+              Nature Connection
             </p>
-            <h2 className="text-2xl font-bold text-slate-900">Complete your trail profile</h2>
+            <h2 className="font-heading text-2xl font-bold text-forest-deep">Complete your trail profile</h2>
           </div>
           <button
             type="button"
-            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-forest-moss transition hover:bg-forest-light/10"
             aria-label="Close profile wizard"
             disabled
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
               {error}
             </div>
           )}
 
           <div className="grid gap-5 md:grid-cols-2">
-            <label className="space-y-2 md:col-span-2">
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <Sparkles size={16} className="text-emerald-600" />
-                Display Name
-              </span>
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">
+                <span className="flex items-center gap-2">
+                  <Sparkles size={16} className="text-poppy" />
+                  Trail Name (Display Name)
+                </span>
+              </label>
               <input
                 type="text"
                 name="displayName"
                 value={formValues.displayName}
                 onChange={handleChange}
-                placeholder="Trail Explorer"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                placeholder="e.g., Redwood Runner"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="space-y-2">
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <MapPin size={16} className="text-emerald-600" />
-                Home Trail
-              </span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">
+                <span className="flex items-center gap-2">
+                  <MapPin size={16} className="text-forest-evergreen" />
+                  Favorite Local Trail
+                </span>
+              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -198,12 +202,12 @@ function ProfileSetupWizard() {
                   }}
                   onFocus={() => setShowHomeTrailSuggestions(true)}
                   onBlur={() => window.setTimeout(() => setShowHomeTrailSuggestions(false), 120)}
-                  placeholder="Search any California trail or park"
-                  className="input-field pr-9"
+                  placeholder="Search California trails..."
+                  className="nature-input shadow-sm pr-10"
                 />
-                <Search size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#1B4332]/55" />
+                <Search size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-forest-moss" />
                 {showHomeTrailSuggestions && homeTrailSuggestions.length > 0 && (
-                  <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                  <div className="absolute z-20 mt-2 max-h-56 w-full overflow-y-auto rounded-2xl border border-forest-light/10 bg-white/95 backdrop-blur-md shadow-xl py-2">
                     {homeTrailSuggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
@@ -212,92 +216,87 @@ function ProfileSetupWizard() {
                           setFormValues((prev) => ({ ...prev, homeTrail: suggestion.name }));
                           setShowHomeTrailSuggestions(false);
                         }}
-                        className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] transition hover:bg-[#f5f8ef]"
+                        className="block w-full px-4 py-2.5 text-left text-sm font-medium text-forest-deep hover:bg-forest-evergreen hover:text-white transition-colors"
                       >
                         <span>{suggestion.displayName}</span>
                         {suggestion.source === 'google' && (
-                          <span className="ml-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#2D6A4F]/75">Google</span>
+                          <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-forest-moss/60 group-hover:text-white/70">Maps</span>
                         )}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-              {formValues.homeTrail.trim() && (
-                <a
-                  href={buildGoogleMapsSearchUrl(formValues.homeTrail)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
-                >
-                  📍 View on Google Maps
-                </a>
-              )}
-            </label>
+            </div>
 
-            <label className="space-y-2">
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <Target size={16} className="text-emerald-600" />
-                Home Location
-              </span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">
+                <span className="flex items-center gap-2">
+                  <Target size={16} className="text-forest-evergreen" />
+                  Base Location
+                </span>
+              </label>
               <input
                 type="text"
                 name="location"
                 value={formValues.location}
                 onChange={handleChange}
-                placeholder="Oakland, CA"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                placeholder="e.g., Oakland, CA"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="space-y-2 md:col-span-2">
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <Trophy size={16} className="text-emerald-600" />
-                Bio
-              </span>
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">
+                <span className="flex items-center gap-2">
+                  <Trophy size={16} className="text-poppy" />
+                  Your Bio
+                </span>
+              </label>
               <textarea
                 name="bio"
                 value={formValues.bio}
                 onChange={handleChange}
-                rows={4}
-                placeholder="Weekend trail runner, community cleanup volunteer, and wildlife advocate..."
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                rows={3}
+                placeholder="Tell us about your connection to the trails..."
+                className="nature-input shadow-sm resize-none"
               />
-            </label>
+            </div>
 
-            <label className="space-y-2 md:col-span-2">
-              <span className="text-sm font-medium text-slate-700">Preferred Units</span>
-              <div className="inline-flex rounded-xl border border-slate-300 bg-slate-50 p-1">
+            <div className="md:col-span-2">
+              <label className="mb-3 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Preferred Distance Units</label>
+              <div className="inline-flex rounded-2xl border-2 border-white bg-white/50 p-1.5 shadow-sm">
                 {['miles', 'kilometers'].map((unit) => (
                   <button
                     key={unit}
                     type="button"
                     onClick={() => setFormValues((prev) => ({ ...prev, preferredUnits: unit }))}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    className={`rounded-xl px-6 py-2 text-sm font-bold transition-all duration-300 ${
                       formValues.preferredUnits === unit
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'text-slate-600 hover:bg-slate-200'
+                        ? 'bg-forest-evergreen text-white shadow-md'
+                        : 'text-forest-moss hover:text-forest-deep hover:bg-white/50'
                     }`}
                   >
                     {unit === 'miles' ? 'Miles' : 'Kilometers'}
                   </button>
                 ))}
               </div>
-            </label>
+            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-forest-light/10 pt-6">
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn-nature min-w-[160px]"
             >
-              {loading ? 'Saving...' : 'Save profile'}
+              {loading ? 'Saving Profile...' : 'Save & Explore'}
             </button>
           </div>
         </form>
       </div>
     </div>
+
   );
 }
 

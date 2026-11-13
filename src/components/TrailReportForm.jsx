@@ -176,32 +176,32 @@ export default function TrailReportForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-eco-50 to-eco-100 p-4 sm:p-6">
+    <div className="min-h-screen bg-transparent p-4 sm:p-6">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-eco-900 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-forest-deep mb-2 font-heading">
             Report Trail Issue
           </h1>
-          <p className="text-eco-700">
+          <p className="text-forest-moss font-medium">
             Help us keep trails safe and well-maintained
           </p>
         </div>
 
         {/* Alert Messages */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-red-800">{error}</p>
+            <p className="text-red-800 text-sm font-medium">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="mb-6 p-4 bg-forest/10 border border-forest/20 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+            <CheckCircle className="w-5 h-5 text-forest flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-green-800 font-semibold">Report submitted!</p>
-              <p className="text-green-700 text-sm">
+              <p className="text-forest-deep font-bold">Report submitted!</p>
+              <p className="text-forest text-sm font-medium">
                 You earned 50 points for reporting this issue.
               </p>
             </div>
@@ -211,12 +211,12 @@ export default function TrailReportForm() {
         {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-lg p-6 sm:p-8"
+          className="organic-card p-6 sm:p-8 space-y-8"
         >
           {/* Issue Type Selection */}
-          <div className="mb-8">
-            <label className="block text-lg font-semibold text-eco-900 mb-4">
-              What type of issue? <span className="text-red-500">*</span>
+          <div>
+            <label className="block text-lg font-heading font-bold text-forest-deep mb-4">
+              What type of issue? <span className="text-poppy">*</span>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {ISSUE_TYPES.map((type) => (
@@ -229,14 +229,14 @@ export default function TrailReportForm() {
                       issueType: type.value,
                     }))
                   }
-                  className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                  className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${
                     formData.issueType === type.value
-                      ? 'border-eco-600 bg-eco-50'
-                      : 'border-gray-200 bg-gray-50 hover:border-eco-400'
+                      ? 'border-forest bg-forest/5 shadow-inner'
+                      : 'border-sage-mist bg-white hover:border-forest-moss/40'
                   }`}
                 >
                   <span className="text-2xl">{type.icon}</span>
-                  <span className="text-sm font-medium text-center">
+                  <span className="text-xs font-bold uppercase tracking-tighter text-forest-deep">
                     {type.label}
                   </span>
                 </button>
@@ -245,24 +245,24 @@ export default function TrailReportForm() {
           </div>
 
           {/* Trail Name */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-eco-900 mb-2">
-              Trail Name <span className="text-red-500">*</span>
+          <div>
+            <label className="block text-sm font-bold text-forest-deep mb-2 uppercase tracking-widest">
+              Trail Name <span className="text-poppy">*</span>
             </label>
             <input
               type="text"
               name="trailName"
               value={formData.trailName}
               onChange={handleInputChange}
-              placeholder="e.g., Mission Peak Trail, Sunol Regional Wilderness"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-eco-500"
+              placeholder="e.g., Mission Peak Trail"
+              className="nature-input"
             />
           </div>
 
           {/* Description */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-eco-900 mb-2">
-              Description <span className="text-red-500">*</span>
+          <div>
+            <label className="block text-sm font-bold text-forest-deep mb-2 uppercase tracking-widest">
+              Description <span className="text-poppy">*</span>
             </label>
             <textarea
               name="description"
@@ -270,20 +270,20 @@ export default function TrailReportForm() {
               onChange={handleInputChange}
               placeholder="Describe the issue in detail..."
               rows="4"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-eco-500 resize-none"
+              className="nature-input resize-none"
             />
           </div>
 
           {/* Severity */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-eco-900 mb-2">
+          <div>
+            <label className="block text-sm font-bold text-forest-deep mb-2 uppercase tracking-widest">
               Severity Level
             </label>
             <select
               name="severity"
               value={formData.severity}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-eco-500"
+              className="nature-input appearance-none bg-no-repeat bg-[right_1rem_center]"
             >
               <option value="low">Low - Minor concern</option>
               <option value="medium">Medium - Should address soon</option>
@@ -292,14 +292,14 @@ export default function TrailReportForm() {
           </div>
 
           {/* Location */}
-          <div className="mb-6 p-4 bg-eco-50 rounded-lg border border-eco-200">
-            <label className="flex items-center gap-2 text-sm font-semibold text-eco-900 mb-3">
-              <MapPin className="w-4 h-4" />
-              Location <span className="text-red-500">*</span>
+          <div className="p-6 bg-sage-mist/50 rounded-[2rem] border border-forest-moss/20">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep mb-4 uppercase tracking-widest">
+              <MapPin className="w-4 h-4 text-poppy" />
+              Location <span className="text-poppy">*</span>
             </label>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-eco-700 mb-1">
+                <label className="block text-[10px] font-bold text-forest-moss mb-1 uppercase tracking-tighter">
                   Latitude
                 </label>
                 <input
@@ -309,11 +309,11 @@ export default function TrailReportForm() {
                   onChange={handleInputChange}
                   placeholder="0.000000"
                   step="0.000001"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-eco-500"
+                  className="nature-input text-sm py-2"
                 />
               </div>
               <div>
-                <label className="block text-xs text-eco-700 mb-1">
+                <label className="block text-[10px] font-bold text-forest-moss mb-1 uppercase tracking-tighter">
                   Longitude
                 </label>
                 <input
@@ -323,21 +323,22 @@ export default function TrailReportForm() {
                   onChange={handleInputChange}
                   placeholder="0.000000"
                   step="0.000001"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-eco-500"
+                  className="nature-input text-sm py-2"
                 />
               </div>
             </div>
             {geoLoading && (
-              <p className="text-xs text-eco-600 mt-2">
+              <p className="text-xs text-forest font-bold mt-3 flex items-center gap-2">
+                <Loader size={12} className="animate-spin" />
                 Detecting your location...
               </p>
             )}
           </div>
 
           {/* Photo Upload */}
-          <div className="mb-8">
-            <label className="block text-sm font-semibold text-eco-900 mb-3">
-              <Camera className="w-4 h-4 inline-block mr-2" />
+          <div>
+            <label className="block text-sm font-bold text-forest-deep mb-4 uppercase tracking-widest">
+              <Camera className="w-4 h-4 inline-block mr-2 text-forest" />
               Add Photos (up to 5)
             </label>
 
@@ -345,16 +346,16 @@ export default function TrailReportForm() {
             {photos.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
                 {photos.map((photo, index) => (
-                  <div key={index} className="relative group">
+                  <div key={index} className="relative group overflow-hidden rounded-2xl border-2 border-sage-mist">
                     <img
                       src={photo}
                       alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
+                      className="w-full h-32 object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removePhoto(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 bg-poppy text-white rounded-full p-1 shadow-lg transform scale-0 group-hover:scale-100 transition-transform"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -364,14 +365,14 @@ export default function TrailReportForm() {
             )}
 
             {/* Upload Input */}
-            <label className="block">
-              <div className="border-2 border-dashed border-eco-300 rounded-lg p-6 text-center cursor-pointer hover:border-eco-500 transition-colors">
-                <Camera className="w-8 h-8 text-eco-600 mx-auto mb-2" />
-                <p className="text-sm text-eco-700 font-medium">
-                  Click to upload or drag photos
+            <label className="block cursor-pointer">
+              <div className="border-2 border-dashed border-forest-moss/30 rounded-[2rem] p-8 text-center bg-white/50 hover:bg-white hover:border-forest transition-all">
+                <Camera className="w-10 h-10 text-forest-moss mx-auto mb-3" />
+                <p className="text-sm text-forest-deep font-bold">
+                  Capture or Upload Photos
                 </p>
-                <p className="text-xs text-eco-600 mt-1">
-                  PNG, JPG up to 10MB each
+                <p className="text-xs text-forest-moss mt-1">
+                  JPG or PNG • Max 5 files
                 </p>
               </div>
               <input
@@ -388,10 +389,16 @@ export default function TrailReportForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-eco-600 to-eco-700 text-white font-bold py-3 px-4 rounded-lg hover:from-eco-700 hover:to-eco-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full btn-nature py-4 text-lg flex items-center justify-center gap-2"
           >
-            {loading && <Loader className="w-5 h-5 animate-spin" />}
-            {loading ? 'Submitting...' : 'Submit Report'}
+            {loading ? (
+              <>
+                <Loader className="w-5 h-5 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Report'
+            )}
           </button>
         </form>
       </div>

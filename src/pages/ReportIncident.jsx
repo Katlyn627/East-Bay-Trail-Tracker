@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { AlertTriangle, CheckCircle2, Crosshair, Loader2, MapPin, UploadCloud, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Crosshair, Loader2, MapPin, UploadCloud, X, Trees, AlertCircle, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
@@ -13,9 +13,9 @@ const INCIDENT_CATEGORIES = [
 ];
 
 const SEVERITY_LEVELS = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'urgent', label: 'Urgent' },
+  { value: 'low', label: 'Low - Passable' },
+  { value: 'medium', label: 'Medium - Caution' },
+  { value: 'urgent', label: 'Urgent - Blocked' },
 ];
 
 const MAX_PHOTOS = 5;
@@ -56,7 +56,7 @@ const ReportIncident = () => {
       (geoError) => {
         console.warn('Geolocation error:', geoError);
         setGeoLoading(false);
-        setError('Unable to capture location. Please allow location permission and try again.');
+        setError('Unable to capture location. Please allow location permission.');
       },
       { enableHighAccuracy: true, timeout: 7000 }
     );
@@ -105,7 +105,7 @@ const ReportIncident = () => {
     setSuccess('');
 
     if (!user) {
-      setError('You must be signed in before reporting an incident.');
+      setError('You must be signed in to report an incident.');
       return;
     }
 
@@ -115,12 +115,12 @@ const ReportIncident = () => {
     }
 
     if (!formData.description.trim()) {
-      setError('Please provide a description of the incident.');
+      setError('Please provide a description.');
       return;
     }
 
     if (!formData.latitude || !formData.longitude) {
-      setError('Please capture coordinates before submitting.');
+      setError('Please capture coordinates first.');
       return;
     }
 
@@ -162,45 +162,62 @@ const ReportIncident = () => {
       });
 
       resetForm();
-      setSuccess(`Incident submitted successfully. +${pointsEarned} maintenance points awarded.`);
+      setSuccess(`Report submitted! +${pointsEarned} maintenance points awarded.`);
     } catch (submitError) {
-      console.error('Incident submission error:', submitError);
-      setError(submitError.message || 'Unable to submit this incident right now. Please try again.');
+      console.error('Submission error:', submitError);
+      setError(submitError.message || 'Unable to submit report.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-5">
-      <div className="organic-card brand-card brand-glass-panel p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4A373]">Trail Safety</p>
-        <h2 className="mt-2 text-2xl font-bold text-[#1B4332] sm:text-3xl">Report Incident</h2>
-        <p className="mt-2 text-sm text-[#1B4332]/75">
-          File a hazard report so trail teams can prioritize maintenance response.
-        </p>
+    <div className="max-w-4xl mx-auto pb-12">
+      {/* Header */}
+      <div className="organic-card bg-poppy-gradient p-6 mb-8 text-white relative overflow-hidden shadow-xl">
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white border border-white/30 text-xs font-bold mb-4">
+            <ShieldAlert size={14} />
+            MAINTENANCE ALERT
+          </div>
+          <h2 className="text-3xl font-heading font-black">Report a Hazard</h2>
+          <p className="text-white/90 text-sm mt-2 max-w-xl font-medium">
+            Help us keep California's trails safe. Your report will be shared with the community and local maintenance crews.
+          </p>
+        </div>
+        <div className="absolute right-[-10px] bottom-[-20px] opacity-20 pointer-events-none transform -rotate-12">
+          <AlertCircle size={180} />
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="organic-card brand-card brand-glass-panel p-5">
-        <div className="grid gap-4 md:grid-cols-2">
-          <label>
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Trail Name</span>
+      <form onSubmit={handleSubmit} className="organic-card p-6 bg-white/90 space-y-8">
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Trail Name */}
+          <div className="md:col-span-2 space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <MapPin size={16} className="text-poppy" />
+              Trail / Park Name
+            </label>
             <input
               type="text"
               value={formData.trailName}
               onChange={(event) => handleChange('trailName', event.target.value)}
-              placeholder="Redwood Regional"
-              className="input-field"
+              placeholder="e.g. Redwood Regional, Tilden Park..."
+              className="nature-input"
               required
             />
-          </label>
+          </div>
 
-          <label>
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Incident Category</span>
+          {/* Category & Severity */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <Trees size={16} className="text-forest" />
+              Hazard Category
+            </label>
             <select
               value={formData.category}
               onChange={(event) => handleChange('category', event.target.value)}
-              className="input-field"
+              className="nature-input appearance-none bg-white"
             >
               {INCIDENT_CATEGORIES.map((category) => (
                 <option key={category.value} value={category.value}>
@@ -208,14 +225,17 @@ const ReportIncident = () => {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
 
-          <label>
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Severity / Priority</span>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <AlertTriangle size={16} className="text-poppy" />
+              Severity Level
+            </label>
             <select
               value={formData.severity}
               onChange={(event) => handleChange('severity', event.target.value)}
-              className="input-field"
+              className="nature-input appearance-none bg-white"
             >
               {SEVERITY_LEVELS.map((level) => (
                 <option key={level.value} value={level.value}>
@@ -223,109 +243,121 @@ const ReportIncident = () => {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
 
-          <div className="rounded-xl border border-[#52B788]/30 bg-[#f2fbf6] p-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-[#1B4332]">GPS Coordinates</p>
-                <p className="text-xs text-[#1B4332]/70">
-                  Auto-captured from your device. You can recapture if needed.
-                </p>
+          {/* Location Capture */}
+          <div className="md:col-span-2 p-4 rounded-2xl bg-sage-mist/50 border-2 border-forest-moss/20">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-forest/10 rounded-lg text-forest">
+                   <Crosshair size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-forest-deep">GPS Location</p>
+                  <p className="text-xs text-forest-moss font-medium">Pinpoint the exact location of the issue.</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={captureLocation}
-                className="inline-flex items-center gap-1 rounded-md border border-[#52B788]/50 bg-white px-2 py-1 text-xs font-semibold text-[#1B4332] transition hover:bg-[#ecf9f1]"
+                disabled={geoLoading}
+                className="btn-poppy text-xs py-2 px-4 flex items-center gap-2 whitespace-nowrap"
               >
-                <Crosshair size={13} />
-                {geoLoading ? 'Capturing...' : 'Recapture'}
+                {geoLoading ? <Loader2 size={14} className="animate-spin" /> : <Crosshair size={14} />}
+                {geoLoading ? 'Capturing...' : 'Recapture GPS'}
               </button>
             </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <div className="rounded-md bg-white px-2 py-1.5 text-xs text-[#1B4332]">
-                <span className="font-semibold">Lat:</span> {formData.latitude || 'Not captured'}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-xl p-3 border border-forest-moss/10">
+                <span className="text-[10px] font-bold text-forest-moss block uppercase tracking-tighter mb-1">Latitude</span>
+                <code className="text-sm font-bold text-forest-deep">{formData.latitude || '--.------'}</code>
               </div>
-              <div className="rounded-md bg-white px-2 py-1.5 text-xs text-[#1B4332]">
-                <span className="font-semibold">Lng:</span> {formData.longitude || 'Not captured'}
+              <div className="bg-white rounded-xl p-3 border border-forest-moss/10">
+                <span className="text-[10px] font-bold text-forest-moss block uppercase tracking-tighter mb-1">Longitude</span>
+                <code className="text-sm font-bold text-forest-deep">{formData.longitude || '--.------'}</code>
               </div>
             </div>
           </div>
 
-          <label className="md:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Description</span>
+          {/* Description */}
+          <div className="md:col-span-2 space-y-2">
+            <label className="text-sm font-bold text-forest-deep ml-1">Issue Details</label>
             <textarea
               rows={4}
               value={formData.description}
               onChange={(event) => handleChange('description', event.target.value)}
-              placeholder="Describe what you observed, exact location markers, and immediate safety concerns."
-              className="input-field"
+              placeholder="Describe the hazard and any safety concerns..."
+              className="nature-input min-h-[120px] resize-none"
               required
             />
-          </label>
+          </div>
 
-          <label className="md:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Photo Attachments</span>
-            <div className="rounded-xl border border-dashed border-[#52B788]/45 bg-[#f4faf7] p-4">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#52B788] px-4 py-2 text-sm font-semibold text-[#1B4332] transition hover:bg-[#43a676]">
-                <UploadCloud size={16} />
-                Add photos
-                <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
-              </label>
-              <p className="mt-2 text-xs text-[#1B4332]/70">Up to {MAX_PHOTOS} attachments.</p>
+          {/* Photos */}
+          <div className="md:col-span-2 space-y-2">
+             <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <UploadCloud size={16} className="text-forest" />
+              Attach Evidence
+            </label>
+            <div className="relative group">
+              <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+              <div className="nature-input border-dashed border-2 flex flex-col items-center justify-center py-8 group-hover:bg-sage-mist/50 transition-colors">
+                <UploadCloud size={32} className="text-forest-moss mb-2" />
+                <p className="text-sm font-bold text-forest-deep">Tap to add photos</p>
+                <p className="text-xs text-forest-moss mt-1">Up to {MAX_PHOTOS} photos allowed</p>
+              </div>
             </div>
-          </label>
+
+            {photos.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                {photos.map((photo, index) => (
+                  <div key={`${photo.name}-${index}`} className="relative rounded-2xl overflow-hidden aspect-square border-2 border-sage-mist shadow-sm">
+                    <img src={URL.createObjectURL(photo)} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-poppy transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {photos.length > 0 && (
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {photos.map((photo, index) => (
-              <div key={`${photo.name}-${index}`} className="flex items-center justify-between rounded-lg border border-[#D4A373]/30 bg-[#fffaf5] px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <MapPin size={14} className="text-[#1B4332]" />
-                  <span className="max-w-[220px] truncate text-sm text-[#1B4332]">{photo.name}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removePhoto(index)}
-                  className="rounded-md p-1 text-[#8b6a4f] transition hover:bg-[#f7ece0] hover:text-[#1B4332]"
-                  aria-label={`Remove ${photo.name}`}
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
         {error && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            <AlertTriangle size={16} />
-            <span>{error}</span>
+          <div className="p-4 rounded-2xl bg-red-50 border-2 border-red-100 text-red-700 text-sm font-bold flex items-center gap-2">
+            <AlertTriangle size={18} />
+            {error}
           </div>
         )}
 
         {success && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-[#52B788]/40 bg-[#ecf9f1] px-3 py-2 text-sm text-[#1B4332]">
-            <CheckCircle2 size={16} className="text-[#52B788]" />
-            <span>{success}</span>
+          <div className="p-4 rounded-2xl bg-forest/10 border-2 border-forest/20 text-forest-deep text-sm font-bold flex items-center gap-2">
+            <CheckCircle2 size={18} className="text-forest" />
+            {success}
           </div>
         )}
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#D4A373]/25 pt-4">
-          <p className="text-xs text-[#1B4332]/70">Submitting this report awards +50 maintenance points.</p>
+        <div className="pt-6 border-t border-forest-moss/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-forest-moss">
+             <Star className="text-gold" size={16} />
+             <span className="text-xs font-bold uppercase tracking-widest">Earn 50 Maintenance Points</span>
+          </div>
           <button
             type="submit"
             disabled={submitting || geoLoading}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1B4332] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#22523f] disabled:cursor-not-allowed disabled:opacity-70"
+            className="btn-poppy w-full sm:w-auto min-w-[200px] py-4 flex items-center justify-center gap-2 text-white shadow-poppy/20"
           >
             {submitting ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={20} className="animate-spin" />
                 Submitting...
               </>
             ) : (
-              'Submit Incident'
+              'Send Report'
             )}
           </button>
         </div>
@@ -333,5 +365,11 @@ const ReportIncident = () => {
     </div>
   );
 };
+
+const Star = ({ className, size }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+  </svg>
+);
 
 export default ReportIncident;

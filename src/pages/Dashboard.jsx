@@ -10,6 +10,9 @@ import {
   PanelRight,
   Trash2,
   X,
+  Trees,
+  Star,
+  Zap
 } from 'lucide-react';
 import ReportCleanupModal from '../components/ReportCleanupModal';
 import ReportIssueModal from '../components/ReportIssueModal';
@@ -30,8 +33,8 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader size={32} className="animate-spin text-emerald-700" />
+      <div className="flex min-h-screen items-center justify-center bg-sage-mist nature-pattern">
+        <Loader size={32} className="animate-spin text-forest" />
       </div>
     );
   }
@@ -52,162 +55,119 @@ const Dashboard = () => {
       title: 'Report Trail Hazard',
       description: 'Flag downed trees, erosion, or overgrowth.',
       icon: AlertCircle,
-      tone: 'amber',
+      type: 'poppy',
       onClick: () => setIsIssueModalOpen(true),
     },
     {
       title: 'Log Cleanup',
-      description: 'Record trash pickup and trail maintenance work.',
+      description: 'Record trash pickup and trail maintenance.',
       icon: Trash2,
-      tone: 'emerald',
+      type: 'nature',
       onClick: () => setIsCleanupModalOpen(true),
     },
   ];
 
-  const pointsBreakdown = [
-    { label: 'Trail cleanup log', value: '+25 pts', detail: 'Base reward per cleanup entry' },
-    { label: 'Trail hazard report', value: '+50 pts', detail: 'Maintenance priority reporting' },
-  ];
-
-  const upcomingBadges = [
-    { name: 'Neighborhood Volunteer', requirement: 'Reach 500 total points' },
-    { name: 'Trail Guardian', requirement: 'Log 25 cleanup submissions' },
-    { name: 'Impact Pathfinder', requirement: 'Clean 10 unique trails' },
-  ];
-
-  const upcomingPerks = [
-    { name: 'Bronze Perk Pack', cost: '300 pts', description: 'Community shout-out + profile badge flair' },
-    { name: 'Silver Volunteer Kit', cost: '700 pts', description: 'Priority leaderboard highlight for one cycle' },
-    { name: 'Gold Contributor Status', cost: '1200 pts', description: 'Featured contributor spotlight' },
-  ];
-
   return (
-    <div className="page-container min-h-screen bg-transparent">
-      <section className="brand-hero-banner mb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Impact dashboard</p>
-        <h2 className="mt-1 text-3xl font-black text-white">East Bay Trail Tracker Impact Hub</h2>
-        <p className="mt-2 max-w-3xl text-sm text-white/90">
-          Track cleanup outcomes, coordinate trail actions, and monitor milestone rewards in one branded command center.
-        </p>
+    <div className="min-h-screen bg-transparent pb-12">
+      {/* Hero Impact Section */}
+      <section className="relative overflow-hidden organic-card bg-forest-gradient p-6 mb-8 text-white shadow-xl">
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sage-mist border border-white/20 text-xs font-bold mb-4">
+            <Trees size={14} />
+            CONSERVATION DASHBOARD
+          </div>
+          <h2 className="text-3xl font-heading font-black mb-2">Welcome Back, Ranger</h2>
+          <p className="text-sage-mist/80 max-w-2xl text-sm leading-relaxed">
+            Your contributions keep the East Bay trails safe and beautiful. Track your personal impact and community rewards below.
+          </p>
+        </div>
+        <div className="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none">
+          <Trees size={200} />
+        </div>
       </section>
 
       {actionSuccessMessage && (
-        <div className="mb-6 rounded-xl border border-[#52B788]/40 bg-[#ecf9f1] px-4 py-3 text-sm font-medium text-[#1B4332]">
+        <div className="mb-6 rounded-2xl border-2 border-forest-moss/30 bg-white/90 p-4 text-forest-deep font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+          <div className="bg-forest/20 p-2 rounded-full"><Leaf size={20} className="text-forest" /></div>
           {actionSuccessMessage}
         </div>
       )}
 
-      <div className="mx-auto max-w-6xl px-0 sm:px-2">
-        <div className="mb-8 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="card organic-card relative overflow-hidden border-[#D9EEDF] bg-[linear-gradient(160deg,#F4F9F4_0%,#EEF7F1_36%,#F9FBF9_100%)] p-5 shadow-[0_18px_38px_rgba(17,42,31,0.06)]">
-            <div className="pointer-events-none absolute -right-8 -top-6 h-24 w-24 rounded-full bg-[#52B788]/10 blur-xl" />
-            <div className="pointer-events-none absolute bottom-2 right-4 text-[#2D6A4F]/10">
-              <Leaf size={52} />
-            </div>
-            <div className="mb-5 flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1B4332] text-[#DDF4E7] shadow-sm">
-                <MapPinned size={18} />
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Main Metrics */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="organic-card p-6 bg-white/80">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-2xl bg-forest/10 border border-forest/20">
+                <MapPinned size={24} className="text-forest" />
               </div>
-              <h3 className="text-xl font-black tracking-tight text-[#112A1F]">Impact Metrics</h3>
+              <h3 className="text-2xl font-heading">Impact Metrics</h3>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#A7D7B8] bg-[linear-gradient(135deg,#ECF8F0_0%,#DFF3E8_48%,#F3FBF6_100%)] p-4 shadow-sm">
-                <div className="absolute -right-2 -top-3 rotate-12 rounded-full bg-[#1B4332]/5 p-2 text-[#1B4332]/30">
-                  <Leaf size={18} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-[2rem] rounded-tr-lg rounded-bl-lg bg-forest/5 border border-forest-moss/20">
+                <div className="flex items-center justify-between mb-2">
+                  <Trash2 size={20} className="text-forest" />
+                  <span className="text-[10px] font-bold text-forest-moss uppercase tracking-tighter">Bags Logged</span>
                 </div>
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1B4332]/10 text-[#1B4332]">
-                    <Trash2 size={16} />
-                  </div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#1B4332]">Total Trash</p>
-                </div>
-                <p className="text-3xl font-black leading-none text-[#1B4332]">{impactMetrics.totalBags}</p>
-                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#1B4332]/70">bags collected</p>
-                <p className="mt-1 text-sm text-[#1B4332]/80">{impactMetrics.totalWeightLbs.toFixed(1)} lbs removed</p>
+                <div className="text-3xl font-black text-forest-deep">{impactMetrics.totalBags}</div>
+                <div className="text-xs text-forest-moss font-medium mt-1">~{impactMetrics.totalWeightLbs.toFixed(1)} lbs removed</div>
               </div>
 
-              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#B9DDE6] bg-[linear-gradient(135deg,#EAF9FB_0%,#DCF5F8_42%,#F5FCFF_100%)] p-4 shadow-sm">
-                <div className="absolute -right-2 -top-3 rounded-full bg-[#2D6A4F]/5 p-2 text-[#234F64]/25">
-                  <Leaf size={18} />
+              <div className="p-5 rounded-[2rem] rounded-tl-lg rounded-br-lg bg-lupine/5 border border-lupine/20">
+                <div className="flex items-center justify-between mb-2">
+                  <Footprints size={20} className="text-lupine" />
+                  <span className="text-[10px] font-bold text-lupine uppercase tracking-tighter">Miles Covered</span>
                 </div>
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0F4C5C]/10 text-[#1E4D5F]">
-                    <MapPinned size={16} />
-                  </div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#1E4D5F]">Miles Logged</p>
-                </div>
-                <p className="text-3xl font-black leading-none text-[#123A46]">{impactMetrics.totalMiles.toFixed(1)}</p>
-                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#1E4D5F]/75">trail distance</p>
-                <p className="mt-1 text-sm text-[#1E4D5F]/80">Across woodland routes and creek loops</p>
+                <div className="text-3xl font-black text-forest-deep">{impactMetrics.totalMiles.toFixed(1)}</div>
+                <div className="text-xs text-lupine font-medium mt-1">Across {impactMetrics.uniqueTrailsCount} trails</div>
               </div>
 
-              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#E2CDB1] bg-[linear-gradient(135deg,#FFF8EE_0%,#F8EEDB_42%,#FFFDF9_100%)] p-4 shadow-sm">
-                <div className="absolute -right-2 -top-3 rounded-full bg-[#8B6A4F]/5 p-2 text-[#8B6A4F]/30">
-                  <Leaf size={18} />
+              <div className="p-5 rounded-[2rem] rounded-tl-lg rounded-br-lg bg-poppy/5 border border-poppy/20">
+                <div className="flex items-center justify-between mb-2">
+                  <Clock3 size={20} className="text-poppy" />
+                  <span className="text-[10px] font-bold text-poppy uppercase tracking-tighter">Hours Gifted</span>
                 </div>
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#8B6A4F]/10 text-[#6f5038]">
-                    <Clock3 size={16} />
-                  </div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#6f5038]">Volunteer Hours</p>
-                </div>
-                <p className="text-3xl font-black leading-none text-[#5C4737]">{impactMetrics.totalHours.toFixed(1)}</p>
-                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#6f5038]/75">hours served</p>
-                <p className="mt-1 text-sm text-[#6f5038]/80">Community maintenance time contributed</p>
+                <div className="text-3xl font-black text-forest-deep">{impactMetrics.totalHours.toFixed(1)}</div>
+                <div className="text-xs text-poppy font-medium mt-1">Volunteer service</div>
               </div>
 
-              <div className="relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border border-[#C8E0CE] bg-[linear-gradient(135deg,#F2FAF4_0%,#E6F3E7_48%,#F8FCF9_100%)] p-4 shadow-sm">
-                <div className="absolute -right-2 -top-3 rounded-full bg-[#2D6A4F]/5 p-2 text-[#2D6A4F]/30">
-                  <Leaf size={18} />
+              <div className="p-5 rounded-[2rem] rounded-tr-lg rounded-bl-lg bg-earth/5 border border-earth-clay/20">
+                <div className="flex items-center justify-between mb-2">
+                  <Zap size={20} className="text-earth" />
+                  <span className="text-[10px] font-bold text-earth-clay uppercase tracking-tighter">Current Level</span>
                 </div>
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2D6A4F]/10 text-[#1B4332]">
-                    <Footprints size={16} />
-                  </div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#1B4332]">Unique Trails</p>
-                </div>
-                <p className="text-3xl font-black leading-none text-[#112A1F]">{impactMetrics.uniqueTrailsCount}</p>
-                <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#1B4332]/75">parks visited</p>
-                <p className="mt-1 text-sm text-[#1B4332]/80">Distinct routes restored and maintained</p>
+                <div className="text-3xl font-black text-forest-deep">Level {Math.floor(impactMetrics.pointsBalance / 500) + 1}</div>
+                <div className="text-xs text-earth-clay font-medium mt-1">Keep climbing!</div>
               </div>
             </div>
           </div>
 
-          <div className="card organic-card relative overflow-hidden border-[#D3E7D8] bg-[linear-gradient(135deg,#F7FAF7_0%,#EEF7F0_38%,#FFFFFF_100%)] p-5 shadow-[0_18px_38px_rgba(17,42,31,0.06)]">
-            <div className="absolute -left-8 top-5 h-20 w-20 rounded-full bg-[#52B788]/10 blur-2xl" />
-            <div className="pointer-events-none absolute right-5 top-3 text-[#2D6A4F]/10">
-              <Leaf size={38} />
-            </div>
-            <div className="mb-5 flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D4A373]/15 text-[#8B6A4F] shadow-sm">
-                <AlertCircle size={18} />
-              </div>
-              <h3 className="text-xl font-black tracking-tight text-[#112A1F]">Incident & Maintenance Reporting</h3>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {quickActions.map(({ title, description, icon: Icon, onClick, tone }) => (
+          {/* Quick Actions */}
+          <div className="organic-card p-6 bg-white/80">
+            <h3 className="text-xl font-heading mb-6 flex items-center gap-2">
+              <Zap size={20} className="text-poppy" />
+              Quick Actions
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {quickActions.map((action) => (
                 <button
-                  key={title}
-                  type="button"
-                  onClick={onClick}
-                  className={`group relative overflow-hidden rounded-tl-[2.2rem] rounded-br-[2.2rem] rounded-tr-[1rem] rounded-bl-[1rem] border p-4 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                    tone === 'amber'
-                      ? 'border-[#E6D0A3] bg-[linear-gradient(135deg,#FFF9F1_0%,#F9F0E1_100%)]'
-                      : 'border-[#CFE7D6] bg-[linear-gradient(135deg,#F5FBF7_0%,#EAF8F0_100%)]'
+                  key={action.title}
+                  onClick={action.onClick}
+                  className={`group p-6 rounded-[2rem] border-2 transition-all text-left flex flex-col items-start gap-4 ${
+                    action.type === 'poppy'
+                    ? 'bg-poppy/5 border-poppy/20 hover:bg-poppy/10 hover:border-poppy/40'
+                    : 'bg-forest/5 border-forest/20 hover:bg-forest/10 hover:border-forest/40'
                   }`}
                 >
-                  <div className="absolute right-3 top-3 text-[#2D6A4F]/10">
-                    <Leaf size={24} />
+                  <div className={`p-4 rounded-2xl shadow-sm group-hover:scale-110 transition-transform ${
+                    action.type === 'poppy' ? 'bg-poppy text-white' : 'bg-forest text-white'
+                  }`}>
+                    <action.icon size={24} />
                   </div>
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/90 shadow-sm ring-1 ring-[#D2E7D8]">
-                    <Icon size={22} className={tone === 'amber' ? 'text-[#8B6A4F]' : 'text-[#2D6A4F]'} />
-                  </div>
-                  <h4 className="text-base font-black text-[#112A1F]">{title}</h4>
-                  <p className="mt-1 text-sm leading-relaxed text-[#1B4332]/75">{description}</p>
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#1B4332] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm">
-                    {tone === 'amber' ? 'Log issue' : 'Track cleanup'}
+                  <div>
+                    <h4 className="font-heading font-bold text-forest-deep">{action.title}</h4>
+                    <p className="text-sm text-forest-deep/60 mt-1">{action.description}</p>
                   </div>
                 </button>
               ))}
@@ -215,91 +175,95 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Sidebar / Points */}
+        <div className="space-y-8">
+           <div className="organic-card p-6 bg-forest-gradient text-white shadow-xl relative overflow-hidden">
+             <div className="relative z-10">
+               <div className="flex items-center gap-2 mb-4 opacity-80">
+                 <Star size={16} className="text-gold" />
+                 <span className="text-xs font-bold uppercase tracking-widest">Rewards Points</span>
+               </div>
+               <div className="text-5xl font-black mb-2">{impactMetrics.pointsBalance}</div>
+               <p className="text-sage-mist/60 text-sm mb-6 font-medium">Available to redeem for trail gear & perks</p>
+               <button
+                 onClick={() => setIsPointsDrawerOpen(true)}
+                 className="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+               >
+                 View Rewards Hub <PanelRight size={18} />
+               </button>
+             </div>
+             <div className="absolute bottom-[-20%] right-[-10%] opacity-20 pointer-events-none">
+                <Leaf size={120} />
+             </div>
+           </div>
+
+           <div className="organic-card p-6 bg-white/80 border-dashed border-2 border-forest-moss/30">
+             <h4 className="font-heading font-bold text-forest-deep mb-4 uppercase text-xs tracking-widest">Next Badge</h4>
+             <div className="flex items-center gap-4">
+               <div className="w-16 h-16 rounded-full bg-poppy/10 flex items-center justify-center border-2 border-dashed border-poppy/30">
+                 <Award size={32} className="text-poppy opacity-40" />
+               </div>
+               <div>
+                 <p className="font-bold text-forest-deep">Redwood Guardian</p>
+                 <p className="text-xs text-forest-moss">Log 5 more cleanups</p>
+               </div>
+             </div>
+             <div className="mt-4 w-full bg-forest-moss/10 h-2 rounded-full overflow-hidden">
+                <div className="bg-poppy h-full transition-all w-[60%]"></div>
+             </div>
+           </div>
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setIsPointsDrawerOpen(true)}
-        className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full bg-[#1B4332] px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#22523f]"
-      >
-        <PanelRight size={16} />
-        Points: {impactMetrics.pointsBalance}
-      </button>
-
+      {/* Rewards Drawer */}
       <div
-        className={`fixed inset-0 z-40 bg-slate-950/35 transition-opacity ${
+        className={`fixed inset-0 z-[60] bg-forest-deep/40 backdrop-blur-sm transition-opacity duration-300 ${
           isPointsDrawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setIsPointsDrawerOpen(false)}
       />
       <aside
-        className={`fixed right-0 top-0 z-50 h-full w-full max-w-md transform overflow-y-auto border-l border-[#D4A373]/35 bg-white shadow-2xl transition-transform duration-300 ${
+        className={`fixed right-0 top-0 z-[70] h-full w-full max-w-md transform overflow-y-auto bg-sage-mist shadow-2xl transition-transform duration-500 ease-out ${
           isPointsDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#D4A373]/25 bg-white px-5 py-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-white border-b border-forest/10 px-6 py-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4A373]">Points & Rewards</p>
-            <h3 className="text-xl font-bold text-[#1B4332]">Rewards Ledger</h3>
+            <h3 className="text-2xl font-heading font-black text-forest-deep">Rewards Hub</h3>
+            <p className="text-xs font-bold text-poppy uppercase tracking-widest mt-1">Redeem your impact</p>
           </div>
           <button
-            type="button"
             onClick={() => setIsPointsDrawerOpen(false)}
-            className="rounded-full p-2 text-[#1B4332] transition hover:bg-[#edf7ec]"
-            aria-label="Close points drawer"
+            className="p-2 rounded-full hover:bg-forest/5 text-forest transition-colors"
           >
-            <X size={18} />
+            <X size={24} />
           </button>
         </div>
 
-        <div className="space-y-5 p-5">
-          <div className="rounded-2xl bg-gradient-to-br from-[#1B4332] to-[#22523f] p-5 text-white">
-            <p className="text-xs uppercase tracking-[0.18em] text-white/80">Current balance</p>
-            <p className="mt-2 text-4xl font-bold">{impactMetrics.pointsBalance}</p>
-            <p className="mt-2 text-sm text-white/85">Use points to plan your next community rewards milestone.</p>
+        <div className="p-6 space-y-8">
+          <div className="organic-card p-6 bg-forest-gradient text-white">
+            <p className="text-xs font-bold opacity-60 uppercase tracking-widest mb-1">Current Balance</p>
+            <p className="text-4xl font-black">{impactMetrics.pointsBalance} <span className="text-xl text-gold">PTS</span></p>
           </div>
 
-          <section>
-            <h4 className="mb-3 text-sm font-bold uppercase tracking-[0.14em] text-[#1B4332]">Point Breakdown</h4>
-            <div className="space-y-2">
-              {pointsBreakdown.map((entry) => (
-                <div key={entry.label} className="rounded-xl border border-[#D4A373]/30 bg-[#fff8f2] px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-[#1B4332]">{entry.label}</p>
-                    <span className="text-sm font-bold text-[#1B4332]">{entry.value}</span>
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-widest text-forest-moss mb-4">Milestone Perks</h4>
+            <div className="space-y-3">
+              {[
+                { name: 'Poppy Sticker Pack', cost: '250 pts', desc: 'Custom trail stickers' },
+                { name: 'Local Hero Badge', cost: '500 pts', desc: 'Featured on community board' },
+                { name: 'Ranger Kit', cost: '1200 pts', desc: 'High-vis cleanup gear' },
+              ].map((perk) => (
+                <div key={perk.name} className="organic-card p-4 bg-white hover:border-forest/30 cursor-pointer">
+                  <div className="flex justify-between items-start mb-1">
+                    <p className="font-bold text-forest-deep">{perk.name}</p>
+                    <span className="text-xs font-black px-2 py-1 bg-poppy/10 text-poppy rounded-lg">{perk.cost}</span>
                   </div>
-                  <p className="mt-1 text-xs text-[#1B4332]/70">{entry.detail}</p>
+                  <p className="text-xs text-forest-moss">{perk.desc}</p>
                 </div>
               ))}
             </div>
-          </section>
-
-          <section>
-            <h4 className="mb-3 text-sm font-bold uppercase tracking-[0.14em] text-[#1B4332]">Badges to Unlock</h4>
-            <div className="space-y-2">
-              {upcomingBadges.map((badge) => (
-                <div key={badge.name} className="rounded-xl border border-[#52B788]/35 bg-[#eef9f2] px-3 py-2">
-                  <p className="text-sm font-semibold text-[#1B4332]">{badge.name}</p>
-                  <p className="text-xs text-[#1B4332]/70">{badge.requirement}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section>
-            <h4 className="mb-3 text-sm font-bold uppercase tracking-[0.14em] text-[#1B4332]">Upcoming Perks</h4>
-            <div className="space-y-2">
-              {upcomingPerks.map((perk) => (
-                <div key={perk.name} className="rounded-xl border border-[#D4A373]/30 bg-white px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-[#1B4332]">{perk.name}</p>
-                    <span className="text-xs font-bold text-[#8b6a4f]">{perk.cost}</span>
-                  </div>
-                  <p className="mt-1 text-xs text-[#1B4332]/70">{perk.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          </div>
         </div>
       </aside>
 

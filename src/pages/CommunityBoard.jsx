@@ -23,6 +23,7 @@ import {
   Reply,
   Search,
   Share2,
+  Trees,
   Users,
   X,
 } from 'lucide-react';
@@ -750,42 +751,50 @@ const CommunityBoard = () => {
   const selectedEventAttendees = selectedEvent ? eventAttendeeProfiles(selectedEvent) : [];
 
   return (
-    <div className="space-y-6">
-      <section className="brand-hero-banner">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Community coordination</p>
-        <h2 className="mt-1 text-3xl font-black text-white">Community Board & Volunteer Events</h2>
-        <p className="mt-2 max-w-3xl text-sm text-white/90">
-          Broadcast trail updates, coordinate cleanup events, and mobilize volunteers with shared map-ready details.
-        </p>
+    <div className="space-y-8 pb-12">
+      <section className="relative overflow-hidden organic-card bg-forest-gradient p-8 text-white shadow-xl">
+        <div className="relative z-10">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-mist/80">Community coordination</p>
+          <h2 className="mt-1 text-3xl font-heading font-black text-white leading-tight">Community Board & <br />Volunteer Events</h2>
+          <p className="mt-2 max-w-2xl text-sm text-sage-mist/90 leading-relaxed">
+            Broadcast trail updates, coordinate cleanup events, and mobilize volunteers with shared map-ready details.
+          </p>
+        </div>
+        <div className="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none">
+          <Trees size={200} />
+        </div>
       </section>
 
       {(boardError || boardSuccess) && (
         <div
-          className={`rounded-xl border px-4 py-3 text-sm font-medium ${
+          className={`rounded-2xl border px-4 py-3 text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-4 ${
             boardError
-              ? 'border-red-200 bg-red-50 text-red-700'
-              : 'border-[#52B788]/35 bg-[#ecf9f1] text-[#1B4332]'
+              ? 'border-red-200 bg-white text-red-700'
+              : 'border-forest/20 bg-white text-forest-deep'
           }`}
         >
+          <div className={`p-2 rounded-full ${boardError ? 'bg-red-100' : 'bg-forest/10'}`}>
+            <Leaf size={18} className={boardError ? 'text-red-600' : 'text-forest'} />
+          </div>
           {boardError || boardSuccess}
         </div>
       )}
 
-      <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-        <section className="space-y-5">
-          <div className="organic-card brand-card brand-glass-panel p-5">
-            <h2 className="text-2xl font-bold text-[#1B4332]">Community Feed & Message Board</h2>
-            <p className="mt-2 text-sm text-[#1B4332]/75">
+      <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="space-y-6">
+          <div className="organic-card p-6">
+            <h2 className="text-2xl font-heading text-forest-deep">Community Feed</h2>
+            <p className="mt-2 text-sm text-forest-deep/70">
               Share trail conditions, cleanup wins, and operational notes with the East Bay volunteer network.
             </p>
 
-            <form onSubmit={handleCreatePost} className="mt-4 grid gap-3">
+            <form onSubmit={handleCreatePost} className="mt-6 grid gap-4">
               <input
                 type="text"
                 value={postForm.title}
                 onChange={(event) => setPostForm((prev) => ({ ...prev, title: event.target.value }))}
                 placeholder="Post title"
-                className="input-field"
+                className="nature-input"
               />
 
               <div className="relative">
@@ -803,10 +812,10 @@ const CommunityBoard = () => {
                   onFocus={() => setShowPostSuggestions(true)}
                   onBlur={() => window.setTimeout(() => setShowPostSuggestions(false), 120)}
                   placeholder="Primary trail / park"
-                  className="input-field"
+                  className="nature-input"
                 />
                 {showPostSuggestions && postTrailSearch.suggestions.length > 0 && (
-                  <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                  <div className="absolute z-20 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-forest/10 bg-white shadow-xl">
                     {postTrailSearch.suggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
@@ -816,7 +825,7 @@ const CommunityBoard = () => {
                           setPostSelectedLocation(suggestion);
                           setShowPostSuggestions(false);
                         }}
-                        className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                        className="block w-full px-4 py-3 text-left text-sm text-forest-deep hover:bg-sage-mist transition-colors"
                       >
                         {suggestion.displayName}
                       </button>
@@ -826,18 +835,17 @@ const CommunityBoard = () => {
               </div>
 
               {postTrailSearch.loading && (
-                <p className="text-xs text-[#1B4332]/70">Searching California trails and parks...</p>
+                <p className="text-xs text-forest-moss font-bold">Searching California trails...</p>
               )}
-              {postTrailSearch.error && <p className="text-xs text-[#8b2c2c]">{postTrailSearch.error}</p>}
 
               {postForm.trailName && (
                 <a
                   href={buildGoogleMapsSearchUrl(postForm.trailName, getSelectedCoordinates(postSelectedLocation, postForm.trailName))}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-forest underline decoration-forest/30 underline-offset-4"
                 >
-                  📍 View on Google Maps
+                  <MapPin size={12} /> View on Google Maps
                 </a>
               )}
 
@@ -846,25 +854,25 @@ const CommunityBoard = () => {
                 value={postForm.trailTags}
                 onChange={(event) => setPostForm((prev) => ({ ...prev, trailTags: event.target.value }))}
                 placeholder="Additional trail tags (comma-separated)"
-                className="input-field"
+                className="nature-input"
               />
 
               <textarea
                 rows={3}
                 value={postForm.message}
                 onChange={(event) => setPostForm((prev) => ({ ...prev, message: event.target.value }))}
-                placeholder="Share field updates, route conditions, or notes for other volunteers..."
-                className="input-field"
+                placeholder="Share field updates, route conditions, or notes..."
+                className="nature-input"
               />
 
               <button
                 type="submit"
                 disabled={posting}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#1B4332] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#22523f] disabled:cursor-not-allowed disabled:opacity-70"
+                className="btn-nature w-full sm:w-auto self-start flex items-center justify-center gap-2"
               >
                 {posting ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <Loader2 size={18} className="animate-spin" />
                     Posting...
                   </>
                 ) : (
@@ -874,12 +882,15 @@ const CommunityBoard = () => {
             </form>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {loadingPosts ? (
-              <div className="rounded-2xl border border-[#D4A373]/25 bg-white p-5 text-sm text-[#1B4332]/75">Loading community posts...</div>
+              <div className="organic-card p-8 text-center text-forest-moss">
+                <Loader2 size={32} className="animate-spin mx-auto mb-2 opacity-20" />
+                <p>Loading community posts...</p>
+              </div>
             ) : posts.length === 0 ? (
-              <div className="rounded-2xl border border-[#D4A373]/25 bg-white p-5 text-sm text-[#1B4332]/75">
-                No posts yet. Be the first to share a trail update.
+              <div className="organic-card p-8 text-center text-forest-moss">
+                <p>No posts yet. Be the first to share a trail update.</p>
               </div>
             ) : (
               posts.map((post) => {
@@ -890,21 +901,32 @@ const CommunityBoard = () => {
                     : [];
 
                 return (
-                  <article key={post.id} className="organic-card brand-card brand-glass-panel p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-lg font-bold text-[#1B4332]">{post.title}</h3>
-                        <p className="text-xs text-[#1B4332]/65">
-                          {post.authorName || 'Community member'} · {formatTimestamp(post.createdAt)}
-                        </p>
+                  <article key={post.id} className="organic-card p-5 group">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                         <img
+                           src={getMemberProfile(post.authorUid).photoURL}
+                           className="w-10 h-10 rounded-full border-2 border-sage-mist object-cover shadow-sm"
+                           alt=""
+                         />
+                         <div>
+                           <h3 className="text-lg font-heading font-bold text-forest-deep">{post.title}</h3>
+                           <p className="text-xs font-medium text-forest-moss">
+                             {post.authorName || 'Community member'} · {formatTimestamp(post.createdAt)}
+                           </p>
+                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => handleTogglePostLike(post)}
-                          className="inline-flex items-center gap-1 rounded-full border border-[#D4A373]/35 bg-[#fff8f2] px-2.5 py-1.5 text-xs font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all ${
+                            Array.isArray(post.likedBy) && user && post.likedBy.includes(user.uid)
+                            ? 'bg-poppy/10 text-poppy border border-poppy/20'
+                            : 'bg-sage-mist text-forest-moss border border-forest/5 hover:border-forest/20'
+                          }`}
                         >
-                          <Heart size={14} className={Array.isArray(post.likedBy) && user && post.likedBy.includes(user.uid) ? 'fill-[#D94F2B] text-[#D94F2B]' : 'text-[#1B4332]'} />
+                          <Heart size={14} className={Array.isArray(post.likedBy) && user && post.likedBy.includes(user.uid) ? 'fill-current' : ''} />
                           {post.hearts || 0}
                         </button>
                         <button
@@ -916,128 +938,123 @@ const CommunityBoard = () => {
                               url: `${window.location.origin}${window.location.pathname}?post=${post.id}`,
                             })
                           }
-                          className="inline-flex items-center gap-1 rounded-full border border-[#52B788]/35 bg-[#eef9f2] px-2.5 py-1.5 text-xs font-semibold text-[#1B4332] transition hover:bg-[#e3f7ea]"
+                          className="p-2 rounded-full bg-sage-mist text-forest-moss hover:text-forest transition-colors border border-forest/5"
                         >
-                          <Share2 size={14} />
-                          Share
+                          <Share2 size={16} />
                         </button>
                       </div>
                     </div>
 
                     {trailTags.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
+                      <div className="mt-4 flex flex-wrap gap-2">
                         {trailTags.map((tag) => (
-                          <a
+                          <span
                             key={`${post.id}-${tag}`}
-                            href={buildGoogleMapsSearchUrl(`${tag} California trail`)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 rounded-full border border-[#52B788]/40 bg-[#eef9f2] px-2 py-1 text-xs font-semibold text-[#1B4332] transition hover:bg-[#e2f5eb]"
+                            className="inline-flex items-center gap-1 rounded-lg bg-forest/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-forest"
                           >
-                            <MapPin size={12} />
+                            <MapPin size={10} />
                             {tag}
-                          </a>
+                          </span>
                         ))}
                       </div>
                     )}
 
-                    <p className="mt-3 whitespace-pre-wrap text-sm text-[#1B4332]/80">{post.message}</p>
+                    <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-forest-deep/80">{post.message}</p>
 
-                    <a
-                      href={
-                        post.trailMapUrl ||
-                        buildGoogleMapsSearchUrl(post.trailName || post.title, normalizeCoordinates(post.trailCoordinates))
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
-                    >
-                      <Link2 size={12} />
-                      📍 View on Google Maps
-                    </a>
+                    <div className="mt-6 flex items-center justify-between border-t border-forest/5 pt-4">
+                      <a
+                        href={
+                          post.trailMapUrl ||
+                          buildGoogleMapsSearchUrl(post.trailName || post.title, normalizeCoordinates(post.trailCoordinates))
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-forest hover:underline underline-offset-4"
+                      >
+                        <Link2 size={14} />
+                        View Map
+                      </a>
 
-                    <button
-                      type="button"
-                      onClick={() => setActiveThreadPostId((prev) => (prev === post.id ? null : post.id))}
-                      className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#D4A373]/35 bg-[#fff8f2] px-3 py-1.5 text-xs font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
-                    >
-                      <MessageCircle size={14} />
-                      {activeThreadPostId === post.id ? 'Hide Thread' : 'Open Thread'}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveThreadPostId((prev) => (prev === post.id ? null : post.id))}
+                        className="inline-flex items-center gap-2 text-xs font-bold text-forest-moss hover:text-forest transition-colors"
+                      >
+                        <MessageCircle size={16} />
+                        {activeThreadPostId === post.id ? 'Hide Discussion' : 'Join Discussion'}
+                      </button>
+                    </div>
 
                     {activeThreadPostId === post.id && (
-                      <div className="mt-4 rounded-xl border border-[#D4A373]/25 bg-[#fcf8f4] p-3">
-                        <h4 className="text-sm font-semibold text-[#1B4332]">Comments & Replies</h4>
+                      <div className="mt-6 space-y-4 rounded-2xl bg-sage-mist/50 p-4 border border-forest/5 animate-in slide-in-from-top-2 duration-300">
+                        <h4 className="text-xs font-bold uppercase tracking-widest text-forest-moss">Discussion</h4>
                         {loadingComments ? (
-                          <p className="mt-2 text-xs text-[#1B4332]/70">Loading comments...</p>
+                          <p className="text-xs text-forest-moss italic">Gathering responses...</p>
                         ) : (
-                          <div className="mt-2 space-y-3">
+                          <div className="space-y-4">
                             {rootComments.length === 0 ? (
-                              <p className="text-xs text-[#1B4332]/70">No comments yet. Start the discussion.</p>
+                              <p className="text-xs text-forest-moss italic">No comments yet. Start the discussion below.</p>
                             ) : (
                               rootComments.map((comment) => (
-                                <div key={comment.id} className="rounded-lg border border-[#D4A373]/20 bg-white px-3 py-2">
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                      <p className="text-xs font-semibold text-[#1B4332]">
-                                        {comment.authorName || 'Volunteer'} · {formatTimestamp(comment.createdAt)}
-                                      </p>
-                                      <p className="mt-1 text-sm text-[#1B4332]/80">{comment.message}</p>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleToggleCommentLike(comment)}
-                                      className="inline-flex items-center gap-1 rounded-full border border-[#D4A373]/35 bg-[#fff8f2] px-2 py-1 text-[11px] font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
-                                    >
-                                      <Heart size={12} className={Array.isArray(comment.likedBy) && user && comment.likedBy.includes(user.uid) ? 'fill-[#D94F2B] text-[#D94F2B]' : 'text-[#1B4332]'} />
-                                      {comment.likes || 0}
-                                    </button>
-                                  </div>
-
-                                  <div className="mt-2 space-y-2">
-                                    {(repliesByParent[comment.id] || []).map((reply) => (
-                                      <div key={reply.id} className="rounded-md border border-[#52B788]/25 bg-[#eef9f2] px-2 py-1.5">
+                                <div key={comment.id} className="space-y-3">
+                                  <div className="flex gap-3">
+                                     <img
+                                       src={getMemberProfile(comment.authorUid).photoURL}
+                                       className="w-8 h-8 rounded-full border border-white object-cover"
+                                       alt=""
+                                     />
+                                     <div className="flex-1 bg-white rounded-2xl rounded-tl-none p-3 shadow-sm border border-forest/5">
                                         <div className="flex items-start justify-between gap-2">
-                                          <div>
-                                            <p className="text-[11px] font-semibold text-[#1B4332]">
-                                              {reply.authorName || 'Volunteer'} · {formatTimestamp(reply.createdAt)}
-                                            </p>
-                                            <p className="text-xs text-[#1B4332]/80">{reply.message}</p>
-                                          </div>
+                                          <p className="text-[11px] font-bold text-forest-deep">
+                                            {comment.authorName || 'Volunteer'} · {formatTimestamp(comment.createdAt)}
+                                          </p>
                                           <button
                                             type="button"
-                                            onClick={() => handleToggleCommentLike(reply)}
-                                            className="inline-flex items-center gap-1 rounded-full border border-[#52B788]/35 bg-white px-2 py-1 text-[10px] font-semibold text-[#1B4332] transition hover:bg-[#edfaf2]"
+                                            onClick={() => handleToggleCommentLike(comment)}
+                                            className="text-forest-moss hover:text-poppy transition-colors"
                                           >
-                                            <Heart size={10} className={Array.isArray(reply.likedBy) && user && reply.likedBy.includes(user.uid) ? 'fill-[#D94F2B] text-[#D94F2B]' : 'text-[#1B4332]'} />
-                                            {reply.likes || 0}
+                                            <Heart size={12} className={Array.isArray(comment.likedBy) && user && comment.likedBy.includes(user.uid) ? 'fill-poppy text-poppy' : ''} />
                                           </button>
+                                        </div>
+                                        <p className="mt-1 text-sm text-forest-deep/80">{comment.message}</p>
+                                     </div>
+                                  </div>
+
+                                  {/* Replies */}
+                                  <div className="ml-11 space-y-3">
+                                    {(repliesByParent[comment.id] || []).map((reply) => (
+                                      <div key={reply.id} className="flex gap-2">
+                                        <img
+                                          src={getMemberProfile(reply.authorUid).photoURL}
+                                          className="w-6 h-6 rounded-full border border-white object-cover"
+                                          alt=""
+                                        />
+                                        <div className="flex-1 bg-forest/5 rounded-xl rounded-tl-none p-2 border border-forest/5">
+                                          <p className="text-[10px] font-bold text-forest-deep">
+                                            {reply.authorName || 'Volunteer'} · {formatTimestamp(reply.createdAt)}
+                                          </p>
+                                          <p className="text-xs text-forest-deep/70">{reply.message}</p>
                                         </div>
                                       </div>
                                     ))}
-                                  </div>
 
-                                  <div className="mt-2 flex gap-2">
-                                    <input
-                                      type="text"
-                                      value={replyDrafts[comment.id] || ''}
-                                      onChange={(event) => setReplyDrafts((prev) => ({ ...prev, [comment.id]: event.target.value }))}
-                                      placeholder="Reply to this comment..."
-                                      className="input-field py-2 text-sm"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAddReply(comment.id)}
-                                      disabled={submittingReplyTo === comment.id}
-                                      className="inline-flex items-center gap-1 rounded-md bg-[#1B4332] px-3 text-xs font-semibold text-white transition hover:bg-[#22523f] disabled:opacity-70"
-                                    >
-                                      {submittingReplyTo === comment.id ? (
-                                        <Loader2 size={12} className="animate-spin" />
-                                      ) : (
-                                        <Reply size={12} />
-                                      )}
-                                      Reply
-                                    </button>
+                                    <div className="flex gap-2">
+                                      <input
+                                        type="text"
+                                        value={replyDrafts[comment.id] || ''}
+                                        onChange={(event) => setReplyDrafts((prev) => ({ ...prev, [comment.id]: event.target.value }))}
+                                        placeholder="Write a reply..."
+                                        className="nature-input py-2 text-xs"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddReply(comment.id)}
+                                        disabled={submittingReplyTo === comment.id}
+                                        className="btn-nature px-4 py-0 text-xs"
+                                      >
+                                        {submittingReplyTo === comment.id ? <Loader2 size={12} className="animate-spin" /> : 'Reply'}
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               ))
@@ -1045,20 +1062,20 @@ const CommunityBoard = () => {
                           </div>
                         )}
 
-                        <form onSubmit={handleAddComment} className="mt-3 flex gap-2">
+                        <form onSubmit={handleAddComment} className="flex gap-3 pt-2">
                           <input
                             type="text"
                             value={commentDraft}
                             onChange={(event) => setCommentDraft(event.target.value)}
-                            placeholder="Add a comment to this post..."
-                            className="input-field py-2 text-sm"
+                            placeholder="Add your voice..."
+                            className="nature-input py-2 text-sm"
                           />
                           <button
                             type="submit"
                             disabled={submittingComment}
-                            className="rounded-md bg-[#1B4332] px-3 text-xs font-semibold text-white transition hover:bg-[#22523f] disabled:opacity-70"
+                            className="btn-nature px-6"
                           >
-                            {submittingComment ? 'Posting...' : 'Comment'}
+                            {submittingComment ? '...' : 'Post'}
                           </button>
                         </form>
                       </div>
@@ -1070,26 +1087,26 @@ const CommunityBoard = () => {
           </div>
         </section>
 
-        <section className="space-y-5">
-          <div className="organic-card brand-card brand-glass-panel p-5">
-            <h3 className="text-xl font-bold text-[#1B4332]">Volunteer Events & Cleanup Hikes Coordinator</h3>
-            <p className="mt-2 text-sm text-[#1B4332]/75">
-              Organize weekend cleanups or group hikes and let volunteers RSVP with one click.
+        <section className="space-y-6">
+          <div className="organic-card p-6 bg-forest/5 border-dashed border-2 border-forest/20 shadow-none">
+            <h3 className="text-xl font-heading text-forest-deep">Organize an Event</h3>
+            <p className="mt-2 text-sm text-forest-deep/70">
+              Host a cleanup or group hike. Coordinating our efforts doubles our impact.
             </p>
 
-            <form onSubmit={handleCreateEvent} className="mt-4 grid gap-3">
+            <form onSubmit={handleCreateEvent} className="mt-6 grid gap-4">
               <input
                 type="text"
                 value={eventForm.title}
                 onChange={(event) => setEventForm((prev) => ({ ...prev, title: event.target.value }))}
                 placeholder="Event title"
-                className="input-field"
+                className="nature-input"
               />
               <input
                 type="date"
                 value={toDateInputValue(eventForm.date)}
                 onChange={(event) => setEventForm((prev) => ({ ...prev, date: event.target.value }))}
-                className="input-field"
+                className="nature-input"
               />
 
               <div className="relative">
@@ -1107,10 +1124,10 @@ const CommunityBoard = () => {
                   onFocus={() => setShowEventSuggestions(true)}
                   onBlur={() => window.setTimeout(() => setShowEventSuggestions(false), 120)}
                   placeholder="Trail location"
-                  className="input-field"
+                  className="nature-input"
                 />
                 {showEventSuggestions && eventTrailSearch.suggestions.length > 0 && (
-                  <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                  <div className="absolute z-20 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-forest/10 bg-white shadow-xl">
                     {eventTrailSearch.suggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
@@ -1120,7 +1137,7 @@ const CommunityBoard = () => {
                           setEventSelectedLocation(suggestion);
                           setShowEventSuggestions(false);
                         }}
-                        className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                        className="block w-full px-4 py-3 text-left text-sm text-forest-deep hover:bg-sage-mist"
                       >
                         {suggestion.displayName}
                       </button>
@@ -1129,52 +1146,36 @@ const CommunityBoard = () => {
                 )}
               </div>
 
-              {eventTrailSearch.loading && (
-                <p className="text-xs text-[#1B4332]/70">Searching California trails and parks...</p>
-              )}
-              {eventTrailSearch.error && <p className="text-xs text-[#8b2c2c]">{eventTrailSearch.error}</p>}
-
-              {eventForm.trailName && (
-                <a
-                  href={buildGoogleMapsSearchUrl(eventForm.trailName, getSelectedCoordinates(eventSelectedLocation, eventForm.trailName))}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
-                >
-                  📍 View on Google Maps
-                </a>
-              )}
-
               <textarea
                 rows={2}
                 value={eventForm.details}
                 onChange={(event) => setEventForm((prev) => ({ ...prev, details: event.target.value }))}
-                placeholder="Event details, meetup point, and supplies needed"
-                className="input-field"
+                placeholder="Meetup point, supplies, and goals..."
+                className="nature-input"
               />
               <button
                 type="submit"
                 disabled={creatingEvent}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#52B788] px-4 py-2.5 text-sm font-semibold text-[#1B4332] transition hover:bg-[#43a676] disabled:cursor-not-allowed disabled:opacity-70"
+                className="btn-poppy w-full flex items-center justify-center gap-2"
               >
                 {creatingEvent ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <Loader2 size={18} className="animate-spin" />
                     Creating...
                   </>
                 ) : (
-                  'Create Event'
+                  'Launch Event'
                 )}
               </button>
             </form>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {loadingEvents ? (
-              <div className="rounded-2xl border border-[#D4A373]/25 bg-white p-4 text-sm text-[#1B4332]/75">Loading upcoming events...</div>
+              <div className="organic-card p-8 text-center text-forest-moss">Loading events...</div>
             ) : events.length === 0 ? (
-              <div className="rounded-2xl border border-[#D4A373]/25 bg-white p-4 text-sm text-[#1B4332]/75">
-                No upcoming cleanup hikes yet. Create one above to start organizing.
+              <div className="organic-card p-8 text-center text-forest-moss bg-white/40">
+                <p>No upcoming cleanup hikes. Lead the way!</p>
               </div>
             ) : (
               events.map((communityEvent) => {
@@ -1184,126 +1185,70 @@ const CommunityBoard = () => {
                 return (
                   <div
                     key={communityEvent.id}
-                    className="cursor-pointer rounded-2xl border border-[#D4A373]/25 bg-white p-4 shadow-sm transition hover:shadow-md"
+                    className="organic-card p-5 cursor-pointer"
                     onClick={() => setSelectedEvent(communityEvent)}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h4 className="text-base font-bold text-[#1B4332]">{communityEvent.title}</h4>
-                        <p className="text-xs text-[#1B4332]/65">Organized by {communityEvent.organizerName || 'Community member'}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleToggleEventLike(communityEvent);
-                          }}
-                          className="inline-flex items-center gap-1 rounded-full border border-[#D4A373]/35 bg-[#fff8f2] px-2.5 py-1.5 text-xs font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
-                        >
-                          <Heart size={14} className={Array.isArray(communityEvent.likedBy) && user && communityEvent.likedBy.includes(user.uid) ? 'fill-[#D94F2B] text-[#D94F2B]' : 'text-[#1B4332]'} />
-                          {communityEvent.hearts || 0}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleToggleRsvp(communityEvent);
-                          }}
-                          className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                            joined
-                              ? 'border border-[#D4A373]/40 bg-[#fff8f2] text-[#1B4332] hover:bg-[#f7ece0]'
-                              : 'bg-[#1B4332] text-white hover:bg-[#22523f]'
-                          }`}
-                        >
-                          {joined ? 'Leave Event' : 'Join Cleanup'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 space-y-1 text-sm text-[#1B4332]/80">
-                      <p className="inline-flex items-center gap-2">
-                        <CalendarDays size={14} />
-                        {formatTimestamp(communityEvent.eventDate)}
-                      </p>
-                      <p className="inline-flex items-center gap-2">
-                        <MapPin size={14} />
-                        {communityEvent.trailName}
-                      </p>
-                      <p className="inline-flex items-center gap-2">
-                        <Users size={14} />
-                        {rsvpCount} volunteer{rsvpCount === 1 ? '' : 's'} joined
-                      </p>
-                    </div>
-
-                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#D4A373]/20 bg-[#fffaf3] px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={getMemberProfile(communityEvent.organizerUid || communityEvent.organizerName || 'demo-marcus-ranger').photoURL}
-                          alt={communityEvent.organizerName || 'Host'}
-                          className="h-8 w-8 rounded-full border border-[#D4A373]/30 object-cover"
-                        />
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#2D6A4F]">Host</p>
-                          <p className="text-xs text-[#1B4332]">{communityEvent.organizerName || 'Community member'}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                           <CalendarDays size={14} className="text-poppy" />
+                           <span className="text-[10px] font-black uppercase tracking-widest text-poppy">
+                             {formatTimestamp(communityEvent.eventDate)}
+                           </span>
                         </div>
+                        <h4 className="text-lg font-heading font-bold text-forest-deep">{communityEvent.title}</h4>
+                        <p className="text-xs text-forest-moss">Host: {communityEvent.organizerName}</p>
                       </div>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleToggleRsvp(communityEvent);
+                        }}
+                        className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+                          joined
+                            ? 'bg-forest/10 text-forest border border-forest/20'
+                            : 'bg-forest text-white shadow-md hover:bg-forest-deep'
+                        }`}
+                      >
+                        {joined ? 'Attending' : 'Join'}
+                      </button>
+                    </div>
 
-                      <div className="flex -space-x-2">
-                        {eventAttendeeProfiles(communityEvent).slice(0, 4).map((attendee, index) => (
-                          <img
-                            key={`${communityEvent.id}-${attendee.uid || attendee.name || index}`}
-                            src={attendee.photoURL || EBTT_LOGO_SRC}
-                            alt={attendee.name || 'Volunteer'}
-                            title={attendee.name || 'Volunteer'}
-                            className="h-8 w-8 rounded-full border-2 border-white object-cover"
-                            style={{ zIndex: 10 - index }}
-                          />
-                        ))}
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs font-bold text-forest-deep/70">
+                      <div className="flex items-center gap-2 bg-sage-mist px-3 py-2 rounded-xl">
+                        <MapPin size={14} className="text-forest" />
+                        <span className="truncate">{communityEvent.trailName}</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-sage-mist px-3 py-2 rounded-xl">
+                        <Users size={14} className="text-forest" />
+                        <span>{rsvpCount} Joined</span>
                       </div>
                     </div>
 
-                    {communityEvent.details && <p className="mt-2 text-sm text-[#1B4332]/75">{communityEvent.details}</p>}
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <a
-                        href={
-                          communityEvent.trailMapUrl ||
-                          buildGoogleMapsSearchUrl(
-                            communityEvent.trailName,
-                            normalizeCoordinates(communityEvent.trailCoordinates)
-                          )
-                        }
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
-                      >
-                        📍 View on Google Maps
-                      </a>
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setSelectedEvent(communityEvent);
-                        }}
-                        className="inline-flex items-center gap-1 rounded-full border border-[#D4A373]/35 bg-[#fff8f2] px-2.5 py-1.5 text-[11px] font-semibold text-[#1B4332] transition hover:bg-[#f7ece0]"
-                      >
-                        View Details
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleShareContent({
-                            title: communityEvent.title,
-                            text: `Join me for ${communityEvent.title} in ${communityEvent.trailName}.`,
-                            url: `${window.location.origin}${window.location.pathname}?event=${communityEvent.id}`,
-                          });
-                        }}
-                        className="inline-flex items-center gap-1 rounded-full border border-[#52B788]/35 bg-[#eef9f2] px-2.5 py-1.5 text-[11px] font-semibold text-[#1B4332] transition hover:bg-[#e3f7ea]"
-                      >
-                        <Share2 size={12} />
-                        Share Event
-                      </button>
+                    <div className="mt-4 flex items-center justify-between">
+                       <div className="flex -space-x-2">
+                          {eventAttendeeProfiles(communityEvent).slice(0, 4).map((attendee, index) => (
+                            <img
+                              key={`${communityEvent.id}-${attendee.uid || index}`}
+                              src={attendee.photoURL || EBTT_LOGO_SRC}
+                              className="h-8 w-8 rounded-full border-2 border-white object-cover"
+                              title={attendee.name}
+                              alt=""
+                            />
+                          ))}
+                          {rsvpCount > 4 && (
+                            <div className="h-8 w-8 rounded-full bg-forest-moss text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                              +{rsvpCount - 4}
+                            </div>
+                          )}
+                       </div>
+                       <button
+                         type="button"
+                         className="text-xs font-bold text-forest-moss hover:text-forest transition-colors"
+                       >
+                         View Details
+                       </button>
                     </div>
                   </div>
                 );
@@ -1311,141 +1256,117 @@ const CommunityBoard = () => {
             )}
           </div>
 
+          {/* Event Detail Modal */}
           {selectedEvent && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#112A1F]/60 p-4 backdrop-blur-sm">
-              <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] border border-[#D4A373]/30 bg-[#F9FBF9] p-5 shadow-[0_24px_70px_rgba(17,42,31,0.22)]">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">Volunteer event</p>
-                    <h3 className="mt-1 text-2xl font-black text-[#112A1F]">{selectedEvent.title}</h3>
-                  </div>
-                  <button
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-deep/60 p-4 backdrop-blur-sm animate-in fade-in duration-300">
+              <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-organic border border-white/20 bg-sage-mist p-0 shadow-2xl animate-in zoom-in-95 duration-300">
+                <div className="relative h-32 bg-forest-gradient">
+                   <button
                     type="button"
                     onClick={() => setSelectedEvent(null)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#D4A373]/30 bg-white text-[#1B4332] transition hover:bg-[#f7f1e9]"
-                    aria-label="Close event details"
+                    className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
                   >
-                    <X size={16} />
+                    <X size={20} />
                   </button>
-                </div>
-
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-2xl border border-[#D4A373]/20 bg-white p-4">
-                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#1B4332]">
-                      <CalendarDays size={15} />
-                      {formatTimestamp(selectedEvent.eventDate)}
-                    </p>
-                    <p className="mt-2 inline-flex items-center gap-2 text-sm text-[#1B4332]/80">
-                      <MapPin size={15} />
-                      {selectedEvent.trailName}
-                    </p>
-                    <p className="mt-2 text-sm text-[#1B4332]/75">{selectedEvent.details || 'No detailed notes were provided for this event.'}</p>
-                    <a
-                      href={
-                        selectedEvent.trailMapUrl ||
-                        buildGoogleMapsSearchUrl(selectedEvent.trailName, normalizeCoordinates(selectedEvent.trailCoordinates))
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
-                    >
-                      <MapPin size={12} />
-                      Open in Google Maps
-                    </a>
-                  </div>
-
-                  <div className="rounded-2xl border border-[#D4A373]/20 bg-[#fffaf3] p-4">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2D6A4F]">Host & contacts</p>
-                    <div className="mt-3 flex items-center gap-3">
-                      <img
-                        src={getMemberProfile(selectedEvent.organizerUid || selectedEvent.organizerName || 'demo-marcus-ranger').photoURL}
-                        alt={selectedEvent.organizerName || 'Host'}
-                        className="h-12 w-12 rounded-full border border-[#D4A373]/30 object-cover"
-                      />
-                      <div>
-                        <p className="font-semibold text-[#1B4332]">{selectedEvent.organizerName || 'Community member'}</p>
-                        <p className="text-xs text-[#1B4332]/70">Volunteer coordinator</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 space-y-2 text-sm text-[#1B4332]/80">
-                      <a href={`mailto:${selectedEvent.hostContact?.email || selectedEvent.organizerName + '@eastbaytrailtracker.test'}`} className="inline-flex items-center gap-2 underline">
-                        <Mail size={14} />
-                        {selectedEvent.hostContact?.email || 'Message host'}
-                      </a>
-                      <a href={`tel:${(selectedEvent.hostContact?.phone || '').replace(/[^\d+]/g, '')}`} className="inline-flex items-center gap-2 underline">
-                        <Phone size={14} />
-                        {selectedEvent.hostContact?.phone || 'Call host'}
-                      </a>
-                    </div>
-
-                    <div className="mt-4 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleRsvp(selectedEvent)}
-                        className="rounded-lg bg-[#1B4332] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#22523f]"
-                      >
-                        {Array.isArray(selectedEvent.rsvpUserIds) && selectedEvent.rsvpUserIds.includes(user?.uid) ? 'Leave Event' : 'RSVP Now'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleShareContent({
-                            title: selectedEvent.title,
-                            text: `Join me for ${selectedEvent.title} on ${selectedEvent.trailName}.`,
-                            url: `${window.location.origin}${window.location.pathname}?event=${selectedEvent.id}`,
-                          })
-                        }
-                        className="inline-flex items-center gap-2 rounded-lg border border-[#52B788]/35 bg-[#eef9f2] px-3 py-2 text-xs font-semibold text-[#1B4332] transition hover:bg-[#e3f7ea]"
-                      >
-                        <Share2 size={14} />
-                        Share Event
-                      </button>
-                    </div>
+                  <div className="absolute -bottom-8 left-8">
+                     <div className="w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center">
+                        <CalendarDays size={32} className="text-poppy" />
+                     </div>
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-2xl border border-[#D4A373]/20 bg-white p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold text-[#1B4332]">Attending volunteers</p>
-                    <div className="inline-flex items-center gap-1 rounded-full border border-[#52B788]/35 bg-[#eef9f2] px-2 py-1 text-[11px] font-semibold text-[#1B4332]">
-                      <Users size={12} />
-                      {selectedEventAttendees.length}
+                <div className="px-8 pt-12 pb-8">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-3xl font-heading font-black text-forest-deep">{selectedEvent.title}</h3>
+                      <p className="mt-1 font-bold text-forest flex items-center gap-2">
+                        <MapPin size={16} /> {selectedEvent.trailName}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-xs font-bold uppercase tracking-widest text-forest-moss">Event Date</p>
+                       <p className="text-lg font-black text-forest-deep">{formatTimestamp(selectedEvent.eventDate)}</p>
                     </div>
                   </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    {selectedEventAttendees.length > 0 ? (
-                      selectedEventAttendees.map((attendee) => (
-                        <div key={`${selectedEvent.id}-${attendee.uid || attendee.name}`} className="flex items-center gap-3 rounded-xl border border-[#D4A373]/20 bg-[#fafcfb] p-2">
+
+                  <div className="mt-8 grid gap-6 md:grid-cols-2">
+                    <div className="organic-card p-6 bg-white/80">
+                       <h4 className="text-sm font-bold uppercase tracking-widest text-forest-moss mb-3">Description</h4>
+                       <p className="text-sm leading-relaxed text-forest-deep/80">
+                         {selectedEvent.details || 'No additional details provided. Meet at the trailhead!'}
+                       </p>
+                       <div className="mt-6">
+                         <a
+                            href={selectedEvent.trailMapUrl || buildGoogleMapsSearchUrl(selectedEvent.trailName)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn-nature inline-flex items-center gap-2"
+                          >
+                            <MapPin size={18} /> Get Directions
+                          </a>
+                       </div>
+                    </div>
+
+                    <div className="organic-card p-6 bg-white/80">
+                       <h4 className="text-sm font-bold uppercase tracking-widest text-forest-moss mb-3">Host</h4>
+                       <div className="flex items-center gap-4 mb-6">
                           <img
-                            src={attendee.photoURL || 'https://ui-avatars.com/api/?name=Volunteer&background=1B4332&color=ffffff'}
-                            alt={attendee.name || 'Volunteer'}
-                            className="h-10 w-10 rounded-full object-cover"
+                            src={getMemberProfile(selectedEvent.organizerUid).photoURL}
+                            className="h-12 w-12 rounded-full border-2 border-forest/10 object-cover"
+                            alt=""
                           />
                           <div>
-                            <p className="text-sm font-semibold text-[#1B4332]">{attendee.name || 'Volunteer'}</p>
-                            <p className="text-xs text-[#1B4332]/70">{attendee.role || 'Trail Volunteer'}</p>
+                            <p className="font-bold text-forest-deep">{selectedEvent.organizerName}</p>
+                            <p className="text-xs text-forest-moss">Trail Coordinator</p>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-[#1B4332]/70">No volunteers have RSVP’d yet. Be the first to join.</p>
-                    )}
+                       </div>
+
+                       <div className="space-y-3">
+                         <button
+                           onClick={() => handleToggleRsvp(selectedEvent)}
+                           className={`w-full py-3 rounded-2xl font-bold transition-all ${
+                             Array.isArray(selectedEvent.rsvpUserIds) && selectedEvent.rsvpUserIds.includes(user?.uid)
+                             ? 'bg-forest/10 text-forest border border-forest/20'
+                             : 'btn-poppy'
+                           }`}
+                         >
+                            {Array.isArray(selectedEvent.rsvpUserIds) && selectedEvent.rsvpUserIds.includes(user?.uid) ? 'Cancel RSVP' : 'RSVP Now'}
+                         </button>
+                         <button
+                           onClick={() => handleShareContent({ title: selectedEvent.title, url: window.location.href })}
+                           className="w-full py-3 bg-sage-mist text-forest-deep font-bold rounded-2xl border border-forest/5 hover:bg-white transition-colors"
+                         >
+                           Invite Friends
+                         </button>
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8">
+                     <h4 className="text-sm font-bold uppercase tracking-widest text-forest-moss mb-4">Attending ({selectedEventAttendees.length})</h4>
+                     <div className="flex flex-wrap gap-3">
+                        {selectedEventAttendees.map((attendee) => (
+                          <div key={attendee.uid} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-forest/5 shadow-sm">
+                             <img src={attendee.photoURL} className="w-6 h-6 rounded-full object-cover" alt="" />
+                             <span className="text-xs font-bold text-forest-deep">{attendee.name}</span>
+                          </div>
+                        ))}
+                     </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="organic-card brand-card brand-glass-panel p-5">
-            <h3 className="text-xl font-bold text-[var(--ebtt-deep-forest)]">Volunteer Organizations & Community Help</h3>
-            <p className="mt-2 text-sm text-[var(--ebtt-slate)]">
-              Curated directory of official ranger stations, regional parks, trailheads, and verified conservation and community volunteer organizations.
+          <div className="organic-card p-6">
+            <h3 className="text-xl font-heading text-forest-deep">Nature Directory</h3>
+            <p className="mt-2 text-sm text-forest-deep/70">
+              Verified ranger stations, conservation groups, and trailheads.
             </p>
 
-            <div className="mt-4 space-y-2">
-              <label className="relative block">
-                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#1B4332]/60" />
+            <div className="mt-6 space-y-4">
+              <div className="relative">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-forest-moss" />
                 <input
                   type="text"
                   value={resourceSearch}
@@ -1459,100 +1380,66 @@ const CommunityBoard = () => {
                   }}
                   onFocus={() => setShowResourceSuggestions(true)}
                   onBlur={() => window.setTimeout(() => setShowResourceSuggestions(false), 120)}
-                  placeholder="Search park names, ranger stations, trailheads, wilderness areas, and community volunteer organizations"
-                  className="input-field pl-9"
+                  placeholder="Search resources..."
+                  className="nature-input pl-12"
                 />
-              </label>
+              </div>
 
-              {showResourceSuggestions && resourceLocationSearch.suggestions.length > 0 && (
-                <div className="max-h-48 overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-sm">
-                  {resourceLocationSearch.suggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.id}
-                      type="button"
-                      onClick={() => {
-                        setResourceSearch(suggestion.name);
-                        setResourceSelectedLocation(suggestion);
-                        setShowResourceSuggestions(false);
-                      }}
-                      className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
-                    >
-                      {suggestion.displayName}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {resourceLocationSearch.loading && (
-                <p className="text-xs text-[#1B4332]/70">Searching California trails and parks...</p>
-              )}
-              {resourceLocationSearch.error && <p className="text-xs text-[#8b2c2c]">{resourceLocationSearch.error}</p>}
-            </div>
-
-            {resourceSelectedLocation && (
-              <a
-                href={buildMapsSearchUrl(resourceSelectedLocation.name)}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[var(--ebtt-deep-forest)] underline decoration-[var(--ebtt-sky-blue)] underline-offset-2"
-              >
-                📍 View on Google Maps
-              </a>
-            )}
-
-            <div className="mt-4 space-y-3">
-              {groupedResources.length === 0 ? (
-                <div className="rounded-xl border border-[rgba(139,94,60,0.25)] bg-[rgba(210,180,140,0.18)] p-3 text-xs text-[var(--ebtt-slate)]">
-                  No matching resources yet. Try keywords like &quot;volunteer&quot;, &quot;ranger&quot;, &quot;park&quot;, &quot;watershed&quot;, &quot;trailhead&quot;, or specific names like &quot;Point Reyes&quot; and &quot;Mission Peak&quot;.
-                </div>
-              ) : (
-                groupedResources.map((group) => (
-                  <div key={group.id} className="space-y-2">
-                    <div className="rounded-xl border border-[rgba(139,94,60,0.2)] bg-[rgba(210,180,140,0.16)] px-3 py-2">
-                      <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--ebtt-deep-forest)]">{group.title}</p>
-                      <p className="text-xs text-[var(--ebtt-slate)]">{group.description}</p>
-                    </div>
+              <div className="mt-6 space-y-6">
+                {groupedResources.map((group) => (
+                  <div key={group.id} className="space-y-3">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-poppy flex items-center gap-2">
+                       <span className="h-px flex-1 bg-poppy/20"></span>
+                       {group.title}
+                       <span className="h-px flex-1 bg-poppy/20"></span>
+                    </h4>
                     {group.resources.map((resource) => (
-                      <div key={resource.id} className="rounded-xl border border-[rgba(139,94,60,0.24)] bg-[rgba(210,180,140,0.2)] p-3">
-                        <p className="text-sm font-semibold text-[var(--ebtt-deep-forest)]">{resource.name}</p>
-                        <p className="text-xs font-medium text-[var(--ebtt-slate)]">{resource.type}</p>
-                        <p className="mt-1 text-xs text-[var(--ebtt-slate)]">{resource.description}</p>
-                        <p className="mt-1 text-xs text-[var(--ebtt-slate)]">{resource.address}</p>
-                        <p className="text-xs text-[var(--ebtt-slate)]">
-                          Phone:{' '}
-                          <a href={`tel:${resource.phone.replace(/[^\d+]/g, '')}`} className="font-semibold underline">
-                            {resource.phone}
+                      <div key={resource.id} className="p-4 rounded-2xl bg-sage-mist/50 border border-forest/5 hover:bg-white hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="font-bold text-forest-deep leading-tight">{resource.name}</p>
+                          <a href={resource.website} target="_blank" rel="noreferrer" className="text-forest hover:text-poppy">
+                            <Link2 size={16} />
                           </a>
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-[var(--ebtt-deep-forest)]">
-                          <a href={resource.website} target="_blank" rel="noreferrer" className="underline">
-                            Official Website
-                          </a>
-                          <a
-                            href={buildMapsSearchUrl(
-                              `${resource.mapQuery} ${resourceSelectedLocation?.name || 'East Bay California'}`
-                            )}
+                        </div>
+                        <p className="mt-1 text-[11px] font-medium text-forest-moss">{resource.type}</p>
+                        <p className="mt-3 text-xs text-forest-deep/60 line-clamp-2">{resource.description}</p>
+                        <div className="mt-4 flex items-center justify-between gap-2">
+                           <a href={`tel:${resource.phone}`} className="text-xs font-bold text-forest-deep hover:text-forest transition-colors underline decoration-forest/20">
+                             {resource.phone}
+                           </a>
+                           <a
+                            href={buildMapsSearchUrl(resource.mapQuery)}
                             target="_blank"
                             rel="noreferrer"
-                            className="underline"
+                            className="text-[10px] font-black uppercase tracking-tighter text-forest flex items-center gap-1"
                           >
-                            📍 View on Google Maps
+                            <MapPin size={12} /> Map
                           </a>
                         </div>
                       </div>
                     ))}
                   </div>
-                ))
-              )}
+                ))}
+              </div>
             </div>
 
-            <div className="mt-4 rounded-xl border border-[#D4A373]/35 bg-[#fff8f2] p-3">
-              <h4 className="text-sm font-bold text-[#1B4332]">Shared East Bay Goals</h4>
-              <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-[#1B4332]/80">
-                {COMMUNITY_GOALS.map((goal) => (
-                  <li key={goal}>{goal}</li>
-                ))}
-              </ul>
+            <div className="mt-8 bg-forest-gradient rounded-[2rem] p-6 text-white text-center relative overflow-hidden">
+              <div className="relative z-10">
+                <h4 className="text-sm font-bold uppercase tracking-widest mb-4 opacity-80">Season Goals</h4>
+                <div className="space-y-3">
+                  {COMMUNITY_GOALS.map((goal, idx) => (
+                    <div key={idx} className="flex items-center gap-3 text-left">
+                       <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/20">
+                          <Leaf size={12} className="text-gold" />
+                       </div>
+                       <p className="text-xs font-medium leading-tight">{goal}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="absolute -bottom-4 -right-4 opacity-10">
+                 <Trees size={100} />
+              </div>
             </div>
           </div>
         </section>
