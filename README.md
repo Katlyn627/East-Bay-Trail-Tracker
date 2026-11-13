@@ -1,6 +1,6 @@
 # East Bay Trail Tracker
 
-East Bay Trail Tracker is a community-minded trail maintenance and outdoor activity app designed to help hikers and volunteers log cleanup efforts, report trail issues, and coordinate stewardship efforts with measurable impact.
+East Bay Trail Tracker is a community-minded trail maintenance and outdoor activity app designed to help hikers and volunteers log cleanup efforts, report trail issues, and coordinate trail care efforts with measurable impact.
 
 The application combines Firebase authentication, Firestore data persistence, and Firebase Storage for photo uploads. It is built with React, Vite, and Tailwind CSS, with a mobile-first UX tailored to trail reporting and on-the-go cleanup tracking.
 
@@ -16,7 +16,7 @@ The application combines Firebase authentication, Firestore data persistence, an
 - Core impact metrics tracked in Firestore (`totalBags`, `totalWeightLbs`, `totalMiles`, `totalHours`, `uniqueTrails`, `pointsBalance`)
 - Dedicated interactive pages for cleanup logging and hazard reporting with photo uploads, GPS capture, and instant points updates
 - Profile page includes impact rollups, badges, and milestone tier reward progress indicators
-- Mobile-friendly dashboard experience for volunteers and trail stewards
+- Mobile-friendly dashboard experience for volunteers and trail advocates
 - Branded in-app navigation with dedicated Dashboard, Community Board, and Profile views
 
 ## App Screenshots
@@ -55,7 +55,11 @@ The application combines Firebase authentication, Firestore data persistence, an
 
 ```text
 East-Bay-Trail-Tracker/
+├─ android/                          # Capacitor Android native project
 ├─ public/                           # Static public assets
+│  ├─ ebtt-app-icon.png              # Primary production app icon (header + web branding)
+│  ├─ ebtt-app-icon-48.png           # 48x48 legibility check asset
+│  └─ ebtt-logo-badge.svg            # Legacy logo badge used in some screens
 ├─ src/
 │  ├─ components/                    # UI modules and reusable interactive features
 │  ├─ context/                       # Auth context and app-wide state
@@ -69,6 +73,7 @@ East-Bay-Trail-Tracker/
 │  └─ ...
 ├─ .env.example                      # Safe example environment template
 ├─ .gitignore                        # Standard ignores for env files, logs, and build output
+├─ capacitor.config.ts               # Capacitor app configuration
 ├─ firestore.rules                   # Firestore security rules reference
 ├─ index.html                        # HTML shell for Vite
 ├─ LICENSE                           # License information
@@ -96,6 +101,13 @@ East-Bay-Trail-Tracker/
 - Upload cleanup photos to Firebase Storage
 - Save report objects to a `reports` collection in Firestore
 - Reward users with points and badges for participation
+
+## Branding assets
+
+- Mobile/source icon: `assets/icon.png`
+- Reusable web/header icon: `public/ebtt-app-icon.png`
+- Small-size QA reference (48x48): `public/ebtt-app-icon-48.png`
+- Browser favicon source: `index.html` references `public/ebtt-app-icon.png`
 
 ## Local Development Setup
 
@@ -159,8 +171,34 @@ User data is stored in `users/{uid}` and reports are stored in a `reports` colle
 npm run dev          # start the Vite frontend
 npm run server       # start the local Express backend
 npm run build        # create a production build
+npm run build:android # build web assets + sync Capacitor Android project
+npm run android:open # open Android project in Android Studio
 npm run preview      # preview the production build locally
 ```
+
+## Android APK Build (Capacitor)
+
+1. Build and sync the Android wrapper project:
+
+```bash
+npm run build:android
+```
+
+2. Open the native project in Android Studio:
+
+```bash
+npm run android:open
+```
+
+3. In Android Studio:
+   - Wait for Gradle sync to finish.
+   - Connect your Android phone with USB debugging enabled (or use an emulator).
+   - For a debug APK, choose **Build > Build Bundle(s) / APK(s) > Build APK(s)**.
+   - Android Studio will output the debug APK under:
+     - `android/app/build/outputs/apk/debug/app-debug.apk`
+
+4. Sideload to your phone:
+   - Transfer/install `app-debug.apk` on the device, or deploy directly from Android Studio with **Run**.
 
 ## Security Notes
 

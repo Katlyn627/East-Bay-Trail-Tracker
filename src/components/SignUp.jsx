@@ -42,9 +42,10 @@ const SignUp = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F4F6F0] px-4">
-      <div className="w-full max-w-md organic-card border border-[#D4A373]/30 bg-white p-8 shadow-xl">
-        <div className="mb-4 flex justify-center">
-          <img src="/ebtt-logo-badge.svg" alt="East Bay Trail Tracker logo" className="logo-avatar h-16 w-16 p-1" />
+      <div className="w-full max-w-md organic-card brand-card brand-glass-panel p-8 shadow-xl">
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <img src="/ebtt-app-icon.png" alt="East Bay Trail Tracker icon" className="logo-avatar h-12 w-12 p-0" />
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#1B4332]">EAST BAY TRAIL TRACKER</p>
         </div>
         <h1 className="text-3xl font-bold text-dark mb-2 text-center">Join the Trail</h1>
         <p className="text-gray-600 text-center mb-6">Create your account and start making an impact</p>

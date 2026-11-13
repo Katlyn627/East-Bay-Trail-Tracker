@@ -70,7 +70,7 @@ const Dashboard = () => {
   ];
 
   const upcomingBadges = [
-    { name: 'Neighborhood Steward', requirement: 'Reach 500 total points' },
+    { name: 'Neighborhood Volunteer', requirement: 'Reach 500 total points' },
     { name: 'Trail Guardian', requirement: 'Log 25 cleanup submissions' },
     { name: 'Impact Pathfinder', requirement: 'Clean 10 unique trails' },
   ];
@@ -78,13 +78,13 @@ const Dashboard = () => {
   const upcomingPerks = [
     { name: 'Bronze Perk Pack', cost: '300 pts', description: 'Community shout-out + profile badge flair' },
     { name: 'Silver Volunteer Kit', cost: '700 pts', description: 'Priority leaderboard highlight for one cycle' },
-    { name: 'Gold Steward Status', cost: '1200 pts', description: 'Featured contributor spotlight' },
+    { name: 'Gold Contributor Status', cost: '1200 pts', description: 'Featured contributor spotlight' },
   ];
 
   return (
     <div className="page-container min-h-screen bg-transparent">
       <section className="brand-hero-banner mb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Stewardship dashboard</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85">Impact dashboard</p>
         <h2 className="mt-1 text-3xl font-black text-white">East Bay Trail Tracker Impact Hub</h2>
         <p className="mt-2 max-w-3xl text-sm text-white/90">
           Track cleanup outcomes, coordinate trail actions, and monitor milestone rewards in one branded command center.
@@ -169,7 +169,7 @@ const Dashboard = () => {
                 </div>
                 <p className="text-3xl font-black leading-none text-[#112A1F]">{impactMetrics.uniqueTrailsCount}</p>
                 <p className="mt-2 text-xs font-medium uppercase tracking-[0.1em] text-[#1B4332]/75">parks visited</p>
-                <p className="mt-1 text-sm text-[#1B4332]/80">Distinct routes restored and stewarded</p>
+                <p className="mt-1 text-sm text-[#1B4332]/80">Distinct routes restored and maintained</p>
               </div>
             </div>
           </div>

@@ -38,13 +38,13 @@ const RESOURCE_PARTNERS = [
     directoryGroup: 'rangerStations',
     name: 'East Bay Regional Park District Headquarters',
     type: 'Regional Park Agency Headquarters',
-    description: 'Official agency headquarters for East Bay Regional Park District maps, ranger services, and stewardship operations.',
+    description: 'Official agency headquarters for East Bay Regional Park District maps, ranger services, and community support operations.',
     website: 'https://www.ebparks.org',
     phone: '(888) 327-2757',
     address: '2950 Peralta Oaks Ct, Oakland, CA 94605',
     mapQuery: 'East Bay Regional Park District headquarters Oakland',
     categories: ['regional parks', 'park headquarters', 'ranger services'],
-    keywords: ['east bay', 'regional park district', 'ranger', 'park headquarters', 'stewardship'],
+    keywords: ['east bay', 'regional park district', 'ranger', 'park headquarters', 'park services'],
   },
   {
     id: 'tilden-visitor-center',
@@ -103,13 +103,13 @@ const RESOURCE_PARTNERS = [
     directoryGroup: 'volunteerOrganizations',
     name: 'Save Mount Diablo',
     type: 'Conservation & Volunteer Organization',
-    description: 'Land conservation nonprofit with guided hikes, habitat restoration, and stewardship volunteer events.',
+    description: 'Land conservation nonprofit with guided hikes, habitat restoration, and volunteer trail events.',
     website: 'https://savemountdiablo.org',
     phone: '(925) 947-3535',
     address: '1901 Olympic Blvd, Walnut Creek, CA 94596',
     mapQuery: 'Save Mount Diablo Walnut Creek',
-    categories: ['conservation organization', 'volunteer stewardship'],
-    keywords: ['save mount diablo', 'volunteer', 'conservation', 'stewardship'],
+    categories: ['conservation organization', 'volunteer events'],
+    keywords: ['save mount diablo', 'volunteer', 'conservation', 'trail care'],
   },
   {
     id: 'watershed-project',
@@ -129,7 +129,7 @@ const RESOURCE_PARTNERS = [
     directoryGroup: 'volunteerOrganizations',
     name: 'California State Parks Foundation',
     type: 'Statewide Conservation & Volunteer Organization',
-    description: 'Statewide parks advocacy and volunteer support programs for park stewardship and access.',
+    description: 'Statewide parks advocacy and volunteer support programs for park access and community care.',
     website: 'https://www.calparks.org',
     phone: '(415) 262-4400',
     address: '50 Francisco St, Suite 110, San Francisco, CA 94133',
@@ -142,7 +142,7 @@ const RESOURCE_PARTNERS = [
     directoryGroup: 'volunteerOrganizations',
     name: 'Friends of the San Francisco Estuary',
     type: 'Estuary Conservation & Community Volunteer Group',
-    description: 'Supports habitat restoration, shoreline stewardship, and community science volunteer efforts.',
+    description: 'Supports habitat restoration, shoreline cleanups, and community science volunteer efforts.',
     website: 'https://www.sfestuary.org/friends/',
     phone: '(510) 746-7334',
     address: '1755 Embarcadero, Oakland, CA 94606',
@@ -155,13 +155,13 @@ const RESOURCE_PARTNERS = [
     directoryGroup: 'volunteerOrganizations',
     name: 'East Bay Regional Park District Volunteer Program',
     type: 'Regional Park Volunteer Program',
-    description: 'Official volunteer portal for habitat restoration, trail maintenance, and stewardship projects.',
+    description: 'Official volunteer portal for habitat restoration, trail maintenance, and community volunteer projects.',
     website: 'https://www.ebparks.org/get-involved/volunteer',
     phone: '(510) 544-2229',
     address: '2950 Peralta Oaks Ct, Oakland, CA 94605',
     mapQuery: 'East Bay Regional Park District Volunteer Program',
-    categories: ['volunteer organization', 'regional park stewardship'],
-    keywords: ['east bay volunteer', 'trail maintenance', 'stewardship hub', 'regional park'],
+    categories: ['volunteer organization', 'regional park volunteer program'],
+    keywords: ['east bay volunteer', 'trail maintenance', 'community help', 'regional park'],
   },
   {
     id: 'sibley-trailhead',
@@ -181,7 +181,7 @@ const RESOURCE_PARTNERS = [
     directoryGroup: 'trailheadsHelpHubs',
     name: 'Mission Peak Regional Preserve Staging Area',
     type: 'Regional Park Trailhead',
-    description: 'Popular Mission Peak trailhead and staging area for volunteer hikes and stewardship meetups.',
+    description: 'Popular Mission Peak trailhead and staging area for volunteer hikes and community meetups.',
     website: 'https://www.ebparks.org/parks/mission',
     phone: '(888) 327-2757',
     address: '43600 Mission Blvd, Fremont, CA 94539',
@@ -226,7 +226,7 @@ const RESOURCE_GROUPS = [
   {
     id: 'volunteerOrganizations',
     title: 'Volunteer & Conservation Organizations',
-    description: 'Verified stewardship, conservation, and community volunteer organizations.',
+    description: 'Verified conservation, trail care, and community volunteer organizations.',
   },
   {
     id: 'trailheadsHelpHubs',
@@ -240,7 +240,7 @@ const COMMUNITY_GOALS = [
   'Host at least 6 weekend cleanup hikes this quarter',
   'Increase new volunteer participation by 25%',
 ];
-const EBTT_LOGO_SRC = '/ebtt-logo-badge.svg';
+const EBTT_LOGO_SRC = '/ebtt-app-icon.png';
 
 const formatTimestamp = (value) => {
   if (!value) return 'Just now';
@@ -773,7 +773,7 @@ const CommunityBoard = () => {
 
       <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="space-y-5">
-          <div className="organic-card border border-[#D4A373]/30 bg-white p-5 shadow-sm">
+          <div className="organic-card brand-card brand-glass-panel p-5">
             <h2 className="text-2xl font-bold text-[#1B4332]">Community Feed & Message Board</h2>
             <p className="mt-2 text-sm text-[#1B4332]/75">
               Share trail conditions, cleanup wins, and operational notes with the East Bay volunteer network.
@@ -890,7 +890,7 @@ const CommunityBoard = () => {
                     : [];
 
                 return (
-                  <article key={post.id} className="organic-card border border-[#D4A373]/25 bg-white p-4 shadow-sm">
+                  <article key={post.id} className="organic-card brand-card brand-glass-panel p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold text-[#1B4332]">{post.title}</h3>
@@ -1071,7 +1071,7 @@ const CommunityBoard = () => {
         </section>
 
         <section className="space-y-5">
-          <div className="organic-card border border-[#D4A373]/30 bg-white p-5 shadow-sm">
+          <div className="organic-card brand-card brand-glass-panel p-5">
             <h3 className="text-xl font-bold text-[#1B4332]">Volunteer Events & Cleanup Hikes Coordinator</h3>
             <p className="mt-2 text-sm text-[#1B4332]/75">
               Organize weekend cleanups or group hikes and let volunteers RSVP with one click.
@@ -1437,10 +1437,10 @@ const CommunityBoard = () => {
             </div>
           )}
 
-          <div className="organic-card border border-[rgba(139,94,60,0.3)] bg-[var(--ebtt-white)] p-5 shadow-sm">
-            <h3 className="text-xl font-bold text-[var(--ebtt-deep-forest)]">Community Resources & Local Guides Finder</h3>
+          <div className="organic-card brand-card brand-glass-panel p-5">
+            <h3 className="text-xl font-bold text-[var(--ebtt-deep-forest)]">Volunteer Organizations & Community Help</h3>
             <p className="mt-2 text-sm text-[var(--ebtt-slate)]">
-              Curated directory of official ranger stations, regional parks, trailheads, and verified conservation and volunteer stewardship organizations.
+              Curated directory of official ranger stations, regional parks, trailheads, and verified conservation and community volunteer organizations.
             </p>
 
             <div className="mt-4 space-y-2">
@@ -1459,7 +1459,7 @@ const CommunityBoard = () => {
                   }}
                   onFocus={() => setShowResourceSuggestions(true)}
                   onBlur={() => window.setTimeout(() => setShowResourceSuggestions(false), 120)}
-                  placeholder="Search park names, ranger stations, trailheads, wilderness areas, and stewardship organizations"
+                  placeholder="Search park names, ranger stations, trailheads, wilderness areas, and community volunteer organizations"
                   className="input-field pl-9"
                 />
               </label>

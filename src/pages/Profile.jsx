@@ -58,8 +58,8 @@ const WILDLIFE_BADGES = [
     accent: 'from-[#1B4332] via-[#2D6A4F] to-[#95D5B2]',
   },
   {
-    id: 'grizzly-steward',
-    title: 'California Grizzly Steward',
+    id: 'grizzly-community-champion',
+    title: 'California Grizzly Community Champion',
     milestone: 'Top community contributor',
     icon: Trees,
     progress: (stats) => stats.pointsBalance,
@@ -69,13 +69,13 @@ const WILDLIFE_BADGES = [
 ];
 
 const TIER_MILESTONES = [
-  { name: 'Sprout Tier', target: 100, perk: 'Starter stewardship badge bundle' },
+  { name: 'Sprout Tier', target: 100, perk: 'Starter impact badge bundle' },
   { name: 'Canopy Tier', target: 300, perk: 'Priority RSVP badge + recognition highlight' },
   { name: 'Ridge Tier', target: 600, perk: 'Community leader spotlight + partner perks' },
-  { name: 'Summit Tier', target: 1000, perk: 'Top steward status and annual impact honors' },
+  { name: 'Summit Tier', target: 1000, perk: 'Top community contributor status and annual impact honors' },
 ];
 
-const EBTT_LOGO_SRC = '/ebtt-logo-badge.svg';
+const EBTT_LOGO_SRC = '/ebtt-app-icon.png';
 
 const toNumber = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
 const clampPercent = (value) => Math.max(0, Math.min(100, value));
@@ -271,20 +271,20 @@ const Profile = () => {
                 <User size={15} className="text-[#2D6A4F]" />
                 <span className="text-xs font-semibold uppercase tracking-[0.15em]">Profile</span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-[#112A1F]">Trail volunteer • habitat steward</p>
+              <p className="mt-2 text-sm font-semibold text-[#112A1F]">Trail volunteer • park advocate</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="organic-card border border-[rgba(139,94,60,0.28)] bg-[var(--ebtt-white)] p-5 shadow-[0_16px_32px_rgba(26,77,58,0.08)] sm:p-6">
+      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">Impact</p>
             <h3 className="text-2xl font-black text-[var(--ebtt-deep-forest)]">Impact snapshot</h3>
           </div>
           <div className="rounded-full border border-[#D4A373]/25 bg-[#FFF8EE] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#2D6A4F]">
-            Stewardship summary
+            Impact summary
           </div>
         </div>
 
@@ -315,7 +315,7 @@ const Profile = () => {
         </div>
       </section>
 
-      <section className="organic-card border border-[rgba(139,94,60,0.22)] bg-[#FDFCF9] p-5 shadow-[0_16px_32px_rgba(26,77,58,0.08)] sm:p-6">
+      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">Badges</p>
@@ -384,7 +384,7 @@ const Profile = () => {
         </div>
       </section>
 
-      <section className="organic-card border border-[rgba(139,94,60,0.22)] bg-white p-5 shadow-[0_16px_32px_rgba(26,77,58,0.08)] sm:p-6">
+      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
         <div className="flex items-center gap-2">
           <Award size={18} className="text-[#2D6A4F]" />
           <h3 className="text-2xl font-black text-[#112A1F]">Tier rewards</h3>

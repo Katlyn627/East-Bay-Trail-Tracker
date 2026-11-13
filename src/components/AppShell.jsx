@@ -6,12 +6,12 @@ import { useAuth } from '../context/AuthContext';
 const navItems = [
   { label: 'Dashboard', to: '/dashboard', icon: Trees },
   { label: 'Community Board', to: '/community-board', icon: Feather },
-  { label: 'Profile', to: '/profile', icon: User },
 ];
 
 const AppShell = () => {
-  const { logOut } = useAuth();
+  const { logOut, user, userProfile } = useAuth();
   const navigate = useNavigate();
+  const profilePhoto = userProfile?.photoURL || user?.photoURL || '';
 
   const handleLogOut = async () => {
     try {
@@ -28,11 +28,11 @@ const AppShell = () => {
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <div className="brand-mark">
-              <img src="/ebtt-logo-badge.svg" alt="East Bay Trail Tracker logo" />
+              <img src="/ebtt-app-icon.png" alt="East Bay Trail Tracker icon" className="app-icon" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#D2B48C]">East Bay Trail Tracker</p>
-              <h1 className="text-lg font-bold text-white">Forest Stewardship Portal</h1>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#D2B48C]">EAST BAY TRAIL TRACKER</p>
+              <h1 className="text-lg font-bold text-white">Community & Trail Hub</h1>
             </div>
           </div>
 
@@ -56,6 +56,30 @@ const AppShell = () => {
                 </NavLink>
               );
             })}
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                  isActive
+                    ? 'bg-[var(--ebtt-golden)] text-[var(--ebtt-deep-forest)] shadow-sm'
+                    : 'text-[#EAF5EE] hover:bg-white/10'
+                }`
+              }
+              aria-label="Profile"
+            >
+              {profilePhoto ? (
+                <img
+                  src={profilePhoto}
+                  alt="Profile"
+                  className="h-8 w-8 rounded-full border border-[#D2B48C]/70 object-cover shadow-sm"
+                />
+              ) : (
+                <>
+                  <User size={16} />
+                  Profile
+                </>
+              )}
+            </NavLink>
             <button
               type="button"
               onClick={handleLogOut}

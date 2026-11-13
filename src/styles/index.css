@@ -13,6 +13,14 @@
   --ebtt-forest-glow: #EAF3EE;
   --ebtt-ridge: #D8E7D9;
   --ebtt-text: #555555;
+  --ebtt-card-radius: 24px;
+  --ebtt-card-radius-organic-tl: 1.5rem;
+  --ebtt-card-radius-organic-br: 1.5rem;
+  --ebtt-card-radius-organic-tr: 0.9rem;
+  --ebtt-card-radius-organic-bl: 0.9rem;
+  --ebtt-card-border: rgba(210, 180, 140, 0.28);
+  --ebtt-card-shadow: 0 14px 30px rgba(26, 77, 58, 0.1);
+  --ebtt-card-glass-bg: rgba(255, 255, 255, 0.84);
 }
 
 * {
@@ -96,7 +104,12 @@ a {
 }
 
 .card {
-  @apply rounded-[28px] border border-[#E6D5BD] bg-white shadow-[0_12px_30px_rgba(26,77,58,0.08)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(26,77,58,0.12)];
+  border-radius: var(--ebtt-card-radius);
+  border: 1px solid var(--ebtt-card-border);
+  background: var(--ebtt-card-glass-bg);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--ebtt-card-shadow);
+  @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(26,77,58,0.12)];
 }
 
 .mobile-card {
@@ -150,10 +163,8 @@ a {
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 9999px;
-  background: linear-gradient(135deg, #f9f7f2 0%, #e9f2e6 100%);
-  border: 2px solid rgba(247, 183, 51, 0.8);
-  box-shadow: 0 10px 18px rgba(26, 77, 58, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(8, 33, 24, 0.28);
 }
 
 .brand-mark svg {
@@ -162,8 +173,12 @@ a {
 }
 
 .brand-mark img {
-  width: 32px;
-  height: 32px;
+  width: 100%;
+  height: 100%;
+}
+
+.brand-mark .app-icon {
+  border-radius: 12px;
 }
 
 .brand-hero-banner {
@@ -191,10 +206,20 @@ a {
 }
 
 .organic-card {
-  border-top-left-radius: 1.5rem;
-  border-bottom-right-radius: 1.5rem;
-  border-top-right-radius: 0.9rem;
-  border-bottom-left-radius: 0.9rem;
+  border-top-left-radius: var(--ebtt-card-radius-organic-tl);
+  border-bottom-right-radius: var(--ebtt-card-radius-organic-br);
+  border-top-right-radius: var(--ebtt-card-radius-organic-tr);
+  border-bottom-left-radius: var(--ebtt-card-radius-organic-bl);
+}
+
+.brand-card {
+  border: 1px solid var(--ebtt-card-border);
+  box-shadow: var(--ebtt-card-shadow);
+}
+
+.brand-glass-panel {
+  background: var(--ebtt-card-glass-bg);
+  backdrop-filter: blur(10px);
 }
 
 .logo-avatar {

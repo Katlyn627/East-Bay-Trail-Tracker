@@ -8,12 +8,18 @@
     "dev:all": "concurrently \"npm run server\" \"npm run dev -- --host\"",
     "server": "node server.js",
     "build": "vite build",
+    "build:android": "npm run build && npx cap sync android",
+    "cap:sync": "npx cap sync",
+    "android:open": "npx cap open android",
     "preview": "vite preview",
     "lint": "eslint src --ext .jsx,.js",
     "format": "prettier --write \"src/**/*.{js,jsx,json,css}\"",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
     "axios": "^1.6.2",
     "chart.js": "^4.4.0",
     "concurrently": "^10.0.7",
@@ -29,6 +35,7 @@
     "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.55.0",

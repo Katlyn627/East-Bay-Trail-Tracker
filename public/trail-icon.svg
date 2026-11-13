@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="East Bay Trail Tracker icon">
-  <circle cx="64" cy="64" r="61" fill="#FFFFFF" stroke="#D2B48C" stroke-width="6" />
-  <circle cx="86" cy="33" r="12" fill="#F7B733" />
-  <path d="M12 76c8-22 30-36 52-36s42 12 52 36v30H12z" fill="#1A4D3A" />
-  <path d="M64 47c-14 14-15 31-10 58h18c-5-27-4-44-8-58z" fill="#8B5E3C" />
-  <path d="M64 52c-9 11-12 26-8 53h16c-4-27-2-42-8-53z" fill="#FFFFFF" opacity="0.9" />
-</svg>

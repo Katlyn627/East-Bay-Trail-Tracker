@@ -12,7 +12,7 @@ export const DEMO_USERS = [
     createdAt: '2024-01-10T09:00:00.000Z',
     homeTrail: 'Tilden Regional Park',
     location: 'Oakland, CA',
-    bio: 'Patrolling redwood trails and coordinating seasonal volunteer stewardship events.',
+    bio: 'Patrolling redwood trails and coordinating seasonal volunteer cleanup events.',
     preferredUnits: 'miles',
     totalBags: 68,
     totalWeightLbs: 482,
