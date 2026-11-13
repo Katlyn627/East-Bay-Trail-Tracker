@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">East Bay Trail Tracker</string>
+    <string name="title_activity_main">East Bay Trail Tracker</string>
+    <string name="package_name">com.eastbay.trailtracker</string>
+    <string name="custom_url_scheme">com.eastbay.trailtracker</string>
+</resources>
