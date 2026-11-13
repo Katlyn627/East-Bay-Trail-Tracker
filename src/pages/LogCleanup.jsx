@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { addDoc, arrayUnion, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { Camera, CheckCircle2, Loader2, Trash2, UploadCloud } from 'lucide-react';
+import { Camera, CheckCircle2, Loader2, Trash2, UploadCloud, Trees, MapPin, Scale, Footprints, Clock, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import useCaliforniaTrailSearch from '../hooks/useCaliforniaTrailSearch';
 import { db } from '../firebase';
@@ -171,19 +171,32 @@ const LogCleanup = () => {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="organic-card brand-card brand-glass-panel p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4A373]">Cleanup Operations</p>
-        <h2 className="mt-2 text-2xl font-bold text-[#1B4332] sm:text-3xl">Log Cleanup Activity</h2>
-        <p className="mt-2 text-sm text-[#1B4332]/75">
-          Submit cleanup efforts to update your impact metrics and points in real time.
-        </p>
+    <div className="max-w-4xl mx-auto pb-12">
+      {/* Header */}
+      <div className="organic-card bg-forest-gradient p-6 mb-8 text-white relative overflow-hidden shadow-xl">
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sage-mist border border-white/20 text-xs font-bold mb-4">
+            <Trash2 size={14} />
+            RESTORE OUR TRAILS
+          </div>
+          <h2 className="text-3xl font-heading font-black">Log Your Cleanup</h2>
+          <p className="text-sage-mist/80 text-sm mt-2 max-w-xl">
+            Every piece of litter removed protects our local wildlife and ecosystems. Thank you for being a guardian of the East Bay.
+          </p>
+        </div>
+        <div className="absolute right-[-10px] top-[-10px] opacity-10 pointer-events-none">
+          <Trees size={180} />
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="organic-card brand-card brand-glass-panel p-5">
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="md:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Trail / Park Name</span>
+      <form onSubmit={handleSubmit} className="organic-card p-6 bg-white/90 space-y-8">
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Trail Search */}
+          <div className="md:col-span-2 space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <MapPin size={16} className="text-poppy" />
+              Trail / Park Name
+            </label>
             <div className="relative">
               <input
                 type="text"
@@ -198,12 +211,12 @@ const LogCleanup = () => {
                 }}
                 onFocus={() => setShowTrailSuggestions(true)}
                 onBlur={() => window.setTimeout(() => setShowTrailSuggestions(false), 120)}
-                placeholder="Search any California trail or park"
-                className="input-field"
+                placeholder="Search California trails..."
+                className="nature-input"
                 required
               />
               {showTrailSuggestions && trailSearch.suggestions.length > 0 && (
-                <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-[#D4A373]/30 bg-white shadow-lg">
+                <div className="absolute z-50 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-forest-moss/20 bg-white shadow-2xl p-2 animate-in fade-in zoom-in-95">
                   {trailSearch.suggestions.map((suggestion) => (
                     <button
                       key={suggestion.id}
@@ -213,152 +226,161 @@ const LogCleanup = () => {
                         setSelectedTrailLocation(suggestion);
                         setShowTrailSuggestions(false);
                       }}
-                      className="block w-full px-3 py-2 text-left text-sm text-[#1B4332] hover:bg-[#f5f8ef]"
+                      className="flex flex-col w-full px-4 py-3 text-left rounded-xl hover:bg-sage-mist transition-colors"
                     >
-                      {suggestion.displayName}
+                      <span className="font-bold text-forest-deep text-sm">{suggestion.name}</span>
+                      <span className="text-xs text-forest-moss">{suggestion.displayName.split(',').slice(1).join(',')}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            {trailSearch.loading && <p className="mt-1 text-xs text-[#1B4332]/70">Searching California trails...</p>}
-            {trailSearch.error && <p className="mt-1 text-xs text-[#8b2c2c]">{trailSearch.error}</p>}
-            {formData.trailName && (
-              <a
-                href={buildGoogleMapsSearchUrl(
-                  formData.trailName,
-                  selectedTrailLocation?.name?.trim().toLowerCase() === formData.trailName.trim().toLowerCase()
-                    ? selectedTrailLocation
-                    : null
-                )}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1B4332] underline decoration-[#52B788]/70 underline-offset-2"
-              >
-                📍 View on Google Maps
-              </a>
-            )}
-          </label>
+          </div>
 
-          <label>
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Trash Bags Collected</span>
+          {/* Stats Inputs */}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <Trash2 size={16} className="text-forest" />
+              Bags Collected
+            </label>
             <input
               type="number"
-              min="0"
+              min="1"
               value={formData.bagCount}
               onChange={(event) => handleFieldChange('bagCount', Number(event.target.value || 0))}
-              className="input-field"
+              className="nature-input"
               required
             />
-          </label>
+          </div>
 
-          <label>
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Estimated Weight (lbs)</span>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <Scale size={16} className="text-forest" />
+              Est. Weight (lbs)
+            </label>
             <input
               type="number"
               min="0"
               step="0.1"
               value={formData.estimatedWeightLbs}
               onChange={(event) => handleFieldChange('estimatedWeightLbs', event.target.value)}
-              placeholder="12.5"
-              className="input-field"
+              placeholder="0.0"
+              className="nature-input"
               required
             />
-          </label>
+          </div>
 
-          <label>
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Miles Hiked</span>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <Footprints size={16} className="text-lupine" />
+              Miles Hiked
+            </label>
             <input
               type="number"
               min="0"
               step="0.1"
               value={formData.milesHiked}
               onChange={(event) => handleFieldChange('milesHiked', event.target.value)}
-              placeholder="2.3"
-              className="input-field"
+              placeholder="0.0"
+              className="nature-input"
               required
             />
-          </label>
+          </div>
 
-          <label>
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Volunteer Hours</span>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <Clock size={16} className="text-poppy" />
+              Volunteer Hours
+            </label>
             <input
               type="number"
               min="0"
               step="0.1"
               value={formData.volunteerHours}
               onChange={(event) => handleFieldChange('volunteerHours', event.target.value)}
-              placeholder="1.5"
-              className="input-field"
+              placeholder="0.0"
+              className="nature-input"
               required
             />
-          </label>
+          </div>
 
-          <label className="md:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Field Notes</span>
+          {/* Notes */}
+          <div className="md:col-span-2 space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <FileText size={16} className="text-earth-clay" />
+              Field Notes
+            </label>
             <textarea
               rows={4}
               value={formData.notes}
               onChange={(event) => handleFieldChange('notes', event.target.value)}
-              placeholder="Describe what was cleaned, conditions, and anything to follow up on."
-              className="input-field"
+              placeholder="What did you find? Any specific areas needing attention?"
+              className="nature-input min-h-[120px] resize-none"
               required
             />
-          </label>
+          </div>
 
-          <label className="md:col-span-2">
-            <span className="mb-2 block text-sm font-semibold text-[#1B4332]">Photo Upload</span>
-            <div className="rounded-xl border border-dashed border-[#52B788]/45 bg-[#f4faf7] p-4">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#52B788] px-4 py-2 text-sm font-semibold text-[#1B4332] transition hover:bg-[#43a676]">
-                <UploadCloud size={16} />
-                Attach photos
-                <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
-              </label>
-              <p className="mt-2 text-xs text-[#1B4332]/70">Up to {MAX_PHOTOS} attachments.</p>
+          {/* Photo Upload */}
+          <div className="md:col-span-2 space-y-2">
+            <label className="flex items-center gap-2 text-sm font-bold text-forest-deep ml-1">
+              <Camera size={16} className="text-forest" />
+              Proof of Impact
+            </label>
+            <div className="relative group">
+              <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+              <div className="nature-input border-dashed border-2 flex flex-col items-center justify-center py-8 group-hover:bg-sage-mist/50 transition-colors">
+                <UploadCloud size={32} className="text-forest-moss mb-2" />
+                <p className="text-sm font-bold text-forest-deep">Tap to attach photos</p>
+                <p className="text-xs text-forest-moss mt-1">Maximum {MAX_PHOTOS} photos allowed</p>
+              </div>
             </div>
-          </label>
+
+            {photos.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                {photos.map((photo, index) => (
+                  <div key={`${photo.name}-${index}`} className="relative rounded-2xl overflow-hidden aspect-square border-2 border-sage-mist shadow-sm">
+                    <img src={URL.createObjectURL(photo)} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-poppy transition-colors"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {photos.length > 0 && (
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {photos.map((photo, index) => (
-              <div key={`${photo.name}-${index}`} className="flex items-center justify-between rounded-lg border border-[#D4A373]/30 bg-[#fffaf5] px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <Camera size={14} className="text-[#1B4332]" />
-                  <span className="max-w-[220px] truncate text-sm text-[#1B4332]">{photo.name}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removePhoto(index)}
-                  className="rounded-md p-1 text-[#8b6a4f] transition hover:bg-[#f7ece0] hover:text-[#1B4332]"
-                  aria-label={`Remove ${photo.name}`}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
+        {error && (
+          <div className="p-4 rounded-2xl bg-red-50 border-2 border-red-100 text-red-700 text-sm font-bold">
+            {error}
           </div>
         )}
 
-        {error && <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         {success && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-[#52B788]/40 bg-[#ecf9f1] px-3 py-2 text-sm text-[#1B4332]">
-            <CheckCircle2 size={16} className="text-[#52B788]" />
-            <span>{success}</span>
+          <div className="p-4 rounded-2xl bg-forest/10 border-2 border-forest/20 text-forest-deep text-sm font-bold flex items-center gap-2">
+            <CheckCircle2 size={20} className="text-forest" />
+            {success}
           </div>
         )}
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#D4A373]/25 pt-4">
-          <p className="text-xs text-[#1B4332]/70">Submitting this entry awards +25 points.</p>
+        <div className="pt-6 border-t border-forest-moss/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-forest-moss">
+             <Star className="text-gold" size={16} />
+             <span className="text-xs font-bold uppercase tracking-widest">Earn 25 Rewards Points</span>
+          </div>
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1B4332] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#22523f] disabled:cursor-not-allowed disabled:opacity-70"
+            className="btn-nature w-full sm:w-auto min-w-[200px] py-4 flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
-                Submitting...
+                <Loader2 size={20} className="animate-spin" />
+                Logging...
               </>
             ) : (
               'Submit Cleanup'
@@ -369,5 +391,11 @@ const LogCleanup = () => {
     </div>
   );
 };
+
+const Star = ({ className, size }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+  </svg>
+);
 
 export default LogCleanup;

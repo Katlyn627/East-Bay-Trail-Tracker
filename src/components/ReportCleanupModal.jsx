@@ -211,12 +211,12 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-4 py-8 backdrop-blur-sm">
-      <div className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-5 sm:py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-deep/60 px-4 py-8 backdrop-blur-md">
+      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-sage-mist/95 shadow-2xl border border-white/20">
+        <div className="flex items-center justify-between border-b border-forest-light/10 bg-white/80 backdrop-blur-md px-6 py-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Trail cleanup</p>
-            <h2 className="text-2xl font-bold text-slate-900">Log a cleanup</h2>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest-moss">Trail Steward</p>
+            <h2 className="font-heading text-2xl font-bold text-forest-deep">Log a Cleanup</h2>
           </div>
 
           <button
@@ -225,29 +225,32 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
               resetForm();
               onClose?.();
             }}
-            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-forest-moss transition hover:bg-forest-light/10 hover:text-forest-evergreen"
             aria-label="Close cleanup form"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:space-y-5 sm:p-5">
+        <form onSubmit={handleSubmit} className="space-y-5 p-6">
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+              {error}
+            </div>
           )}
+
           <div>
-            <label className="mb-3 block text-sm font-semibold text-slate-700">Issue type</label>
+            <label className="mb-3 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Restoration Type</label>
             <div className="grid grid-cols-2 gap-3">
               {ISSUE_TYPES.map((entry) => (
                 <button
                   key={entry.value}
                   type="button"
                   onClick={() => setIssueType(entry.value)}
-                  className={`rounded-xl border px-3 py-3 text-sm font-medium transition ${
+                  className={`rounded-2xl border-2 px-3 py-3 text-sm font-bold transition-all duration-300 ${
                     issueType === entry.value
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'
+                      ? 'border-forest-evergreen bg-forest-evergreen text-white shadow-md'
+                      : 'border-white bg-white text-forest-moss hover:border-forest-light/30 hover:bg-forest-light/5'
                   }`}
                 >
                   {entry.label}
@@ -257,8 +260,8 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block sm:col-span-2">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Trail name</span>
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Trail Name</label>
               <div className="relative">
                 <input
                   type="text"
@@ -273,11 +276,11 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
                   }}
                   onFocus={() => setShowTrailSuggestions(true)}
                   onBlur={() => window.setTimeout(() => setShowTrailSuggestions(false), 120)}
-                  placeholder="Search any California trail or park"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  placeholder="Search California trails or parks..."
+                  className="nature-input shadow-sm"
                 />
                 {showTrailSuggestions && trailSearch.suggestions.length > 0 && (
-                  <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                  <div className="absolute z-20 mt-2 max-h-56 w-full overflow-y-auto rounded-2xl border border-forest-light/10 bg-white/95 backdrop-blur-md shadow-xl py-2">
                     {trailSearch.suggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
@@ -287,7 +290,7 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
                           setSelectedTrailLocation(suggestion);
                           setShowTrailSuggestions(false);
                         }}
-                        className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                        className="block w-full px-4 py-2.5 text-left text-sm font-medium text-forest-deep hover:bg-forest-evergreen hover:text-white transition-colors"
                       >
                         {suggestion.displayName}
                       </button>
@@ -295,8 +298,8 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
                   </div>
                 )}
               </div>
-              {trailSearch.loading && <p className="mt-1 text-xs text-slate-500">Searching California trails...</p>}
-              {trailSearch.error && <p className="mt-1 text-xs text-red-600">{trailSearch.error}</p>}
+              {trailSearch.loading && <p className="mt-2 text-xs font-medium text-forest-moss animate-pulse px-1">Scanning wilderness database...</p>}
+              {trailSearch.error && <p className="mt-2 text-xs font-bold text-red-600 px-1">{trailSearch.error}</p>}
               {trailName.trim() && (
                 <a
                   href={buildGoogleMapsSearchUrl(
@@ -307,79 +310,82 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
                   )}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 underline decoration-emerald-400 underline-offset-2"
+                  className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-forest-evergreen hover:text-forest-deep transition-colors"
                 >
-                  📍 View on Google Maps
+                  <MapPin size={12} />
+                  View on Google Maps
                 </a>
               )}
-            </label>
+            </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Trash bags collected</span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Bags Collected</label>
               <input
                 type="number"
                 min="0"
                 value={bagCount}
                 onChange={(event) => setBagCount(Math.max(0, Number(event.target.value || 0)))}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Miles logged</span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Miles Logged</label>
               <input
                 type="number"
                 min="0"
                 step="0.1"
                 value={milesLogged}
                 onChange={(event) => setMilesLogged(event.target.value)}
-                placeholder="0.5"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                placeholder="0.0"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Volunteer hours</span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Volunteer Hours</label>
               <input
                 type="number"
                 min="0"
                 step="0.1"
                 value={hoursWorked}
                 onChange={(event) => setHoursWorked(event.target.value)}
-                placeholder="1.5"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                placeholder="0.0"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">Estimated trash weight (lbs)</span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Trash Weight (lbs)</label>
               <input
                 type="number"
                 min="0"
                 step="0.1"
                 value={weightLbs}
                 onChange={(event) => setWeightLbs(event.target.value)}
-                placeholder="12.5"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                placeholder="0.0"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
           </div>
 
-          <label className="block">
-            <span className="mb-2 block text-sm font-semibold text-slate-700">Cleanup notes</span>
+          <div>
+            <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Cleanup Notes</label>
             <textarea
-              rows={4}
+              rows={3}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
-              placeholder="Cleared litter near the creek, trimmed back overgrowth, and removed a fallen branch."
-              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+              placeholder="Notes on the work completed today..."
+              className="nature-input shadow-sm resize-none"
             />
-          </label>
+          </div>
 
           <div>
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <label className="text-sm font-semibold text-slate-700">Photos</label>
-              <span className="text-xs text-slate-500">{photos.length}/{MAX_PHOTOS}</span>
+            <div className="mb-3 flex items-center justify-between">
+              <label className="text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Before & After Photos</label>
+              <span className="text-xs font-bold text-forest-moss bg-white px-2 py-1 rounded-full shadow-sm">
+                {photos.length} / {MAX_PHOTOS}
+              </span>
             </div>
 
             <input
@@ -393,29 +399,29 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
 
             <div className="grid gap-3 sm:grid-cols-2">
               {photos.map((photo, index) => (
-                <div key={photo.id} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                  <img src={photo.preview} alt={`Cleanup preview ${index + 1}`} className="h-28 w-full object-cover" />
-                  <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-slate-900/35 to-transparent p-2">
-                    <span className="rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-                      Photo {index + 1}
-                    </span>
+                <div key={photo.id} className="group relative overflow-hidden rounded-2xl border-2 border-white bg-white shadow-sm transition-all hover:shadow-md">
+                  <img src={photo.preview} alt={`Cleanup preview ${index + 1}`} className="h-32 w-full object-cover" />
+                  <div className="absolute inset-0 bg-forest-deep/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  <div className="absolute top-2 right-2 flex gap-2">
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(photo.id)}
-                      className="rounded-full bg-white/85 p-1 text-slate-700 transition hover:bg-white"
+                      className="rounded-full bg-red-500/90 p-2 text-white shadow-lg transition hover:bg-red-600 active:scale-90"
                       aria-label={`Remove photo ${index + 1}`}
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  <div className="flex items-center justify-end p-2">
+
+                  <div className="absolute bottom-2 left-2 right-2">
                     <button
                       type="button"
                       onClick={() => handleOpenReplace(index)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/95 backdrop-blur-sm py-1.5 text-xs font-bold text-forest-evergreen shadow-sm transition hover:bg-white"
                     >
                       <Camera size={12} />
-                      Replace
+                      Replace Photo
                     </button>
                   </div>
                 </div>
@@ -425,45 +431,45 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
                 <button
                   type="button"
                   onClick={() => inputRef.current?.click()}
-                  className="flex min-h-[136px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-500 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                  className="flex min-h-[128px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-forest-moss/30 bg-white/50 text-forest-moss transition-all duration-300 hover:border-forest-evergreen hover:bg-white hover:text-forest-evergreen group"
                 >
-                  <Plus size={22} className="mb-2" />
-                  <span className="text-sm font-medium">Add photo</span>
+                  <div className="rounded-full bg-forest-moss/10 p-3 group-hover:bg-forest-evergreen group-hover:text-white transition-colors duration-300 mb-2">
+                    <Plus size={24} />
+                  </div>
+                  <span className="text-sm font-bold uppercase tracking-wide">Add Photo</span>
                 </button>
               )}
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-            <div className="flex items-center gap-2">
-              <MapPin size={15} />
-              <span>Location from your device will be used when available.</span>
-            </div>
+          <div className="flex items-center gap-3 rounded-2xl bg-forest-evergreen/5 border border-forest-evergreen/10 px-4 py-3 text-sm text-forest-evergreen">
+            <MapPin size={18} className="shrink-0 text-forest-moss" />
+            <span className="font-medium">GPS location will be verified on submission.</span>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-forest-light/10 pt-6">
             <button
               type="button"
               onClick={() => {
                 resetForm();
                 onClose?.();
               }}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              className="px-6 py-2.5 rounded-full font-bold text-forest-moss hover:text-forest-deep hover:bg-forest-light/10 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn-nature min-w-[160px]"
             >
               {loading ? (
-                <>
-                  <Loader2 size={16} className="mr-2 animate-spin" />
-                  Saving...
-                </>
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Logging...</span>
+                </div>
               ) : (
-                'Submit cleanup'
+                'Log Cleanup'
               )}
             </button>
           </div>

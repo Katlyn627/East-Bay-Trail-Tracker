@@ -28,7 +28,7 @@ const WILDLIFE_BADGES = [
     icon: Mountain,
     progress: (stats) => stats.totalMiles,
     target: 100,
-    accent: 'from-[#112A1F] via-[#1B4332] to-[#2D6A4F]',
+    accent: 'from-forest-deep via-forest to-forest-light',
   },
   {
     id: 'red-fox-trailblazer',
@@ -37,7 +37,7 @@ const WILDLIFE_BADGES = [
     icon: PawPrint,
     progress: (stats) => stats.uniqueTrailsCount,
     target: 5,
-    accent: 'from-[#D94F2B] via-[#C96F3D] to-[#F6B26B]',
+    accent: 'from-poppy via-earth-clay to-poppy-light',
   },
   {
     id: 'golden-eagle-guardian',
@@ -46,7 +46,7 @@ const WILDLIFE_BADGES = [
     icon: Feather,
     progress: (stats) => stats.totalHours,
     target: 50,
-    accent: 'from-[#664F1A] via-[#D4A373] to-[#F7C76A]',
+    accent: 'from-earth via-earth-sand to-gold',
   },
   {
     id: 'native-fern-protector',
@@ -55,7 +55,7 @@ const WILDLIFE_BADGES = [
     icon: Sprout,
     progress: (stats) => stats.totalBags,
     target: 10,
-    accent: 'from-[#1B4332] via-[#2D6A4F] to-[#95D5B2]',
+    accent: 'from-forest-deep via-forest to-forest-moss',
   },
   {
     id: 'grizzly-community-champion',
@@ -64,7 +64,7 @@ const WILDLIFE_BADGES = [
     icon: Trees,
     progress: (stats) => stats.pointsBalance,
     target: 1000,
-    accent: 'from-[#2D6A4F] via-[#52B788] to-[#D7F1DB]',
+    accent: 'from-forest via-forest-moss to-sage-mist',
   },
 ];
 
@@ -186,27 +186,25 @@ const Profile = () => {
   const nextTierGap = Math.max(0, nextTier.target - userStats.pointsBalance);
 
   return (
-    <div className="space-y-5">
-      <section className="brand-hero-banner">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#52B788]/15 blur-2xl" />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-28 w-28 rounded-full bg-[#D4A373]/10 blur-2xl" />
-        <div className="relative">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="relative">
+    <div className="space-y-8 pb-12">
+      <section className="relative overflow-hidden organic-card bg-forest-gradient p-8 text-white shadow-xl">
+        <div className="relative z-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-6">
+              <div className="relative shrink-0">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="group relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-[#2D6A4F]/20 bg-[#112A1F] shadow-md transition hover:scale-[1.02]"
+                  className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-[2rem] border-2 border-white/20 bg-forest-deep shadow-xl transition hover:scale-105"
                   aria-label="Upload profile picture"
                 >
                   {profileImage ? (
                     <img src={profileImage} alt={displayName} className="h-full w-full object-cover" />
                   ) : (
-                    <img src={EBTT_LOGO_SRC} alt="East Bay Trail Tracker logo" className="h-full w-full object-cover p-1.5" />
+                    <img src={EBTT_LOGO_SRC} alt="Logo" className="h-full w-full object-cover p-3 opacity-90" />
                   )}
-                  <span className="absolute inset-0 flex items-center justify-center bg-[#112A1F]/60 opacity-0 transition group-hover:opacity-100">
-                    <Camera size={16} className="text-white" />
+                  <span className="absolute inset-0 flex items-center justify-center bg-forest-deep/60 opacity-0 transition group-hover:opacity-100">
+                    <Camera size={24} className="text-white" />
                   </span>
                 </button>
                 <input
@@ -220,7 +218,7 @@ const Profile = () => {
                   <button
                     type="button"
                     onClick={handleDeleteProfileImage}
-                    className="absolute -bottom-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border border-[#D4A373]/30 bg-[#FFF8EE] text-[#1B4332] shadow-sm transition hover:bg-[#F3E3D0]"
+                    className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-poppy text-white shadow-lg transition hover:bg-poppy-light"
                     aria-label="Remove profile picture"
                   >
                     <ImageOff size={14} />
@@ -228,203 +226,210 @@ const Profile = () => {
                 )}
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/85">
+                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-poppy-light">
                   {userProfile?.role || user?.role || 'Trail Volunteer'}
                 </p>
-                <h2 className="mt-1 text-3xl font-black tracking-tight text-white">{displayName}</h2>
-                <p className="mt-2 max-w-xl text-sm text-white/90">
+                <h2 className="mt-1 text-4xl font-heading font-black text-white">{displayName}</h2>
+                <p className="mt-3 max-w-xl text-sm text-sage-mist/90 leading-relaxed font-medium">
                   Protecting trails, tracking cleanups, and growing a healthier East Bay landscape one mile at a time.
                 </p>
-                {uploadMessage && <p className="mt-2 text-xs text-[#F7B733]">{uploadMessage}</p>}
+                {uploadMessage && <p className="mt-2 text-xs text-gold font-bold">{uploadMessage}</p>}
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-              <div className="inline-flex items-center gap-2 self-start rounded-full border border-[#2D6A4F]/15 bg-[#F4F9F4] px-3 py-2 text-sm font-semibold text-[#1B4332] shadow-sm">
-                <Trophy size={16} className="text-[#2D6A4F]" />
-                {unlockedCount} / {WILDLIFE_BADGES.length} badges earned
+            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <div className="inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/10 backdrop-blur-sm px-4 py-2 text-sm font-bold text-white shadow-md">
+                <Trophy size={16} className="text-gold" />
+                {unlockedCount} / {WILDLIFE_BADGES.length} badges
               </div>
-              <div className="inline-flex items-center gap-2 self-start rounded-full border border-[#D4A373]/30 bg-[#FFF8EE] px-3 py-2 text-sm font-semibold text-[#1B4332] shadow-sm">
-                <Award size={16} className="text-[#8B6A4F]" />
+              <div className="inline-flex items-center gap-2 self-start rounded-full border border-poppy/20 bg-poppy/20 backdrop-blur-sm px-4 py-2 text-sm font-bold text-white shadow-md">
+                <Award size={16} className="text-poppy-light" />
                 {formatMetric(userStats.pointsBalance)} points
               </div>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-[#B7D7BF] bg-[#FAFDFC] p-3 shadow-sm">
-              <div className="flex items-center gap-2 text-[#1B4332]/70">
-                <Mail size={15} className="text-[#2D6A4F]" />
-                <span className="text-xs font-semibold uppercase tracking-[0.15em]">Email</span>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm p-4">
+              <div className="flex items-center gap-2 text-sage-mist/70">
+                <Mail size={15} className="text-poppy-light" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Email</span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-[#112A1F]">{user?.email || userProfile?.email || 'No email available'}</p>
+              <p className="mt-2 text-sm font-bold text-white truncate">{user?.email || userProfile?.email || 'No email available'}</p>
             </div>
-            <div className="rounded-2xl border border-[#B7D7BF] bg-[#FAFDFC] p-3 shadow-sm">
-              <div className="flex items-center gap-2 text-[#1B4332]/70">
-                <CalendarDays size={15} className="text-[#2D6A4F]" />
-                <span className="text-xs font-semibold uppercase tracking-[0.15em]">Joined</span>
+            <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm p-4">
+              <div className="flex items-center gap-2 text-sage-mist/70">
+                <CalendarDays size={15} className="text-poppy-light" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Joined</span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-[#112A1F]">{formatDate(joinDateValue)}</p>
+              <p className="mt-2 text-sm font-bold text-white">{formatDate(joinDateValue)}</p>
             </div>
-            <div className="rounded-2xl border border-[#B7D7BF] bg-[#FAFDFC] p-3 shadow-sm">
-              <div className="flex items-center gap-2 text-[#1B4332]/70">
-                <User size={15} className="text-[#2D6A4F]" />
-                <span className="text-xs font-semibold uppercase tracking-[0.15em]">Profile</span>
+            <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm p-4">
+              <div className="flex items-center gap-2 text-sage-mist/70">
+                <User size={15} className="text-poppy-light" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Profile</span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-[#112A1F]">Trail volunteer • park advocate</p>
+              <p className="mt-2 text-sm font-bold text-white">Trail volunteer • park advocate</p>
             </div>
           </div>
+        </div>
+        <div className="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none">
+          <Trees size={300} />
         </div>
       </section>
 
-      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
-        <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="grid gap-8 lg:grid-cols-2">
+        <section className="organic-card p-6 flex flex-col">
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest">Conservation Impact</p>
+              <h3 className="text-2xl font-heading text-forest-deep">Impact Snapshot</h3>
+            </div>
+            <div className="rounded-full bg-sage-mist px-4 py-2 text-[10px] font-black uppercase tracking-widest text-forest">
+              Stats
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3 flex-1">
+            <div className="rounded-[2rem] rounded-tr-lg rounded-bl-lg border border-forest/10 bg-forest/5 p-5">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-forest-moss">Bags</p>
+                <Leaf size={20} className="text-forest" />
+              </div>
+              <p className="text-3xl font-black text-forest-deep">{formatMetric(userStats.totalBags)}</p>
+            </div>
+
+            <div className="rounded-[2rem] rounded-tl-lg rounded-br-lg border border-lupine/10 bg-lupine/5 p-5">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-lupine">Miles</p>
+                <MapPinned size={20} className="text-lupine" />
+              </div>
+              <p className="text-3xl font-black text-forest-deep">{formatMetric(userStats.totalMiles)}</p>
+            </div>
+
+            <div className="rounded-[2rem] rounded-tr-lg rounded-bl-lg border border-poppy/10 bg-poppy/5 p-5">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-poppy">Hours</p>
+                <Clock3 size={20} className="text-poppy" />
+              </div>
+              <p className="text-3xl font-black text-forest-deep">{formatMetric(userStats.totalHours)}</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="organic-card p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-2xl bg-poppy/10 border border-poppy/20">
+              <Award size={24} className="text-poppy" />
+            </div>
+            <h3 className="text-2xl font-heading text-forest-deep">Tier Rewards</h3>
+          </div>
+
+          <div className="space-y-4">
+            {tierProgress.map((tier) => (
+              <article key={tier.name} className="rounded-2xl border border-sage-mist bg-white p-4 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 text-sm font-bold text-forest-deep">
+                    <Trees size={16} className={tier.achieved ? 'text-forest' : 'text-forest-moss'} />
+                    {tier.name}
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-forest-moss">{tier.target} pts</span>
+                </div>
+
+                <p className="mt-1 text-xs font-medium text-forest-deep/60">{tier.perk}</p>
+
+                <div className="mt-3 h-2.5 w-full rounded-full bg-sage-mist overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-1000 ${tier.achieved ? 'bg-forest' : 'bg-forest-moss'}`}
+                    style={{ width: `${tier.achieved ? 100 : tier.progressInsideTier}%` }}
+                  />
+                </div>
+
+                <p className="mt-2 text-[10px] font-black uppercase text-forest">
+                  {tier.achieved ? 'Unlocked' : `${Math.round(tier.progressInsideTier)}% complete`}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl border-2 border-dashed border-poppy/20 bg-poppy/5 p-4">
+            <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-poppy">
+              <Sprout size={16} />
+              Next objective
+            </p>
+            <p className="mt-1 text-sm font-bold text-forest-deep/80">
+              Reach {formatMetric(nextTierGap)} more points to unlock {nextTier.name}.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <section className="organic-card p-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">Impact</p>
-            <h3 className="text-2xl font-black text-[var(--ebtt-deep-forest)]">Impact snapshot</h3>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest">Collection</p>
+            <h3 className="text-2xl font-heading text-forest-deep">Wildlife & Plant Badges</h3>
           </div>
-          <div className="rounded-full border border-[#D4A373]/25 bg-[#FFF8EE] px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#2D6A4F]">
-            Impact summary
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="rounded-2xl border border-[#BFE7CB] bg-[#ECF9F1] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1B4332]/75">Trash bags</p>
-              <Leaf size={18} className="text-[#2D6A4F]" />
-            </div>
-            <p className="mt-3 text-3xl font-black text-[#112A1F]">{formatMetric(userStats.totalBags)}</p>
-          </div>
-
-          <div className="rounded-2xl border border-[#CFE8D5] bg-[#F1FAF4] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1B4332]/75">Miles hiked</p>
-              <MapPinned size={18} className="text-[#2D6A4F]" />
-            </div>
-            <p className="mt-3 text-3xl font-black text-[#112A1F]">{formatMetric(userStats.totalMiles)}</p>
-          </div>
-
-          <div className="rounded-2xl border border-[#F0D9B8] bg-[#FFF8EE] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1B4332]/75">Volunteer hours</p>
-              <Clock3 size={18} className="text-[#8B6A4F]" />
-            </div>
-            <p className="mt-3 text-3xl font-black text-[#112A1F]">{formatMetric(userStats.totalHours)}</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#2D6A4F]">Badges</p>
-            <h3 className="text-2xl font-black text-[#112A1F]">Wildlife & plant badge collection</h3>
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#CFE8D5] bg-[#F0FAF3] px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#2D6A4F]">
+          <div className="inline-flex items-center gap-2 rounded-full bg-forest/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-forest">
             <Sparkles size={14} />
-            Progress tracking enabled
+            {unlockedCount} Earned
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {badgeProgress.map((badge) => {
             const Icon = badge.icon;
             return (
               <article
                 key={badge.id}
-                className="group relative overflow-hidden rounded-2xl border border-[#D5E6D9] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative overflow-hidden rounded-[2rem] border border-forest/10 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${badge.accent}`} />
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2D6A4F]">{badge.milestone}</p>
-                    <h4 className="mt-2 text-lg font-bold text-[#112A1F]">{badge.title}</h4>
+                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${badge.accent}`} />
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-forest-moss">{badge.milestone}</p>
+                    <h4 className="mt-2 text-lg font-heading font-bold text-forest-deep">{badge.title}</h4>
                   </div>
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${badge.accent} text-white shadow-sm`}>
-                    <Icon size={18} />
+                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${badge.accent} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                    <Icon size={24} />
                   </div>
                 </div>
 
-                <p className="mt-3 text-sm text-[#1B4332]/75">
-                  {badge.unlocked ? 'Unlocked and active on your profile.' : `${Math.max(0, badge.target - badge.currentValue)} away from the next unlock.`}
+                <p className="mt-4 text-xs font-medium text-forest-deep/60 leading-relaxed">
+                  {badge.unlocked ? 'Unlocked and active on your profile.' : `${Math.max(0, badge.target - badge.currentValue)} away from unlock.`}
                 </p>
 
-                <div className="mt-4">
-                  <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-[#1B4332]/75">
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-forest-moss">
                     <span>
                       {formatMetric(badge.currentValue)} / {formatMetric(badge.target)}
                     </span>
                     <span>{Math.round(badge.percent)}%</span>
                   </div>
-                  <div className="h-2.5 w-full rounded-full bg-[#E7EFE8]">
+                  <div className="h-3 w-full rounded-full bg-sage-mist overflow-hidden">
                     <div
-                      className={`h-2.5 rounded-full bg-gradient-to-r ${badge.accent}`}
+                      className={`h-full rounded-full bg-gradient-to-r transition-all duration-1000 ${badge.accent}`}
                       style={{ width: `${badge.percent}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-[#1B4332]">
+                <div className="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
                   {badge.unlocked ? (
-                    <>
-                      <ShieldCheck size={14} className="text-[#2D6A4F]" />
-                      Unlock complete
-                    </>
+                    <span className="flex items-center gap-1.5 text-forest">
+                      <ShieldCheck size={14} />
+                      Badge Active
+                    </span>
                   ) : (
-                    <>
-                      <Sparkles size={14} className="text-[#D4A373]" />
-                      In progress
-                    </>
+                    <span className="flex items-center gap-1.5 text-poppy">
+                      <Sparkles size={14} />
+                      Tracking
+                    </span>
                   )}
                 </div>
               </article>
             );
           })}
-        </div>
-      </section>
-
-      <section className="organic-card brand-card brand-glass-panel p-5 sm:p-6">
-        <div className="flex items-center gap-2">
-          <Award size={18} className="text-[#2D6A4F]" />
-          <h3 className="text-2xl font-black text-[#112A1F]">Tier rewards</h3>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          {tierProgress.map((tier) => (
-            <article key={tier.name} className="rounded-2xl border border-[#DCEFE0] bg-[#F7FBF8] p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#112A1F]">
-                  <Trees size={15} className="text-[#2D6A4F]" />
-                  {tier.name}
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#2D6A4F]">{tier.target} points</span>
-              </div>
-
-              <p className="mt-1 text-sm text-[#1B4332]/75">{tier.perk}</p>
-
-              <div className="mt-3 h-2.5 w-full rounded-full bg-[#E4EFE6]">
-                <div
-                  className={`h-2.5 rounded-full ${tier.achieved ? 'bg-[#1B4332]' : 'bg-[#52B788]'}`}
-                  style={{ width: `${tier.achieved ? 100 : tier.progressInsideTier}%` }}
-                />
-              </div>
-
-              <p className="mt-2 text-xs font-semibold text-[#1B4332]">
-                {tier.achieved ? 'Unlocked' : `${Math.round(tier.progressInsideTier)}% toward this tier`}
-              </p>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-[#D4A373]/25 bg-[#FFF8EE] p-3 text-sm text-[#1B4332]/80">
-          <p className="inline-flex items-center gap-2 font-semibold text-[#112A1F]">
-            <Sprout size={15} className="text-[#2D6A4F]" />
-            Next objective
-          </p>
-          <p className="mt-1">
-            Reach {formatMetric(nextTierGap)} more points to unlock the {nextTier.name.toLowerCase()} reward.
-          </p>
         </div>
       </section>
     </div>

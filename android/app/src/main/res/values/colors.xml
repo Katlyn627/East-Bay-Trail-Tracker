@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#325B45</color>
-    <color name="colorPrimaryDark">#244232</color>
-    <color name="colorAccent">#4CAF50</color>
+    <!-- California Forest Palette -->
+    <color name="colorPrimary">#2D5A27</color> <!-- Evergreen -->
+    <color name="colorPrimaryDark">#1B3618</color> <!-- Deep Forest -->
+    <color name="colorAccent">#FF8C00</color> <!-- California Poppy -->
+
+    <color name="forest_green_light">#4F7942</color>
+    <color name="bark_brown">#3E2723</color>
+    <color name="lupine_purple">#6A5ACD</color>
+    <color name="sage_background">#F0F4F0</color>
+    <color name="california_gold">#FFD700</color>
+
+    <!-- UI Specific -->
+    <color name="splash_background">#2D5A27</color>
+    <color name="status_bar_color">#1B3618</color>
+    <color name="navigation_bar_color">#1B3618</color>
 </resources>

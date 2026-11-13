@@ -197,12 +197,12 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-3 py-5 backdrop-blur-sm">
-      <div className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-deep/60 px-3 py-5 backdrop-blur-md">
+      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-sage-mist/95 shadow-2xl border border-white/20">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-forest-light/10 bg-white/80 backdrop-blur-md px-6 py-5">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-600">Trail issue</p>
-            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">Report a trail issue</h2>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest-moss">Guardian Action</p>
+            <h2 className="font-heading text-2xl font-bold text-forest-deep">Report a Trail Issue</h2>
           </div>
           <button
             type="button"
@@ -210,66 +210,68 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
               resetForm();
               onClose?.();
             }}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-forest-moss transition hover:bg-forest-light/10 hover:text-forest-evergreen"
             aria-label="Close report issue modal"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3 p-4 sm:space-y-4 sm:p-5">
+        <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+              {error}
+            </div>
           )}
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-700">Issue type</label>
+            <label className="mb-3 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Nature of Issue</label>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {ISSUE_TYPES.map((entry) => (
                 <button
                   key={entry.value}
                   type="button"
                   onClick={() => setFormData((prev) => ({ ...prev, issueType: entry.value }))}
-                  className={`flex items-center justify-center gap-2 rounded-xl border px-2 py-3 text-sm font-medium transition ${
+                  className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-2 py-3 text-sm font-bold transition-all duration-300 ${
                     formData.issueType === entry.value
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'
+                      ? 'border-forest-evergreen bg-forest-evergreen text-white shadow-md'
+                      : 'border-white bg-white text-forest-moss hover:border-forest-light/30 hover:bg-forest-light/5'
                   }`}
                 >
-                  <span>{entry.icon}</span>
+                  <span className="text-lg">{entry.icon}</span>
                   <span>{entry.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-2 sm:col-span-2">
-              <span className="text-sm font-semibold text-slate-700">Trail name</span>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Trail Name</label>
               <input
                 type="text"
                 name="trailName"
                 value={formData.trailName}
                 onChange={handleInputChange}
-                placeholder="Tilden Regional Park"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                placeholder="e.g., Redwood Regional Park"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="space-y-2 sm:col-span-2">
-              <span className="text-sm font-semibold text-slate-700">Description</span>
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Description & Details</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                rows={4}
-                placeholder="State what the issue is, where it is, and how urgent it seems."
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                rows={3}
+                placeholder="Describe the issue, location markers, and urgency..."
+                className="nature-input shadow-sm resize-none"
               />
-            </label>
+            </div>
 
-            <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">Latitude</span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Latitude</label>
               <input
                 type="number"
                 name="latitude"
@@ -277,12 +279,12 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
                 onChange={handleInputChange}
                 step="0.000001"
                 placeholder="37.8734"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="space-y-2">
-              <span className="text-sm font-semibold text-slate-700">Longitude</span>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Longitude</label>
               <input
                 type="number"
                 name="longitude"
@@ -290,29 +292,31 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
                 onChange={handleInputChange}
                 step="0.000001"
                 placeholder="-122.2634"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                className="nature-input shadow-sm"
               />
-            </label>
+            </div>
 
-            <label className="space-y-2 sm:col-span-2">
-              <span className="text-sm font-semibold text-slate-700">Priority</span>
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Priority Level</label>
               <select
                 name="severity"
                 value={formData.severity}
                 onChange={handleInputChange}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                className="nature-input shadow-sm appearance-none cursor-pointer"
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">Low Priority (Maintenance needed)</option>
+                <option value="medium">Medium Priority (Action recommended)</option>
+                <option value="high">High Priority (Safety hazard)</option>
               </select>
-            </label>
+            </div>
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <label className="text-sm font-semibold text-slate-700">Photos</label>
-              <span className="text-xs text-slate-500">{photos.length}/{MAX_PHOTOS}</span>
+            <div className="mb-3 flex items-center justify-between">
+              <label className="text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Field Evidence</label>
+              <span className="text-xs font-bold text-forest-moss bg-white px-2 py-1 rounded-full shadow-sm">
+                {photos.length} / {MAX_PHOTOS}
+              </span>
             </div>
 
             <input
@@ -326,29 +330,29 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
 
             <div className="grid gap-3 sm:grid-cols-2">
               {photos.map((photo, index) => (
-                <div key={photo.id} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                  <img src={photo.preview} alt={`Issue preview ${index + 1}`} className="h-28 w-full object-cover" />
-                  <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-slate-900/35 to-transparent p-2">
-                    <span className="rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
-                      Photo {index + 1}
-                    </span>
+                <div key={photo.id} className="group relative overflow-hidden rounded-2xl border-2 border-white bg-white shadow-sm transition-all hover:shadow-md">
+                  <img src={photo.preview} alt={`Issue preview ${index + 1}`} className="h-32 w-full object-cover" />
+                  <div className="absolute inset-0 bg-forest-deep/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  <div className="absolute top-2 right-2 flex gap-2">
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(photo.id)}
-                      className="rounded-full bg-white/85 p-1 text-slate-700 transition hover:bg-white"
+                      className="rounded-full bg-red-500/90 p-2 text-white shadow-lg transition hover:bg-red-600 active:scale-90"
                       aria-label={`Remove photo ${index + 1}`}
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  <div className="flex items-center justify-end p-2">
+
+                  <div className="absolute bottom-2 left-2 right-2">
                     <button
                       type="button"
                       onClick={() => openReplacePicker(index)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/95 backdrop-blur-sm py-1.5 text-xs font-bold text-forest-evergreen shadow-sm transition hover:bg-white"
                     >
                       <Camera size={12} />
-                      Replace
+                      Replace Photo
                     </button>
                   </div>
                 </div>
@@ -358,45 +362,47 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
                 <button
                   type="button"
                   onClick={() => inputRef.current?.click()}
-                  className="flex min-h-[136px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-500 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                  className="flex min-h-[128px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-forest-moss/30 bg-white/50 text-forest-moss transition-all duration-300 hover:border-forest-evergreen hover:bg-white hover:text-forest-evergreen group"
                 >
-                  <Plus size={22} className="mb-2" />
-                  <span className="text-sm font-medium">Add photo</span>
+                  <div className="rounded-full bg-forest-moss/10 p-3 group-hover:bg-forest-evergreen group-hover:text-white transition-colors duration-300 mb-2">
+                    <Plus size={24} />
+                  </div>
+                  <span className="text-sm font-bold uppercase tracking-wide">Add Photo</span>
                 </button>
               )}
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-            <div className="flex items-center gap-2">
-              <MapPin size={15} />
-              <span>{geoLoading ? 'Locating your trail position...' : 'Your current location will be used when available.'}</span>
-            </div>
+          <div className="flex items-center gap-3 rounded-2xl bg-forest-evergreen/5 border border-forest-evergreen/10 px-4 py-3 text-sm text-forest-evergreen">
+            <MapPin size={18} className="shrink-0 text-forest-moss" />
+            <span className="font-medium">
+              {geoLoading ? 'Triangulating position via GPS...' : 'GPS Coordinates will be attached to report.'}
+            </span>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-3">
+          <div className="flex items-center justify-end gap-3 border-t border-forest-light/10 pt-6">
             <button
               type="button"
               onClick={() => {
                 resetForm();
                 onClose?.();
               }}
-              className="h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              className="px-6 py-2.5 rounded-full font-bold text-forest-moss hover:text-forest-deep hover:bg-forest-light/10 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn-nature min-w-[140px]"
             >
               {loading ? (
-                <>
-                  <Loader2 size={16} className="mr-2 animate-spin" />
-                  Reporting...
-                </>
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Submitting...</span>
+                </div>
               ) : (
-                'Submit issue'
+                'File Report'
               )}
             </button>
           </div>
