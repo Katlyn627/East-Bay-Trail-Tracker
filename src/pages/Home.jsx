@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Award, MapPin, Trees, ChevronRight } from 'lucide-react';
+import { Leaf, Award as AwardIcon, MapPin, Trees, ChevronRight } from 'lucide-react';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -98,7 +98,7 @@ const Home = () => {
 
           <div className="organic-card p-8 flex flex-col items-center text-center">
             <div className="w-16 h-16 rounded-2xl bg-lupine/10 flex items-center justify-center mb-6 border border-lupine/20">
-              <Award size={32} className="text-lupine" />
+              <AwardIcon size={32} className="text-lupine" />
             </div>
             <h3 className="text-2xl font-heading mb-3">Earn Badges</h3>
             <p className="text-forest-deep/70">

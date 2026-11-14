@@ -11,42 +11,45 @@ import LogCleanup from './pages/LogCleanup';
 import ReportIncident from './pages/ReportIncident';
 import CommunityBoard from './pages/CommunityBoard';
 import Profile from './pages/Profile';
+import ErrorBoundary from './components/ErrorBoundary';
 import './styles/index.css';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <div className="min-h-screen w-full max-w-[1280px] mx-auto overflow-x-hidden bg-[var(--ebtt-forest-glow)] px-0 sm:px-3">
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<LogIn />} />
-            <Route path="/signup" element={<SignUp />} />
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <div className="min-h-screen w-full max-w-[1280px] mx-auto overflow-x-hidden bg-[var(--ebtt-forest-glow)] px-0 sm:px-3">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<LogIn />} />
+              <Route path="/signup" element={<SignUp />} />
 
-            {/* Protected app routes */}
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppShell />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/log-cleanup" element={<LogCleanup />} />
-              <Route path="/report-incident" element={<ReportIncident />} />
-              <Route path="/community-board" element={<CommunityBoard />} />
-              <Route path="/leaderboard" element={<Navigate to="/community-board" replace />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/report" element={<Navigate to="/report-incident" replace />} />
-            </Route>
+              {/* Protected app routes */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AppShell />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/log-cleanup" element={<LogCleanup />} />
+                <Route path="/report-incident" element={<ReportIncident />} />
+                <Route path="/community-board" element={<CommunityBoard />} />
+                <Route path="/leaderboard" element={<Navigate to="/community-board" replace />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/report" element={<Navigate to="/report-incident" replace />} />
+              </Route>
 
-            {/* Catch-all redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </AuthProvider>
-    </Router>
+              {/* Catch-all redirect */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

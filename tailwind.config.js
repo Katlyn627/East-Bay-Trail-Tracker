@@ -12,10 +12,11 @@ export default {
           deep: '#1B3618',
           light: '#4F7942',
           moss: '#8A9A5B',
+          evergreen: '#0B3D0B',
         },
         poppy: {
-          DEFAULT: '#FF8C00',
-          light: '#FFA500',
+          DEFAULT: '#E53E3E', // Changed from #FF8C00 to Red-600 for Live Reload test
+          light: '#FC8181',
         },
         lupine: {
           DEFAULT: '#6A5ACD',

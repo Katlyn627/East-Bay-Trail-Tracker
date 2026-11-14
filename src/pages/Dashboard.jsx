@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   AlertCircle,
+  Award as AwardIcon,
   Clock3,
   Footprints,
   Leaf,
@@ -201,7 +202,7 @@ const Dashboard = () => {
              <h4 className="font-heading font-bold text-forest-deep mb-4 uppercase text-xs tracking-widest">Next Badge</h4>
              <div className="flex items-center gap-4">
                <div className="w-16 h-16 rounded-full bg-poppy/10 flex items-center justify-center border-2 border-dashed border-poppy/30">
-                 <Award size={32} className="text-poppy opacity-40" />
+                 <AwardIcon size={32} className="text-poppy opacity-40" />
                </div>
                <div>
                  <p className="font-bold text-forest-deep">Redwood Guardian</p>
