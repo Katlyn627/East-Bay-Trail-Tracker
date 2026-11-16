@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { addDoc, arrayUnion, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Camera, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import useCaliforniaTrailSearch from '../hooks/useCaliforniaTrailSearch';
+import useTrailLocationSearch from '../hooks/useTrailLocationSearch';
 import { db } from '../firebase';
 import { buildGoogleMapsSearchUrl, normalizeCoordinates } from '../utils/maps';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
@@ -48,7 +48,7 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
   const [error, setError] = useState('');
   const [selectedTrailLocation, setSelectedTrailLocation] = useState(null);
   const [showTrailSuggestions, setShowTrailSuggestions] = useState(false);
-  const trailSearch = useCaliforniaTrailSearch(trailName);
+  const trailSearch = useTrailLocationSearch(trailName);
 
   const handlePhotoSelection = async (event) => {
     const incomingFiles = Array.from(event.target.files || []);

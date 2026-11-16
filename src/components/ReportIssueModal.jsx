@@ -4,7 +4,7 @@ import { Camera, Loader2, MapPin, Plus, Search, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
-import useCaliforniaTrailSearch from '../hooks/useCaliforniaTrailSearch';
+import useTrailLocationSearch from '../hooks/useTrailLocationSearch';
 import { buildGoogleMapsSearchUrl, normalizeCoordinates } from '../utils/maps';
 
 const ISSUE_TYPES = [
@@ -47,7 +47,7 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
   const [trailQuery, setTrailQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedTrailLocation, setSelectedTrailLocation] = useState(null);
-  const trailSearch = useCaliforniaTrailSearch(trailQuery);
+  const trailSearch = useTrailLocationSearch(trailQuery);
   const suggestionsRef = useRef(null);
 
   const [photos, setPhotos] = useState([]);
