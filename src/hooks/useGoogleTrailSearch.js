@@ -18,12 +18,24 @@ export default function useGoogleTrailSearch(query, options = {}) {
   const sessionToken = useRef(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.google && window.google.maps && window.google.maps.places) {
-      autocompleteService.current = new window.google.maps.places.AutocompleteService();
-      // Dummy element for PlacesService
-      const dummy = document.createElement('div');
-      placesService.current = new window.google.maps.places.PlacesService(dummy);
-      sessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
+    const initServices = () => {
+      if (window.google && window.google.maps && window.google.maps.places && !autocompleteService.current) {
+        autocompleteService.current = new window.google.maps.places.AutocompleteService();
+        const dummy = document.createElement('div');
+        placesService.current = new window.google.maps.places.PlacesService(dummy);
+        sessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
+      }
+    };
+
+    if (window.google) {
+      initServices();
+    } else {
+      // Wait for script to load if not present
+      const script = document.querySelector('script[src*="maps.googleapis.com"]');
+      if (script) {
+        script.addEventListener('load', initServices);
+        return () => script.removeEventListener('load', initServices);
+      }
     }
   }, []);
 
