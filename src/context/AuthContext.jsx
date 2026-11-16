@@ -7,11 +7,16 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithCredential
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { DEMO_SESSION_KEY, getDemoProfileByEmail, getStoredDemoProfile, setStoredDemoProfile } from '../utils/mockData';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { Capacitor } from '@capacitor/core';
 
 const AuthContext = createContext(null);
+
 
 const getNumericValue = (primaryValue, fallbackValue = 0) => {
   if (typeof primaryValue === 'number' && Number.isFinite(primaryValue)) return primaryValue;
@@ -279,7 +284,26 @@ export const AuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     try {
       setError(null);
-      const result = await signInWithPopup(auth, googleProvider);
+      let result;
+
+      if (Capacitor.isNativePlatform()) {
+        const { credential } = await FirebaseAuthentication.signInWithGoogle({
+          skipNativeAuth: false,
+        });
+
+        if (!credential) {
+          throw new Error('Google Sign-In failed: No credentials returned.');
+        }
+
+        const firebaseCredential = GoogleAuthProvider.credential(
+          credential.idToken,
+          credential.accessToken
+        );
+        result = await signInWithCredential(auth, firebaseCredential);
+      } else {
+        result = await signInWithPopup(auth, googleProvider);
+      }
+
       const profile = await ensureProfile(result.user, {
         email: result.user.email,
         displayName: result.user.displayName || 'Trail Explorer',

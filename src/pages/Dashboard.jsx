@@ -105,41 +105,41 @@ const Dashboard = () => {
               <h3 className="text-2xl font-heading">Impact Metrics</h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 rounded-[2rem] rounded-tr-lg rounded-bl-lg bg-forest/5 border border-forest-moss/20">
-                <div className="flex items-center justify-between mb-2">
-                  <Trash2 size={20} className="text-forest" />
-                  <span className="text-[10px] font-bold text-forest-moss uppercase tracking-tighter">Bags Logged</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-5 rounded-[2rem] rounded-tr-lg rounded-bl-lg bg-forest/5 border border-forest-moss/20 min-w-0">
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <Trash2 size={20} className="text-forest shrink-0" />
+                  <span className="text-[10px] font-bold text-forest-moss uppercase tracking-tighter truncate">Bags Logged</span>
                 </div>
-                <div className="text-3xl font-black text-forest-deep">{impactMetrics.totalBags}</div>
-                <div className="text-xs text-forest-moss font-medium mt-1">~{impactMetrics.totalWeightLbs.toFixed(1)} lbs removed</div>
+                <div className="text-3xl font-black text-forest-deep truncate">{impactMetrics.totalBags}</div>
+                <div className="text-xs text-forest-moss font-medium mt-1 truncate">~{impactMetrics.totalWeightLbs.toFixed(1)} lbs removed</div>
               </div>
 
-              <div className="p-5 rounded-[2rem] rounded-tl-lg rounded-br-lg bg-lupine/5 border border-lupine/20">
-                <div className="flex items-center justify-between mb-2">
-                  <Footprints size={20} className="text-lupine" />
-                  <span className="text-[10px] font-bold text-lupine uppercase tracking-tighter">Miles Covered</span>
+              <div className="p-5 rounded-[2rem] rounded-tl-lg rounded-br-lg bg-lupine/5 border border-lupine/20 min-w-0">
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <Footprints size={20} className="text-lupine shrink-0" />
+                  <span className="text-[10px] font-bold text-lupine uppercase tracking-tighter truncate">Miles Covered</span>
                 </div>
-                <div className="text-3xl font-black text-forest-deep">{impactMetrics.totalMiles.toFixed(1)}</div>
-                <div className="text-xs text-lupine font-medium mt-1">Across {impactMetrics.uniqueTrailsCount} trails</div>
+                <div className="text-3xl font-black text-forest-deep truncate">{impactMetrics.totalMiles.toFixed(1)}</div>
+                <div className="text-xs text-lupine font-medium mt-1 truncate">Across {impactMetrics.uniqueTrailsCount} trails</div>
               </div>
 
-              <div className="p-5 rounded-[2rem] rounded-tl-lg rounded-br-lg bg-poppy/5 border border-poppy/20">
-                <div className="flex items-center justify-between mb-2">
-                  <Clock3 size={20} className="text-poppy" />
-                  <span className="text-[10px] font-bold text-poppy uppercase tracking-tighter">Hours Gifted</span>
+              <div className="p-5 rounded-[2rem] rounded-tl-lg rounded-br-lg bg-poppy/5 border border-poppy/20 min-w-0">
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <Clock3 size={20} className="text-poppy shrink-0" />
+                  <span className="text-[10px] font-bold text-poppy uppercase tracking-tighter truncate">Hours Gifted</span>
                 </div>
-                <div className="text-3xl font-black text-forest-deep">{impactMetrics.totalHours.toFixed(1)}</div>
-                <div className="text-xs text-poppy font-medium mt-1">Volunteer service</div>
+                <div className="text-3xl font-black text-forest-deep truncate">{impactMetrics.totalHours.toFixed(1)}</div>
+                <div className="text-xs text-poppy font-medium mt-1 truncate">Volunteer service</div>
               </div>
 
-              <div className="p-5 rounded-[2rem] rounded-tr-lg rounded-bl-lg bg-earth/5 border border-earth-clay/20">
-                <div className="flex items-center justify-between mb-2">
-                  <Zap size={20} className="text-earth" />
-                  <span className="text-[10px] font-bold text-earth-clay uppercase tracking-tighter">Current Level</span>
+              <div className="p-5 rounded-[2rem] rounded-tr-lg rounded-bl-lg bg-earth/5 border border-earth-clay/20 min-w-0">
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <Zap size={20} className="text-earth shrink-0" />
+                  <span className="text-[10px] font-bold text-earth-clay uppercase tracking-tighter truncate">Current Level</span>
                 </div>
-                <div className="text-3xl font-black text-forest-deep">Level {Math.floor(impactMetrics.pointsBalance / 500) + 1}</div>
-                <div className="text-xs text-earth-clay font-medium mt-1">Keep climbing!</div>
+                <div className="text-3xl font-black text-forest-deep truncate">Level {Math.floor(impactMetrics.pointsBalance / 500) + 1}</div>
+                <div className="text-xs text-earth-clay font-medium mt-1 truncate">Keep climbing!</div>
               </div>
             </div>
           </div>

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { AlertCircle, Camera, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
+import { addDoc, collection, doc, increment, serverTimestamp, updateDoc, setDoc } from 'firebase/firestore';
+import { AlertCircle, Camera, Loader2, MapPin, Plus, Search, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import uploadTrailReportImage from '../utils/uploadTrailReportImage';
+import useGoogleTrailSearch from '../hooks/useGoogleTrailSearch';
 
 const ISSUE_TYPES = [
   { value: 'downed_tree', label: 'Downed Tree', icon: '🌳' },
@@ -43,6 +44,11 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
     longitude: '',
     severity: 'medium',
   });
+  const [trailQuery, setTrailQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const { suggestions: trailSuggestions, loading: trailLoading } = useGoogleTrailSearch(trailQuery);
+  const suggestionsRef = useRef(null);
+
   const [photos, setPhotos] = useState([]);
   const [replaceIndex, setReplaceIndex] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -70,9 +76,34 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
     );
   }, [isOpen]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'trailName') {
+      setTrailQuery(value);
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleTrailSelect = (suggestion) => {
+    setFormData((prev) => ({
+      ...prev,
+      trailName: suggestion.name,
+      latitude: suggestion.latitude?.toString() || prev.latitude,
+      longitude: suggestion.longitude?.toString() || prev.longitude,
+    }));
+    setTrailQuery(suggestion.name);
+    setShowSuggestions(false);
   };
 
   const handlePhotoSelection = async (event) => {
@@ -172,16 +203,22 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
         verified: false,
       });
 
-      await updateDoc(doc(db, 'users', user.uid), {
-        pointsBalance: increment(50),
-        issuesReported: increment(1),
-        updatedAt: serverTimestamp(),
-      });
+      // Fix: Use setDoc with merge to prevent "No document to update" errors
+      const userRef = doc(db, 'users', user.uid);
+      try {
+        await setDoc(userRef, {
+          pointsBalance: increment(50),
+          issuesReported: increment(1),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
 
-      await updateUserProfile({
-        pointsBalance: (userProfile?.pointsBalance || 0) + 50,
-        issuesReported: (userProfile?.issuesReported || 0) + 1,
-      });
+        await updateUserProfile({
+          pointsBalance: (userProfile?.pointsBalance || 0) + 50,
+          issuesReported: (userProfile?.issuesReported || 0) + 1,
+        });
+      } catch (userUpdateErr) {
+        console.warn('Failed to update user stats, but report was filed:', userUpdateErr);
+      }
 
       onSuccess?.('Issue reported! You earned 50 points.');
       resetForm();
@@ -197,9 +234,9 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-deep/60 px-3 py-5 backdrop-blur-md">
-      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2.5rem] bg-sage-mist/95 shadow-2xl border border-white/20">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-forest-light/10 bg-white/80 backdrop-blur-md px-6 py-5">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-forest-deep/60 px-3 py-5 backdrop-blur-md">
+      <div className="relative flex flex-col max-h-[90vh] w-full max-w-2xl rounded-[2.5rem] bg-sage-mist/95 shadow-2xl border border-white/20 overflow-hidden">
+        <div className="shrink-0 flex items-center justify-between border-b border-forest-light/10 bg-white/80 backdrop-blur-md px-6 py-5">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest-moss">Guardian Action</p>
             <h2 className="font-heading text-2xl font-bold text-forest-deep">Report a Trail Issue</h2>
@@ -217,7 +254,7 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
               {error}
@@ -245,17 +282,56 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="sm:col-span-2 relative" ref={suggestionsRef}>
               <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Trail Name</label>
-              <input
-                type="text"
-                name="trailName"
-                value={formData.trailName}
-                onChange={handleInputChange}
-                placeholder="e.g., Redwood Regional Park"
-                className="nature-input shadow-sm"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="trailName"
+                  value={formData.trailName}
+                  onChange={handleInputChange}
+                  onFocus={() => setShowSuggestions(true)}
+                  placeholder="Search for a trail or enter name..."
+                  className="nature-input pr-10 shadow-sm"
+                  autoComplete="off"
+                />
+                <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-forest-moss/50" />
+              </div>
+
+              {showSuggestions && (trailSuggestions.length > 0 || trailLoading) && (
+                <div className="absolute z-20 w-full mt-2 bg-white rounded-2xl shadow-xl border border-forest-light/10 overflow-hidden max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                  {trailLoading && (
+                    <div className="px-4 py-3 text-sm text-forest-moss flex items-center gap-2">
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Searching trailheads...</span>
+                    </div>
+                  )}
+                  {trailSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      type="button"
+                      onClick={() => handleTrailSelect(suggestion)}
+                      className="w-full px-4 py-3 text-left hover:bg-sage-mist/20 flex items-center gap-3 transition-colors border-b border-forest-light/5 last:border-0"
+                    >
+                      <MapPin size={16} className={`${suggestion.isTrailhead ? 'text-poppy' : 'text-forest-moss'}`} />
+                      <div>
+                        <div className="font-bold text-forest-deep text-sm flex items-center gap-2">
+                          {suggestion.name}
+                          {suggestion.isTrailhead && (
+                            <span className="text-[9px] bg-poppy/10 text-poppy px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Trailhead</span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-forest-moss/70 font-medium">
+                          {suggestion.displayName.includes(',')
+                            ? suggestion.displayName.split(',').slice(1).join(',').trim()
+                            : suggestion.displayName}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="sm:col-span-2">
@@ -270,8 +346,8 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Latitude</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Latitude</label>
               <input
                 type="number"
                 name="latitude"
@@ -283,8 +359,8 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Longitude</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-forest-deep/80 uppercase tracking-wider">Longitude</label>
               <input
                 type="number"
                 name="longitude"
@@ -380,7 +456,7 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
             </span>
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-forest-light/10 pt-6">
+          <div className="shrink-0 flex items-center justify-end gap-3 border-t border-forest-light/10 bg-white/50 backdrop-blur-sm px-6 py-5">
             <button
               type="button"
               onClick={() => {
