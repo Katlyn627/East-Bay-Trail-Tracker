@@ -15,8 +15,8 @@ export default {
           evergreen: '#0B3D0B',
         },
         poppy: {
-          DEFAULT: '#E53E3E', // Changed from #FF8C00 to Red-600 for Live Reload test
-          light: '#FC8181',
+          DEFAULT: '#FF8C00',
+          light: '#FFA500',
         },
         lupine: {
           DEFAULT: '#6A5ACD',
