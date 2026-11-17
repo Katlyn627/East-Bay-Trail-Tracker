@@ -48,7 +48,8 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
   const [error, setError] = useState('');
   const [selectedTrailLocation, setSelectedTrailLocation] = useState(null);
   const [showTrailSuggestions, setShowTrailSuggestions] = useState(false);
-  const trailSearch = useTrailLocationSearch(trailName);
+  const { suggestions: trailSuggestions, loading: trailLoading, error: trailError, hasMore: trailHasMore } = useTrailLocationSearch(trailName, {});
+  const trailSearch = { suggestions: trailSuggestions, loading: trailLoading, error: trailError, hasMore: trailHasMore };
 
   const handlePhotoSelection = async (event) => {
     const incomingFiles = Array.from(event.target.files || []);
@@ -279,8 +280,14 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
                   placeholder="Search California trails or parks..."
                   className="nature-input shadow-sm"
                 />
-                {showTrailSuggestions && trailSearch.suggestions.length > 0 && (
-                  <div className="absolute z-20 mt-2 max-h-56 w-full overflow-y-auto rounded-2xl border border-forest-light/10 bg-white/95 backdrop-blur-md shadow-xl py-2">
+                {showTrailSuggestions && (trailSearch.suggestions.length > 0 || trailSearch.loading) && (
+                  <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-forest-light/10 bg-white/95 backdrop-blur-md shadow-xl py-2 scrollbar-thin">
+                    {trailSearch.loading && (
+                      <div className="px-4 py-2 text-xs text-forest-moss flex items-center gap-2 italic">
+                        <Loader2 size={12} className="animate-spin" />
+                        <span>Searching California...</span>
+                      </div>
+                    )}
                     {trailSearch.suggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
@@ -290,11 +297,22 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
                           setSelectedTrailLocation(suggestion);
                           setShowTrailSuggestions(false);
                         }}
-                        className="block w-full px-4 py-2.5 text-left text-sm font-medium text-forest-deep hover:bg-forest-evergreen hover:text-white transition-colors"
+                        className="w-full px-4 py-2.5 text-left hover:bg-forest-evergreen hover:text-white transition-colors border-b border-forest-light/5 last:border-0"
                       >
-                        {suggestion.displayName}
+                        <div className="font-bold text-sm flex items-center gap-2">
+                          {suggestion.name}
+                          {suggestion.isTrailhead && (
+                            <span className="text-[8px] border border-current px-1 rounded uppercase tracking-tighter opacity-70">Trailhead</span>
+                          )}
+                        </div>
+                        <div className="text-[10px] opacity-70 truncate">{suggestion.displayName}</div>
                       </button>
                     ))}
+                    {trailSearch.hasMore && (
+                      <div className="px-4 py-1 text-[9px] text-center text-forest-moss/50 uppercase font-bold tracking-widest">
+                        Showing top results • Keep typing to refine
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

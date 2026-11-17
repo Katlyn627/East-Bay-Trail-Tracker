@@ -1,23 +1,24 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { EAST_BAY_TRAILS } from '../data/eastBayTrails';
 
-// East Bay Region Bias for Google Places API
-const EAST_BAY_BOUNDS = {
-  north: 38.2,
-  south: 37.4,
-  west: -122.5,
-  east: -121.7,
+// California-wide bounds
+const CALIFORNIA_BOUNDS = {
+  north: 42.0,
+  south: 32.5,
+  west: -124.5,
+  east: -114.1,
 };
 
 /**
- * Enhanced Trail Search Hook
- * Combines local structured East Bay trail data with Google Places API
- * Biases results toward trailheads and trails in the East Bay region.
+ * Enhanced Trail Search Hook - California Wide
+ * Combines local data, Google Places, and OpenStreetMap Overpass API.
  */
 export default function useTrailLocationSearch(query, options = {}) {
+  const { latitude, longitude } = options;
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasMore, setHasMore] = useState(false);
 
   const autocompleteService = useRef(null);
   const placesService = useRef(null);
@@ -45,119 +46,173 @@ export default function useTrailLocationSearch(query, options = {}) {
     }
   }, []);
 
+  const calculateRank = (name, isTrailhead, isLocal, input) => {
+    let rank = 0;
+    const nameLower = name.toLowerCase();
+    const inputLower = input.toLowerCase();
+    const tokens = inputLower.split(/\s+/).filter(t => t.length > 0);
+
+    if (nameLower === inputLower) rank += 1000;
+
+    const words = nameLower.split(/\s+/);
+    if (nameLower.startsWith(inputLower) || words.some(w => w.startsWith(inputLower))) {
+      rank += 500;
+    }
+
+    if (tokens.length > 0 && tokens.every(token => nameLower.includes(token))) {
+      rank += 300;
+    }
+
+    if (/trailhead|staging area|trail/i.test(name) || isTrailhead) {
+      rank += 200;
+    }
+
+    if (isLocal) {
+      rank += 50;
+    }
+
+    return rank;
+  };
+
   const fetchSuggestions = useCallback(async (input) => {
     const normalizedInput = (input || '').trim().toLowerCase();
-    if (normalizedInput.length < 2) {
+    if (normalizedInput.length < 1) {
       setSuggestions([]);
+      setLoading(false);
+      setHasMore(false);
       return;
     }
 
     setLoading(true);
     setError('');
 
-    // 1. Search Local East Bay Dataset
-    const localMatches = EAST_BAY_TRAILS.filter(trail =>
-      trail.name.toLowerCase().includes(normalizedInput) ||
-      trail.area.toLowerCase().includes(normalizedInput)
-    ).map(trail => ({
-      id: `local-${trail.name.toLowerCase().replace(/\s+/g, '-')}`,
+    // 1. Search Local Dataset (expanded eastBayTrails.js)
+    const localMatches = EAST_BAY_TRAILS.filter(trail => {
+      const name = trail.name.toLowerCase();
+      const area = trail.area.toLowerCase();
+      return name.includes(normalizedInput) || area.includes(normalizedInput);
+    }).map(trail => ({
+      id: `local-${trail.name.toLowerCase().replace(/\s+/g, '-')}-${trail.latitude}`,
       name: trail.name,
       displayName: `${trail.name}, ${trail.area}`,
       latitude: trail.latitude,
       longitude: trail.longitude,
       isTrailhead: trail.type === 'trailhead',
       source: 'local',
-      score: trail.type === 'trailhead' ? 0 : 1
+      rank: calculateRank(trail.name, trail.type === 'trailhead', !!trail.isLocal, normalizedInput)
     }));
 
     // 2. Search Google Places API
-    if (!autocompleteService.current) {
-      setSuggestions(localMatches.slice(0, 8));
-      setLoading(false);
-      return;
-    }
+    const getGoogleResults = () => {
+      return new Promise((resolve) => {
+        if (!autocompleteService.current) return resolve([]);
 
-    // Append "trailhead" to query if not present for Google bias
-    const googleQuery = normalizedInput.includes('trail') || normalizedInput.includes('park')
-      ? input
-      : `${input} trailhead`;
+        const googleQuery = normalizedInput.includes('trail') || normalizedInput.includes('park')
+          ? input
+          : `${input} trailhead`;
 
-    const request = {
-      input: googleQuery,
-      locationBias: EAST_BAY_BOUNDS,
-      sessionToken: sessionToken.current,
-      types: ['establishment'],
+        const request = {
+          input: googleQuery,
+          locationBias: CALIFORNIA_BOUNDS,
+          sessionToken: sessionToken.current,
+          types: ['establishment'],
+        };
+
+        autocompleteService.current.getPlacePredictions(request, (predictions, status) => {
+          if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
+            return resolve([]);
+          }
+
+          const detailsRequests = predictions.map(prediction => {
+            return new Promise((resolveDetail) => {
+              placesService.current.getDetails({
+                placeId: prediction.place_id,
+                fields: ['name', 'geometry', 'types', 'vicinity'],
+                sessionToken: sessionToken.current
+              }, (place, detailStatus) => {
+                if (detailStatus === window.google.maps.places.PlacesServiceStatus.OK && place) {
+                  const isTrailhead = place.types?.includes('trailhead') || /trailhead/i.test(place.name);
+                  resolveDetail({
+                    id: prediction.place_id,
+                    name: place.name,
+                    displayName: `${place.name}${place.vicinity ? ', ' + place.vicinity : ''}`,
+                    latitude: place.geometry?.location?.lat(),
+                    longitude: place.geometry?.location?.lng(),
+                    isTrailhead: isTrailhead,
+                    source: 'google',
+                    rank: calculateRank(place.name, isTrailhead, false, normalizedInput)
+                  });
+                } else {
+                  resolveDetail(null);
+                }
+              });
+            });
+          });
+
+          Promise.all(detailsRequests).then(results => resolve(results.filter(r => r !== null)));
+        });
+      });
     };
 
-    autocompleteService.current.getPlacePredictions(request, (predictions, status) => {
-      if (status !== window.google.maps.places.PlacesServiceStatus.OK || !predictions) {
-        setSuggestions(localMatches.slice(0, 8));
-        setLoading(false);
-        return;
+    // 3. Search Overpass API (OSM) - Optional but requested
+    const getOverpassResults = async () => {
+      if (normalizedInput.length < 3) return []; // Only deep search for longer queries to avoid Overpass load
+      try {
+        const query = `[out:json][timeout:5];node["highway"="trailhead"](32.5,-124.5,42.0,-114.1)[name~"${normalizedInput}",i];out body;`;
+        const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        return (data.elements || []).map(el => ({
+          id: `osm-${el.id}`,
+          name: el.tags.name,
+          displayName: `${el.tags.name} (OSM)`,
+          latitude: el.lat,
+          longitude: el.lon,
+          isTrailhead: true,
+          source: 'osm',
+          rank: calculateRank(el.tags.name, true, false, normalizedInput)
+        }));
+      } catch (e) {
+        return [];
       }
+    };
 
-      // Resolve coordinates for Google predictions
-      const googleRequests = predictions.map(prediction => {
-        return new Promise((resolve) => {
-          placesService.current.getDetails({
-            placeId: prediction.place_id,
-            fields: ['name', 'geometry', 'types', 'vicinity'],
-            sessionToken: sessionToken.current
-          }, (place, detailStatus) => {
-            if (detailStatus === window.google.maps.places.PlacesServiceStatus.OK && place) {
-              const name = place.name;
-              const isTrailhead = place.types?.includes('trailhead') || /trailhead/i.test(name);
-              const isPark = place.types?.includes('park') || /park/i.test(name);
-              const isTrail = /trail|loop|ridge|creek|peak/i.test(name);
+    try {
+      const [googleResults, osmResults] = await Promise.all([
+        getGoogleResults(),
+        getOverpassResults()
+      ]);
 
-              resolve({
-                id: prediction.place_id,
-                name: name,
-                displayName: `${name}${place.vicinity ? ', ' + place.vicinity : ''}`,
-                latitude: place.geometry?.location?.lat(),
-                longitude: place.geometry?.location?.lng(),
-                isTrailhead: isTrailhead,
-                source: 'google',
-                // Ranking: Trailhead > Trail > Park > Others
-                score: isTrailhead ? 0 : (isTrail ? 1 : (isPark ? 2 : 3))
-              });
-            } else {
-              resolve(null);
-            }
-          });
-        });
+      const merged = [...localMatches];
+      const allNewResults = [...googleResults, ...osmResults];
+
+      allNewResults.forEach(res => {
+        const isDuplicate = merged.some(m =>
+          m.name.toLowerCase() === res.name.toLowerCase() ||
+          (Math.abs(m.latitude - res.latitude) < 0.0005 && Math.abs(m.longitude - res.longitude) < 0.0005)
+        );
+        if (!isDuplicate) {
+          merged.push(res);
+        }
       });
 
-      Promise.all(googleRequests).then(googleResults => {
-        const validGoogleResults = googleResults.filter(r => r !== null);
-
-        // Merge Local and Google, removing duplicates by name
-        const seenNames = new Set(localMatches.map(m => m.name.toLowerCase()));
-        const merged = [...localMatches];
-
-        validGoogleResults.forEach(res => {
-          if (!seenNames.has(res.name.toLowerCase())) {
-            merged.push(res);
-            seenNames.add(res.name.toLowerCase());
-          }
-        });
-
-        const finalResults = merged
-          .sort((a, b) => a.score - b.score)
-          .slice(0, 10);
-
-        setSuggestions(finalResults);
-        setLoading(false);
-      });
-    });
+      const sorted = merged.sort((a, b) => b.rank - a.rank);
+      setSuggestions(sorted.slice(0, 25));
+      setHasMore(sorted.length > 25);
+    } catch (err) {
+      console.error('Search error:', err);
+      setError('Limited search results available.');
+      setSuggestions(localMatches.sort((a, b) => b.rank - a.rank).slice(0, 25));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSuggestions(query);
-    }, 250);
+    }, 150);
     return () => clearTimeout(timer);
   }, [query, fetchSuggestions]);
 
-  return { suggestions, loading, error };
+  return { suggestions, loading, error, hasMore };
 }

@@ -44,10 +44,13 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
     longitude: '',
     severity: 'medium',
   });
-  const [trailQuery, setTrailQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedTrailLocation, setSelectedTrailLocation] = useState(null);
-  const trailSearch = useTrailLocationSearch(trailQuery);
+  const { suggestions: trailSuggestions, loading: trailLoading, error: trailError, hasMore: trailHasMore } = useTrailLocationSearch(formData.trailName, {
+    latitude: formData.latitude,
+    longitude: formData.longitude,
+  });
+  const trailSearch = { suggestions: trailSuggestions, loading: trailLoading, error: trailError, hasMore: trailHasMore };
   const suggestionsRef = useRef(null);
 
   const [photos, setPhotos] = useState([]);
@@ -71,9 +74,15 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
       },
       (err) => {
         console.warn('Geolocation error:', err.message);
+        // Fallback to default East Bay coordinates if not already set
+        setFormData((prev) => ({
+          ...prev,
+          latitude: prev.latitude || '37.8734',
+          longitude: prev.longitude || '-122.2634',
+        }));
         setGeoLoading(false);
       },
-      { timeout: 5000 }
+      { timeout: 10000, enableHighAccuracy: true }
     );
   }, [isOpen]);
 
@@ -81,7 +90,6 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (name === 'trailName') {
-      setTrailQuery(value);
       if (selectedTrailLocation && selectedTrailLocation.name !== value) {
         setSelectedTrailLocation(null);
       }
@@ -96,7 +104,6 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
       latitude: suggestion.latitude ? suggestion.latitude.toFixed(6) : prev.latitude,
       longitude: suggestion.longitude ? suggestion.longitude.toFixed(6) : prev.longitude,
     }));
-    setTrailQuery(suggestion.name);
     setSelectedTrailLocation(suggestion);
     setShowSuggestions(false);
   };
@@ -144,7 +151,6 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
       longitude: '',
       severity: 'medium',
     });
-    setTrailQuery('');
     setSelectedTrailLocation(null);
     setShowSuggestions(false);
     setPhotos([]);
@@ -237,9 +243,9 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-forest-deep/60 px-3 py-5 backdrop-blur-md">
-      <div className="relative flex flex-col max-h-[90vh] w-full max-w-2xl rounded-[2.5rem] bg-sage-mist/95 shadow-2xl border border-white/20 overflow-hidden">
+      <div className="relative flex flex-col max-h-[90vh] w-full max-w-2xl rounded-[2.5rem] bg-sage-mist/95 shadow-2xl border border-white/20 overflow-visible">
         {/* Fixed Header */}
-        <div className="shrink-0 flex items-center justify-between border-b border-forest-light/10 bg-white/80 backdrop-blur-md px-6 py-5 z-10">
+        <div className="shrink-0 flex items-center justify-between border-b border-forest-light/10 bg-white/80 backdrop-blur-md px-6 py-5 z-10 rounded-t-[2.5rem]">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest-moss">Guardian Action</p>
             <h2 className="font-heading text-2xl font-bold text-forest-deep">Report a Trail Issue</h2>
@@ -324,11 +330,11 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
                 </div>
 
                 {showSuggestions && (trailSearch.suggestions.length > 0 || trailSearch.loading) && (
-                  <div className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-forest-light/10 overflow-hidden max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-forest-light/10 overflow-hidden max-h-72 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 scrollbar-thin">
                     {trailSearch.loading && (
-                      <div className="px-4 py-3 text-sm text-forest-moss flex items-center gap-2">
+                      <div className="px-4 py-3 text-sm text-forest-moss flex items-center gap-2 bg-sage-mist/10">
                         <Loader2 size={14} className="animate-spin" />
-                        <span>Scanning wilderness database...</span>
+                        <span>Searching California trailheads...</span>
                       </div>
                     )}
                     {trailSearch.suggestions.map((suggestion) => (
@@ -356,6 +362,11 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
                         </div>
                       </button>
                     ))}
+                    {trailSearch.hasMore && (
+                      <div className="px-4 py-2 bg-forest-light/5 text-[10px] text-center font-bold text-forest-moss uppercase tracking-widest border-t border-forest-light/10">
+                        Showing top results • Keep typing to refine
+                      </div>
+                    )}
                   </div>
                 )}
                 {trailSearch.error && <p className="mt-2 text-xs font-bold text-red-600 px-1">{trailSearch.error}</p>}
@@ -483,7 +494,7 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
               </span>
             </div>
 
-            <div className="shrink-0 flex items-center justify-end gap-3 border-t border-forest-light/10 bg-white/50 backdrop-blur-sm px-6 py-5">
+            <div className="shrink-0 flex items-center justify-end gap-3 border-t border-forest-light/10 bg-white/50 backdrop-blur-sm px-6 py-5 rounded-b-[2.5rem]">
               <button
                 type="button"
                 onClick={() => {
