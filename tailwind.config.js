@@ -12,6 +12,7 @@ export default {
           deep: '#1B3618',
           light: '#4F7942',
           moss: '#8A9A5B',
+          evergreen: '#0B3D0B',
         },
         poppy: {
           DEFAULT: '#FF8C00',

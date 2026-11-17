@@ -100,6 +100,7 @@ const buildSuggestion = (entry) => ({
   displayName: entry.area ? `${entry.name}, ${entry.area}` : entry.name,
   latitude: entry.latitude ?? null,
   longitude: entry.longitude ?? null,
+  isTrailhead: /trailhead/i.test(entry.name),
 });
 
 const scoreEntry = (entry, queryValue) => {
@@ -121,9 +122,18 @@ export default function useCaliforniaTrailSearch(query, options = {}) {
   const suggestions = useMemo(() => {
     if (normalizedQuery.length < minQueryLength) return [];
 
-    const matches = CALIFORNIA_TRAIL_DATASET.filter((entry) =>
+    const allMatches = CALIFORNIA_TRAIL_DATASET.filter((entry) =>
       toSearchHaystack(entry).includes(normalizedQuery)
-    )
+    );
+
+    const trailheadMatches = allMatches.filter((entry) =>
+      /trailhead/i.test(entry.name)
+    );
+
+    // Bias: prioritize trailheads if they match the query, otherwise show all matches
+    const results = trailheadMatches.length > 0 ? trailheadMatches : allMatches;
+
+    return results
       .sort((a, b) => {
         const scoreDifference = scoreEntry(a, normalizedQuery) - scoreEntry(b, normalizedQuery);
         if (scoreDifference !== 0) return scoreDifference;
@@ -131,8 +141,6 @@ export default function useCaliforniaTrailSearch(query, options = {}) {
       })
       .slice(0, limit)
       .map(buildSuggestion);
-
-    return matches;
   }, [limit, minQueryLength, normalizedQuery]);
 
   return { suggestions, loading: false, error: '' };

@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
-  Award,
+  Award as AwardIcon,
   CalendarDays,
   Camera,
   Clock3,
@@ -243,7 +243,7 @@ const Profile = () => {
                 {unlockedCount} / {WILDLIFE_BADGES.length} badges
               </div>
               <div className="inline-flex items-center gap-2 self-start rounded-full border border-poppy/20 bg-poppy/20 backdrop-blur-sm px-4 py-2 text-sm font-bold text-white shadow-md">
-                <Award size={16} className="text-poppy-light" />
+                <AwardIcon size={16} className="text-poppy-light" />
                 {formatMetric(userStats.pointsBalance)} points
               </div>
             </div>
@@ -320,7 +320,7 @@ const Profile = () => {
         <section className="organic-card p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 rounded-2xl bg-poppy/10 border border-poppy/20">
-              <Award size={24} className="text-poppy" />
+              <AwardIcon size={24} className="text-poppy" />
             </div>
             <h3 className="text-2xl font-heading text-forest-deep">Tier Rewards</h3>
           </div>
