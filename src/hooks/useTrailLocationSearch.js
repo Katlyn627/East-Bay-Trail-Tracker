@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { EAST_BAY_TRAILS } from '../data/eastBayTrails';
+import { CALIFORNIA_TRAILHEADS } from '../data/californiaTrailheads';
 import { searchUSGSTrailheads } from '../utils/usgsTrailheadService';
 
 // California-wide bounds
@@ -10,9 +11,12 @@ const CALIFORNIA_BOUNDS = {
   east: -114.1,
 };
 
+// Combine all local datasets for immediate baseline search
+const ALL_LOCAL_DATA = [...EAST_BAY_TRAILS, ...CALIFORNIA_TRAILHEADS];
+
 /**
  * Enhanced Trail Search Hook - California Wide
- * Combines local data, Google Places, and OpenStreetMap Overpass API.
+ * Combines local data, Google Places, USGS NTD, and OpenStreetMap Overpass API.
  */
 export default function useTrailLocationSearch(query, options = {}) {
   const { latitude, longitude } = options;
@@ -84,18 +88,19 @@ export default function useTrailLocationSearch(query, options = {}) {
       return;
     }
 
+    const startTime = performance.now();
     setLoading(true);
     setError('');
 
-    // 1. Search Local Dataset (expanded eastBayTrails.js)
-    const localMatches = EAST_BAY_TRAILS.filter(trail => {
+    // 1. Search Local Combined Dataset
+    const localMatches = ALL_LOCAL_DATA.filter(trail => {
       const name = trail.name.toLowerCase();
-      const area = trail.area.toLowerCase();
+      const area = (trail.area || '').toLowerCase();
       return name.includes(normalizedInput) || area.includes(normalizedInput);
     }).map(trail => ({
       id: `local-${trail.name.toLowerCase().replace(/\s+/g, '-')}-${trail.latitude}`,
       name: trail.name,
-      displayName: `${trail.name}, ${trail.area}`,
+      displayName: `${trail.name}, ${trail.area || 'California'}`,
       latitude: trail.latitude,
       longitude: trail.longitude,
       isTrailhead: trail.type === 'trailhead',
@@ -155,9 +160,9 @@ export default function useTrailLocationSearch(query, options = {}) {
       });
     };
 
-    // 3. Search Overpass API (OSM) - Optional but requested
+    // 3. Search Overpass API (OSM)
     const getOverpassResults = async () => {
-      if (normalizedInput.length < 3) return []; // Only deep search for longer queries to avoid Overpass load
+      if (normalizedInput.length < 3) return [];
       try {
         const query = `[out:json][timeout:5];node["highway"="trailhead"](32.5,-124.5,42.0,-114.1)[name~"${normalizedInput}",i];out body;`;
         const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
@@ -199,7 +204,7 @@ export default function useTrailLocationSearch(query, options = {}) {
       allNewResults.forEach(res => {
         const isDuplicate = merged.some(m =>
           m.name.toLowerCase() === res.name.toLowerCase() ||
-          (Math.abs(m.latitude - res.latitude) < 0.0005 && Math.abs(m.longitude - res.longitude) < 0.0005)
+          (Math.abs(m.latitude - res.latitude) < 0.0002 && Math.abs(m.longitude - res.longitude) < 0.0002)
         );
         if (!isDuplicate) {
           merged.push(res);
@@ -207,8 +212,13 @@ export default function useTrailLocationSearch(query, options = {}) {
       });
 
       const sorted = merged.sort((a, b) => b.rank - a.rank);
-      setSuggestions(sorted.slice(0, 25));
-      setHasMore(sorted.length > 25);
+      const finalResults = sorted.slice(0, 30);
+
+      const duration = (performance.now() - startTime).toFixed(0);
+      console.log(`[Search] Query: "${input}" | Results: ${finalResults.length} | Time: ${duration}ms | Sources: Local(${localMatches.length}) Google(${googleResults.length}) USGS(${usgsResults.length}) OSM(${osmResults.length})`);
+
+      setSuggestions(finalResults);
+      setHasMore(sorted.length > 30);
     } catch (err) {
       console.error('Search error:', err);
       setError('Limited search results available.');

@@ -16,11 +16,13 @@ export const searchUSGSTrailheads = async (query) => {
   if (cachedData) return cachedData;
 
   try {
-    // 2. Construct ArcGIS REST Query
-    // Filtering by name (Feat_Name) and biasing towards California if needed,
-    // but here we keep it broad as requested.
+    // 2. Construct ArcGIS REST Query with California bounding box
     const params = new URLSearchParams({
       where: `UPPER(Feat_Name) LIKE '%${query.toUpperCase()}%'`,
+      geometry: '-124.5,32.5,-114.1,42.0', // California bounds
+      geometryType: 'esriGeometryEnvelope',
+      spatialRel: 'esriSpatialRelIntersects',
+      inSR: '4326',
       outFields: 'Feat_Name,State,County',
       outSR: '4326',
       f: 'geojson',
@@ -29,11 +31,15 @@ export const searchUSGSTrailheads = async (query) => {
     });
 
     const response = await fetch(`${USGS_BASE_URL}?${params.toString()}`);
-    if (!response.ok) throw new Error('USGS API response error');
+    if (!response.ok) {
+      // If server error or CORS blocked, return whatever we have in cache
+      return getCachedResults(query, true) || [];
+    }
 
     const data = await response.json();
-
-    if (!data.features) return [];
+    if (!data || !data.features) {
+      return getCachedResults(query, true) || [];
+    }
 
     const results = data.features.map(feature => ({
       id: `usgs-${feature.id || Math.random().toString(36).substr(2, 9)}`,
@@ -50,8 +56,8 @@ export const searchUSGSTrailheads = async (query) => {
 
     return results;
   } catch (error) {
-    console.error('USGS Search Error:', error);
-    // Fallback to cache even if expired if we have it
+    // Silently handle CORS, 403, or offline errors.
+    // carto.nationalmap.gov often blocks browser fetch due to missing CORS headers.
     return getCachedResults(query, true) || [];
   }
 };
@@ -59,14 +65,32 @@ export const searchUSGSTrailheads = async (query) => {
 function getCachedResults(query, ignoreTTL = false) {
   try {
     const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
-    const entry = cache[query.toLowerCase()];
+    const normalizedQuery = query.toLowerCase();
+
+    // Exact match
+    const entry = cache[normalizedQuery];
     if (entry) {
       if (ignoreTTL || (Date.now() - entry.timestamp < CACHE_TTL)) {
         return entry.data;
       }
     }
+
+    // If we are in fallback mode (ignoreTTL = true), search for partial matches in cache
+    if (ignoreTTL) {
+      const allMatchedData = [];
+      Object.keys(cache).forEach(key => {
+        if (key.includes(normalizedQuery) || normalizedQuery.includes(key)) {
+          allMatchedData.push(...cache[key].data);
+        }
+      });
+
+      if (allMatchedData.length > 0) {
+        // De-duplicate by ID
+        return Array.from(new Map(allMatchedData.map(item => [item.id, item])).values());
+      }
+    }
   } catch (e) {
-    console.warn('Cache read error', e);
+    // Ignore cache read errors
   }
   return null;
 }
@@ -79,7 +103,6 @@ function saveToCache(query, data) {
       timestamp: Date.now()
     };
 
-    // Simple cache eviction (keep last 50 queries)
     const keys = Object.keys(cache);
     if (keys.length > 50) {
       delete cache[keys[0]];
@@ -87,6 +110,6 @@ function saveToCache(query, data) {
 
     localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
   } catch (e) {
-    console.warn('Cache write error', e);
+    // Ignore cache write errors
   }
 }

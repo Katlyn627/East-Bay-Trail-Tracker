@@ -8,7 +8,12 @@ const config: CapacitorConfig = {
     // Allows dynamic LAN IP for local development without hardcoding
     url: process.env.VITE_DEV_SERVER_URL || undefined,
     cleartext: true
-  }
+  },
+  plugins: {
+    CapacitorHttp: {
+      enabled: true,
+    },
+  },
 };
 
 export default config;
