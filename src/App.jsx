@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -12,9 +12,15 @@ import ReportIncident from './pages/ReportIncident';
 import CommunityBoard from './pages/CommunityBoard';
 import Profile from './pages/Profile';
 import ErrorBoundary from './components/ErrorBoundary';
+import { seedApplicationData } from './utils/seedingService';
 import './styles/index.css';
 
 function App() {
+  useEffect(() => {
+    // Seed initial data for demo users and community board
+    seedApplicationData().catch(console.error);
+  }, []);
+
   return (
     <ErrorBoundary>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

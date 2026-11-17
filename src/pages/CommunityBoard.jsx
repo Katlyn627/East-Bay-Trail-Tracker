@@ -4,6 +4,7 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
+  deleteDoc,
   doc,
   onSnapshot,
   orderBy,
@@ -24,6 +25,7 @@ import {
   Reply,
   Search,
   Share2,
+  Trash2,
   Trees,
   Users,
   X,
@@ -689,6 +691,25 @@ const CommunityBoard = () => {
     }
   };
 
+  const handleDeletePost = async (postId) => {
+    if (!user) return;
+
+    if (!window.confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'communityPosts', postId));
+      setTransientMessage('success', 'Post successfully deleted.');
+      if (activeThreadPostId === postId) {
+        setActiveThreadPostId(null);
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setTransientMessage('error', 'Unable to delete the post. Please try again.');
+    }
+  };
+
   const handleToggleEventLike = async (communityEvent) => {
     if (!user) {
       setTransientMessage('error', 'Please log in to like an event.');
@@ -943,6 +964,16 @@ const CommunityBoard = () => {
                         >
                           <Share2 size={16} />
                         </button>
+                        {user && user.uid === post.authorUid && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePost(post.id)}
+                            className="p-2 rounded-full bg-sage-mist text-poppy/60 hover:text-poppy transition-colors border border-forest/5"
+                            title="Delete post"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </div>
 
