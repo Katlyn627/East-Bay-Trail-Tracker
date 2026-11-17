@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { EAST_BAY_TRAILS } from '../data/eastBayTrails';
+import { searchUSGSTrailheads } from '../utils/usgsTrailheadService';
 
 // California-wide bounds
 const CALIFORNIA_BOUNDS = {
@@ -176,14 +177,24 @@ export default function useTrailLocationSearch(query, options = {}) {
       }
     };
 
+    // 4. Search USGS NTD Layer 35
+    const getUSGSResults = async () => {
+      const results = await searchUSGSTrailheads(normalizedInput);
+      return results.map(res => ({
+        ...res,
+        rank: calculateRank(res.name, true, false, normalizedInput)
+      }));
+    };
+
     try {
-      const [googleResults, osmResults] = await Promise.all([
+      const [googleResults, osmResults, usgsResults] = await Promise.all([
         getGoogleResults(),
-        getOverpassResults()
+        getOverpassResults(),
+        getUSGSResults()
       ]);
 
       const merged = [...localMatches];
-      const allNewResults = [...googleResults, ...osmResults];
+      const allNewResults = [...googleResults, ...osmResults, ...usgsResults];
 
       allNewResults.forEach(res => {
         const isDuplicate = merged.some(m =>
