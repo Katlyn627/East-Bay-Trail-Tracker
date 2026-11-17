@@ -353,6 +353,14 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
                             {suggestion.isTrailhead && (
                               <span className="text-[9px] bg-poppy/10 text-poppy px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Trailhead</span>
                             )}
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full uppercase font-bold tracking-tighter ${
+                              suggestion.source === 'usgs' ? 'bg-blue-100 text-blue-700' :
+                              suggestion.source === 'local' ? 'bg-green-100 text-green-700' :
+                              suggestion.source === 'google' ? 'bg-orange-100 text-orange-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {suggestion.source}
+                            </span>
                           </div>
                           <div className="text-[10px] text-forest-moss/70 font-medium truncate">
                             {suggestion.displayName.includes(',')
