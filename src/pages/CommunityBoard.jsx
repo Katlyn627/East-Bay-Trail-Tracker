@@ -774,7 +774,7 @@ const CommunityBoard = () => {
 
   return (
     <div className="space-y-8 pb-12">
-      <section className="relative overflow-hidden organic-card bg-forest-gradient p-8 text-white shadow-xl">
+      <section className="relative overflow-hidden ebtt-card bg-forest-evergreen p-8 text-white shadow-xl !border-none">
         <div className="relative z-10">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-mist/80">Community coordination</p>
           <h2 className="mt-1 text-3xl font-heading font-black text-white leading-tight">Community Board & <br />Volunteer Events</h2>
@@ -782,7 +782,7 @@ const CommunityBoard = () => {
             Broadcast trail updates, coordinate cleanup events, and mobilize volunteers with shared map-ready details.
           </p>
         </div>
-        <div className="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none">
+        <div className="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none text-white">
           <Trees size={200} />
         </div>
       </section>
@@ -804,7 +804,7 @@ const CommunityBoard = () => {
 
       <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="space-y-6">
-          <div className="organic-card p-6">
+          <div className="ebtt-card">
             <h2 className="text-2xl font-heading text-forest-deep">Community Feed</h2>
             <p className="mt-2 text-sm text-forest-deep/70">
               Share trail conditions, cleanup wins, and operational notes with the East Bay volunteer network.
@@ -864,8 +864,8 @@ const CommunityBoard = () => {
                 <a
                   href={buildGoogleMapsSearchUrl(postForm.trailName, getSelectedCoordinates(postSelectedLocation, postForm.trailName))}
                   target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-forest underline decoration-forest/30 underline-offset-4"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-forest-evergreen underline decoration-forest-evergreen/30 underline-offset-4"
                 >
                   <MapPin size={12} /> View on Google Maps
                 </a>
@@ -884,7 +884,7 @@ const CommunityBoard = () => {
                 value={postForm.message}
                 onChange={(event) => setPostForm((prev) => ({ ...prev, message: event.target.value }))}
                 placeholder="Share field updates, route conditions, or notes..."
-                className="nature-input"
+                className="nature-textarea"
               />
 
               <button
@@ -923,7 +923,7 @@ const CommunityBoard = () => {
                     : [];
 
                 return (
-                  <article key={post.id} className="organic-card p-5 group">
+                  <article key={post.id} className="ebtt-card group">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                          <img
@@ -982,7 +982,7 @@ const CommunityBoard = () => {
                         {trailTags.map((tag) => (
                           <span
                             key={`${post.id}-${tag}`}
-                            className="inline-flex items-center gap-1 rounded-lg bg-forest/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-forest"
+                            className="pill-tag"
                           >
                             <MapPin size={10} />
                             {tag}
@@ -1000,7 +1000,7 @@ const CommunityBoard = () => {
                           buildGoogleMapsSearchUrl(post.trailName || post.title, normalizeCoordinates(post.trailCoordinates))
                         }
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs font-bold text-forest hover:underline underline-offset-4"
                       >
                         <Link2 size={14} />
@@ -1120,7 +1120,7 @@ const CommunityBoard = () => {
         </section>
 
         <section className="space-y-6">
-          <div className="organic-card p-6 bg-forest/5 border-dashed border-2 border-forest/20 shadow-none">
+          <div className="ebtt-card !bg-forest/5 border-dashed border-2 border-forest/20 shadow-none">
             <h3 className="text-xl font-heading text-forest-deep">Organize an Event</h3>
             <p className="mt-2 text-sm text-forest-deep/70">
               Host a cleanup or group hike. Coordinating our efforts doubles our impact.
@@ -1204,9 +1204,9 @@ const CommunityBoard = () => {
 
           <div className="space-y-4">
             {loadingEvents ? (
-              <div className="organic-card p-8 text-center text-forest-moss">Loading events...</div>
+              <div className="ebtt-card p-8 text-center text-forest-moss">Loading events...</div>
             ) : events.length === 0 ? (
-              <div className="organic-card p-8 text-center text-forest-moss bg-white/40">
+              <div className="ebtt-card p-8 text-center text-forest-moss bg-white/40">
                 <p>No upcoming cleanup hikes. Lead the way!</p>
               </div>
             ) : (
@@ -1217,7 +1217,7 @@ const CommunityBoard = () => {
                 return (
                   <div
                     key={communityEvent.id}
-                    className="organic-card p-5 cursor-pointer"
+                    className="ebtt-card-interactive cursor-pointer"
                     onClick={() => setSelectedEvent(communityEvent)}
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -1290,107 +1290,101 @@ const CommunityBoard = () => {
 
           {/* Event Detail Modal */}
           {selectedEvent && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-forest-deep/60 p-4 backdrop-blur-sm animate-in fade-in duration-300">
-              <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-organic border border-white/20 bg-sage-mist p-0 shadow-2xl animate-in zoom-in-95 duration-300">
-                <div className="relative h-32 bg-forest-gradient">
-                   <button
+            <div className="modal-overlay">
+              <div className="modal-container">
+                <div className="modal-header">
+                  <div>
+                    <h3 className="text-xl font-heading font-black text-forest-deep">{selectedEvent.title}</h3>
+                    <p className="text-xs font-bold text-forest flex items-center gap-1">
+                      <CalendarDays size={12} className="text-poppy" />
+                      {formatTimestamp(selectedEvent.eventDate)}
+                    </p>
+                  </div>
+                  <button
                     type="button"
                     onClick={() => setSelectedEvent(null)}
-                    className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                    className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-sage-mist transition-colors"
                   >
                     <X size={20} />
                   </button>
-                  <div className="absolute -bottom-8 left-8">
-                     <div className="w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center">
-                        <CalendarDays size={32} className="text-poppy" />
+                </div>
+
+                <div className="modal-body">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="ebtt-card bg-white/50">
+                       <h4 className="text-[10px] font-black uppercase tracking-widest text-forest-moss mb-3">Event Details</h4>
+                       <p className="text-sm leading-relaxed text-forest-deep/80">
+                         {selectedEvent.details || 'No additional details provided. Meet at the trailhead!'}
+                       </p>
+                       <div className="mt-4 flex items-center gap-2 text-xs font-bold text-forest">
+                         <MapPin size={14} />
+                         {selectedEvent.trailName}
+                       </div>
+                    </div>
+
+                    <div className="ebtt-card bg-white/50">
+                       <h4 className="text-[10px] font-black uppercase tracking-widest text-forest-moss mb-3">Host</h4>
+                       <div className="flex items-center gap-3">
+                          <img
+                            src={getMemberProfile(selectedEvent.organizerUid).photoURL}
+                            className="h-10 w-10 rounded-full border border-forest/10 object-cover"
+                            alt=""
+                          />
+                          <div>
+                            <p className="text-sm font-bold text-forest-deep">{selectedEvent.organizerName}</p>
+                            <p className="text-[10px] text-forest-moss uppercase font-bold">Trail Coordinator</p>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                     <h4 className="text-[10px] font-black uppercase tracking-widest text-forest-moss mb-3">Attending ({selectedEventAttendees.length})</h4>
+                     <div className="flex flex-wrap gap-2">
+                        {selectedEventAttendees.map((attendee) => (
+                          <div key={attendee.uid} className="flex items-center gap-2 bg-white px-2 py-1.5 rounded-lg border border-forest/5 shadow-sm">
+                             <img src={attendee.photoURL} className="w-5 h-5 rounded-full object-cover" alt="" />
+                             <span className="text-[10px] font-bold text-forest-deep">{attendee.name}</span>
+                          </div>
+                        ))}
+                        {selectedEventAttendees.length === 0 && (
+                          <p className="text-xs italic text-forest-moss">No RSVPs yet. Be the first!</p>
+                        )}
                      </div>
                   </div>
                 </div>
 
-                <div className="px-8 pt-12 pb-8">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-3xl font-heading font-black text-forest-deep">{selectedEvent.title}</h3>
-                      <p className="mt-1 font-bold text-forest flex items-center gap-2">
-                        <MapPin size={16} /> {selectedEvent.trailName}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-xs font-bold uppercase tracking-widest text-forest-moss">Event Date</p>
-                       <p className="text-lg font-black text-forest-deep">{formatTimestamp(selectedEvent.eventDate)}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-8 grid gap-6 md:grid-cols-2">
-                    <div className="organic-card p-6 bg-white/80">
-                       <h4 className="text-sm font-bold uppercase tracking-widest text-forest-moss mb-3">Description</h4>
-                       <p className="text-sm leading-relaxed text-forest-deep/80">
-                         {selectedEvent.details || 'No additional details provided. Meet at the trailhead!'}
-                       </p>
-                       <div className="mt-6">
-                         <a
-                            href={selectedEvent.trailMapUrl || buildGoogleMapsSearchUrl(selectedEvent.trailName)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="btn-nature inline-flex items-center gap-2"
-                          >
-                            <MapPin size={18} /> Get Directions
-                          </a>
-                       </div>
-                    </div>
-
-                    <div className="organic-card p-6 bg-white/80">
-                       <h4 className="text-sm font-bold uppercase tracking-widest text-forest-moss mb-3">Host</h4>
-                       <div className="flex items-center gap-4 mb-6">
-                          <img
-                            src={getMemberProfile(selectedEvent.organizerUid).photoURL}
-                            className="h-12 w-12 rounded-full border-2 border-forest/10 object-cover"
-                            alt=""
-                          />
-                          <div>
-                            <p className="font-bold text-forest-deep">{selectedEvent.organizerName}</p>
-                            <p className="text-xs text-forest-moss">Trail Coordinator</p>
-                          </div>
-                       </div>
-
-                       <div className="space-y-3">
-                         <button
-                           onClick={() => handleToggleRsvp(selectedEvent)}
-                           className={`w-full py-3 rounded-2xl font-bold transition-all ${
-                             Array.isArray(selectedEvent.rsvpUserIds) && selectedEvent.rsvpUserIds.includes(user?.uid)
-                             ? 'bg-forest/10 text-forest border border-forest/20'
-                             : 'btn-poppy'
-                           }`}
-                         >
-                            {Array.isArray(selectedEvent.rsvpUserIds) && selectedEvent.rsvpUserIds.includes(user?.uid) ? 'Cancel RSVP' : 'RSVP Now'}
-                         </button>
-                         <button
-                           onClick={() => handleShareContent({ title: selectedEvent.title, url: window.location.href })}
-                           className="w-full py-3 bg-sage-mist text-forest-deep font-bold rounded-2xl border border-forest/5 hover:bg-white transition-colors"
-                         >
-                           Invite Friends
-                         </button>
-                       </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-8">
-                     <h4 className="text-sm font-bold uppercase tracking-widest text-forest-moss mb-4">Attending ({selectedEventAttendees.length})</h4>
-                     <div className="flex flex-wrap gap-3">
-                        {selectedEventAttendees.map((attendee) => (
-                          <div key={attendee.uid} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-forest/5 shadow-sm">
-                             <img src={attendee.photoURL} className="w-6 h-6 rounded-full object-cover" alt="" />
-                             <span className="text-xs font-bold text-forest-deep">{attendee.name}</span>
-                          </div>
-                        ))}
-                     </div>
-                  </div>
+                <div className="modal-footer">
+                   <a
+                      href={selectedEvent.trailMapUrl || buildGoogleMapsSearchUrl(selectedEvent.trailName)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline px-4 py-2 text-sm"
+                    >
+                      <MapPin size={16} /> Map
+                    </a>
+                   <button
+                     onClick={() => handleShareContent({ title: selectedEvent.title, url: window.location.href })}
+                     className="btn-outline px-4 py-2 text-sm"
+                   >
+                     <Share2 size={16} /> Share
+                   </button>
+                   <button
+                     onClick={() => handleToggleRsvp(selectedEvent)}
+                     className={`px-6 py-2 rounded-full font-bold transition-all text-sm ${
+                       Array.isArray(selectedEvent.rsvpUserIds) && selectedEvent.rsvpUserIds.includes(user?.uid)
+                       ? 'bg-forest/10 text-forest border border-forest/20'
+                       : 'btn-poppy'
+                     }`}
+                   >
+                      {Array.isArray(selectedEvent.rsvpUserIds) && selectedEvent.rsvpUserIds.includes(user?.uid) ? 'Cancel RSVP' : 'Join Event'}
+                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="organic-card p-6">
+          <div className="ebtt-card">
             <h3 className="text-xl font-heading text-forest-deep">Nature Directory</h3>
             <p className="mt-2 text-sm text-forest-deep/70">
               Verified ranger stations, conservation groups, and trailheads.
@@ -1426,10 +1420,10 @@ const CommunityBoard = () => {
                        <span className="h-px flex-1 bg-poppy/20"></span>
                     </h4>
                     {group.resources.map((resource) => (
-                      <div key={resource.id} className="p-4 rounded-2xl bg-sage-mist/50 border border-forest/5 hover:bg-white hover:shadow-md transition-all">
+                      <div key={resource.id} className="p-4 rounded-2xl bg-sage-mist/50 border border-forest/10 hover:bg-white hover:shadow-md transition-all">
                         <div className="flex justify-between items-start gap-2">
                           <p className="font-bold text-forest-deep leading-tight">{resource.name}</p>
-                          <a href={resource.website} target="_blank" rel="noreferrer" className="text-forest hover:text-poppy">
+                          <a href={resource.website} target="_blank" rel="noopener noreferrer" className="text-forest hover:text-poppy">
                             <Link2 size={16} />
                           </a>
                         </div>
@@ -1442,7 +1436,7 @@ const CommunityBoard = () => {
                            <a
                             href={buildMapsSearchUrl(resource.mapQuery)}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             className="text-[10px] font-black uppercase tracking-tighter text-forest flex items-center gap-1"
                           >
                             <MapPin size={12} /> Map
@@ -1455,7 +1449,7 @@ const CommunityBoard = () => {
               </div>
             </div>
 
-            <div className="mt-8 bg-forest-gradient rounded-[2rem] p-6 text-white text-center relative overflow-hidden">
+            <div className="mt-8 bg-forest-evergreen rounded-[2rem] p-6 text-white text-center relative overflow-hidden shadow-lg shadow-forest-deep/20">
               <div className="relative z-10">
                 <h4 className="text-sm font-bold uppercase tracking-widest mb-4 opacity-80">Season Goals</h4>
                 <div className="space-y-3">
