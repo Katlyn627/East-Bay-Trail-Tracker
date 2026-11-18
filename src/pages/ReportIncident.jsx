@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { addDoc, collection, doc, increment, serverTimestamp, setDoc } from 'firebase/firestore';
 import { AlertTriangle, CheckCircle2, Crosshair, Loader2, MapPin, UploadCloud, X, Trees, AlertCircle, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
@@ -22,6 +23,7 @@ const MAX_PHOTOS = 5;
 
 const ReportIncident = () => {
   const { user, userProfile, updateUserProfile } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     trailName: '',
     category: 'downed_tree',
@@ -209,6 +211,13 @@ const ReportIncident = () => {
     <div className="max-w-4xl mx-auto pb-12">
       {/* Header */}
       <div className="ebtt-card bg-forest-evergreen p-6 mb-8 text-white relative overflow-hidden shadow-xl !border-none">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="absolute top-4 right-4 z-20 p-2 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-colors"
+          aria-label="Close form"
+        >
+          <X size={24} />
+        </button>
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white border border-white/30 text-xs font-bold mb-4">
             <ShieldAlert size={14} />
@@ -375,11 +384,14 @@ const ReportIncident = () => {
           </div>
         )}
 
-        <div className="pt-6 border-t border-forest-moss/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-forest-moss">
-             <Star className="text-gold" size={16} />
-             <span className="text-xs font-bold uppercase tracking-widest">Earn 50 Maintenance Points</span>
-          </div>
+        <div className="pt-6 border-t border-forest-moss/10 flex flex-col sm:flex-row items-center justify-end gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="h-11 px-8 rounded-xl font-bold text-forest-moss hover:text-forest-deep hover:bg-forest-light/10 transition-colors"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             disabled={submitting || geoLoading}
