@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { addDoc, arrayUnion, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, arrayUnion, collection, doc, increment, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { Camera, Loader2, MapPin, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import useTrailLocationSearch from '../hooks/useTrailLocationSearch';
@@ -232,13 +232,14 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
         });
 
         onSuccess?.(`Cleanup submitted! You earned ${pointsEarned} points.`);
+        resetForm();
+        onClose?.();
       } catch (raceErr) {
         console.warn('Cleanup pending (offline):', raceErr);
         onSuccess?.('Saved offline — will sync when online');
+        resetForm();
+        onClose?.();
       }
-
-      resetForm();
-      onClose?.();
     } catch (err) {
       console.error('Cleanup submission error:', err);
       const isOffline = err.message?.includes('timeout') || !navigator.onLine || err.code === 'unavailable';
@@ -258,8 +259,8 @@ function ReportCleanupModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header border-b border-stone-200/60 pb-5">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest-moss">Trail Steward</p>

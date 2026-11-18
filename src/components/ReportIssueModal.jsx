@@ -257,13 +257,14 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
         });
 
         onSuccess?.('Issue reported! You earned 50 points.');
+        resetForm();
+        onClose?.();
       } catch (raceErr) {
         console.warn('Submission pending (offline):', raceErr);
         onSuccess?.('Saved offline — will sync when online');
+        resetForm();
+        onClose?.();
       }
-
-      resetForm();
-      onClose?.();
     } catch (err) {
       console.error('Report submission error:', err);
       const isOffline = err.message?.includes('timeout') || !navigator.onLine || err.code === 'unavailable';
@@ -280,9 +281,11 @@ function ReportIssueModal({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         {/* Fixed Header */}
         <div className="modal-header border-b border-stone-200/60 pb-5">
           <div>
