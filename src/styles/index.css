@@ -52,7 +52,15 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--forest-deep);
 }
 
-/* Organic Nature Shapes */
+/* Uniform UI System */
+.ebtt-card {
+  @apply bg-white border border-stone-200/80 shadow-sm rounded-2xl p-5 sm:p-6 transition-all duration-300;
+}
+
+.ebtt-card-interactive {
+  @apply ebtt-card hover:shadow-md hover:border-stone-300 active:scale-[0.98];
+}
+
 .organic-card {
   @apply bg-white/90 backdrop-blur-md border border-forest-light/10 shadow-lg transition-all duration-300;
   border-radius: 2rem 0.5rem 2rem 0.5rem;
@@ -63,8 +71,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-nature {
-  @apply relative overflow-hidden px-6 py-2 rounded-full font-bold text-white transition-all duration-300 shadow-md active:scale-95;
+  @apply relative overflow-hidden px-6 py-2.5 min-h-[44px] rounded-full font-bold text-white transition-all duration-300 shadow-sm active:scale-95 flex items-center justify-center gap-2;
   background: linear-gradient(135deg, var(--forest-evergreen) 0%, var(--forest-deep) 100%);
+}
+
+.btn-nature:disabled {
+  @apply opacity-60 pointer-events-none;
 }
 
 .btn-nature::after {
@@ -77,8 +89,49 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-poppy {
-  @apply px-6 py-2 rounded-full font-bold text-white shadow-md active:scale-95 transition-all;
+  @apply px-6 py-2.5 min-h-[44px] rounded-full font-bold text-white shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2;
   background: linear-gradient(135deg, var(--poppy-orange) 0%, var(--california-gold) 100%);
+}
+
+.btn-poppy:disabled {
+  @apply opacity-60 pointer-events-none;
+}
+
+.btn-outline {
+  @apply px-6 py-2.5 min-h-[44px] rounded-full font-bold border-2 border-forest text-forest hover:bg-forest hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2;
+}
+
+.nature-input {
+  @apply w-full h-12 px-4 bg-white border-2 border-sage-mist rounded-xl focus:border-forest-evergreen focus:ring-0 transition-all outline-none text-forest-deep placeholder:text-forest-moss/60 shadow-sm;
+}
+
+.nature-textarea {
+  @apply w-full px-4 py-3 bg-white border-2 border-sage-mist rounded-xl focus:border-forest-evergreen focus:ring-0 transition-all outline-none text-forest-deep placeholder:text-forest-moss/60 shadow-sm resize-none;
+}
+
+.pill-tag {
+  @apply inline-flex items-center gap-1.5 rounded-full bg-forest/5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-forest border border-forest/10;
+}
+
+/* Modal System */
+.modal-overlay {
+  @apply fixed inset-0 z-[60] flex items-center justify-center bg-forest-deep/60 px-3 py-5 backdrop-blur-md;
+}
+
+.modal-container {
+  @apply relative flex flex-col max-h-[90dvh] w-full max-w-2xl rounded-[2rem] bg-sage-mist shadow-2xl border border-white/20 overflow-hidden;
+}
+
+.modal-header {
+  @apply shrink-0 flex items-center justify-between border-b border-forest-light/10 bg-white px-6 py-5;
+}
+
+.modal-body {
+  @apply flex-1 overflow-y-auto p-6 space-y-6;
+}
+
+.modal-footer {
+  @apply shrink-0 flex items-center justify-end gap-3 border-t border-forest-light/10 bg-white/50 backdrop-blur-sm px-6 py-5;
 }
 
 /* Custom Scrollbar for a cleaner look */

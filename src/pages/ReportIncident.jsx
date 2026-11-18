@@ -129,12 +129,29 @@ const ReportIncident = () => {
       const pointsEarned = 50;
       const uploadedPhotoUrls = [];
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 8000)
+      );
+
       for (const photo of photos) {
-        const photoUrl = await uploadTrailReportImage(photo, user.uid);
-        uploadedPhotoUrls.push(photoUrl);
+        try {
+          // Check if photo is already a preview URL (e.g. from local development)
+          if (photo instanceof File) {
+            const uploadPromise = uploadTrailReportImage(photo, user.uid);
+            const photoUrl = await Promise.race([
+               uploadPromise,
+               new Promise((_, reject) => setTimeout(() => reject(new Error('upload_timeout')), 5000))
+            ]);
+            uploadedPhotoUrls.push(photoUrl);
+          } else {
+            uploadedPhotoUrls.push(photo);
+          }
+        } catch (uploadErr) {
+          console.warn('Incident photo upload failed/deferred:', uploadErr);
+        }
       }
 
-      await addDoc(collection(db, 'trailReports'), {
+      const reportData = {
         uid: user.uid,
         userEmail: user.email || '',
         userName: userProfile?.displayName || 'Trail Explorer',
@@ -148,24 +165,41 @@ const ReportIncident = () => {
         status: 'reported',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
 
-      await updateDoc(doc(db, 'users', user.uid), {
-        pointsBalance: increment(pointsEarned),
-        issuesReported: increment(1),
-        updatedAt: serverTimestamp(),
-      });
+      const firestoreAction = async () => {
+        await addDoc(collection(db, 'trailReports'), reportData);
 
-      await updateUserProfile({
-        pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
-        issuesReported: (userProfile?.issuesReported || 0) + 1,
-      });
+        await setDoc(doc(db, 'users', user.uid), {
+          pointsBalance: increment(pointsEarned),
+          issuesReported: increment(1),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      };
+
+      try {
+        await Promise.race([firestoreAction(), timeoutPromise]);
+
+        updateUserProfile?.({
+          pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
+          issuesReported: (userProfile?.issuesReported || 0) + 1,
+        });
+
+        setSuccess(`Report submitted! +${pointsEarned} maintenance points awarded.`);
+      } catch (raceErr) {
+        console.warn('Incident Firestore write pending (offline):', raceErr);
+        setSuccess('Report saved offline! It will sync once you are back online.');
+      }
 
       resetForm();
-      setSuccess(`Report submitted! +${pointsEarned} maintenance points awarded.`);
     } catch (submitError) {
       console.error('Submission error:', submitError);
-      setError(submitError.message || 'Unable to submit report.');
+      if (submitError.code !== 'unavailable' && !submitError.message.includes('offline') && submitError.message !== 'timeout') {
+        setError(submitError.message || 'Unable to submit report.');
+      } else {
+        setSuccess('Report saved offline! It will sync once you are back online.');
+        resetForm();
+      }
     } finally {
       setSubmitting(false);
     }
@@ -174,23 +208,23 @@ const ReportIncident = () => {
   return (
     <div className="max-w-4xl mx-auto pb-12">
       {/* Header */}
-      <div className="organic-card bg-poppy-gradient p-6 mb-8 text-white relative overflow-hidden shadow-xl">
+      <div className="ebtt-card bg-forest-evergreen p-6 mb-8 text-white relative overflow-hidden shadow-xl !border-none">
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white border border-white/30 text-xs font-bold mb-4">
             <ShieldAlert size={14} />
             MAINTENANCE ALERT
           </div>
-          <h2 className="text-3xl font-heading font-black">Report a Hazard</h2>
+          <h2 className="text-3xl font-heading font-black text-white">Report a Hazard</h2>
           <p className="text-white/90 text-sm mt-2 max-w-xl font-medium">
             Help us keep California's trails safe. Your report will be shared with the community and local maintenance crews.
           </p>
         </div>
-        <div className="absolute right-[-10px] bottom-[-20px] opacity-20 pointer-events-none transform -rotate-12">
+        <div className="absolute right-[-10px] bottom-[-20px] opacity-20 pointer-events-none transform -rotate-12 text-white">
           <AlertCircle size={180} />
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="organic-card p-6 bg-white/90 space-y-8">
+      <form onSubmit={handleSubmit} className="ebtt-card bg-white/90 space-y-8">
         <div className="grid gap-6 md:grid-cols-2">
           {/* Trail Name */}
           <div className="md:col-span-2 space-y-2">

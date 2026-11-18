@@ -198,16 +198,23 @@ export default function useTrailLocationSearch(query, options = {}) {
         getUSGSResults()
       ]);
 
-      const merged = [...localMatches];
-      const allNewResults = [...googleResults, ...osmResults, ...usgsResults];
+      const allFound = [...localMatches, ...googleResults, ...osmResults, ...usgsResults];
+      const seen = new Set();
+      const merged = [];
 
-      allNewResults.forEach(res => {
-        const isDuplicate = merged.some(m =>
-          m.name.toLowerCase() === res.name.toLowerCase() ||
-          (Math.abs(m.latitude - res.latitude) < 0.0002 && Math.abs(m.longitude - res.longitude) < 0.0002)
-        );
-        if (!isDuplicate) {
-          merged.push(res);
+      allFound.forEach((res, index) => {
+        const normalizedName = res.name.toLowerCase().trim();
+        const latKey = res.latitude ? res.latitude.toFixed(4) : '0';
+        const lngKey = res.longitude ? res.longitude.toFixed(4) : '0';
+        const dedupKey = `${normalizedName}-${latKey}-${lngKey}`;
+
+        if (!seen.has(dedupKey)) {
+          seen.add(dedupKey);
+          // Assign a unique composite key as the ID for React lists
+          merged.push({
+            ...res,
+            id: `${res.source || 'trail'}-${res.id || 'idx'}-${index}`
+          });
         }
       });
 

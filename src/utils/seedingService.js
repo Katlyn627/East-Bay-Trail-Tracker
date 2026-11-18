@@ -1,30 +1,41 @@
-import { doc, setDoc, collection, addDoc, getDocs, query, where, serverTimestamp, increment, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc, getDocs, query, where, serverTimestamp, increment, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { DEMO_USERS } from './mockData';
 
-const SEED_FLAG_KEY = 'ebtt_data_seeded_v1';
+const SEED_FLAG_KEY = 'ebtt_data_seeded_v6';
 
 export const seedApplicationData = async (force = false) => {
   if (!force && localStorage.getItem(SEED_FLAG_KEY)) {
-    console.log('Data already seeded. Use force=true to re-seed.');
+    console.log('Data already seeded (v6). Use force=true to re-seed.');
     return;
   }
 
-  console.log('Starting comprehensive data seeding...');
+  console.log('Starting comprehensive data seeding v6 (Force Update Mode)...');
 
   try {
-    // 1. Seed User Profiles
+    const batch = writeBatch(db);
+
+    // 1. Seed User Profiles with rich activity
     for (const user of DEMO_USERS) {
-      await setDoc(doc(db, 'users', user.uid), {
+      const userRef = doc(db, 'users', user.uid);
+      batch.set(userRef, {
         ...user,
+        totalBags: user.totalBags || 15,
+        totalWeightLbs: user.totalWeightLbs || 105.2,
+        totalMiles: user.totalMiles || 32.8,
+        totalHours: user.totalHours || 24.5,
+        pointsBalance: user.pointsBalance || 850,
+        uniqueTrails: user.uniqueTrails || ['Tilden Regional Park', 'Redwood Regional Park', 'Joaquin Miller Park', 'Mount Diablo'],
+        issuesReported: 3,
+        cleanupsLogged: 8,
         updatedAt: serverTimestamp(),
       }, { merge: true });
     }
 
     // 2. Seed Cleanup Logs (reports collection)
-    const reportsRef = collection(db, 'reports');
     const cleanupSeeds = [
       {
+        id: 'seed-cleanup-1',
         uid: 'demo-marcus-ranger',
         userEmail: 'ranger.marcus@eastbaytrailtracker.test',
         userName: 'Ranger Marcus',
@@ -34,25 +45,12 @@ export const seedApplicationData = async (force = false) => {
         milesLogged: 4.2,
         totalHours: 3.5,
         notes: 'Cleared debris near the Brazilian Room and along Wildcat Creek trail.',
-        type: 'cleanup',
+        issueType: 'trash',
         status: 'submitted',
         createdAt: new Date('2025-10-01T10:00:00Z'),
       },
       {
-        uid: 'demo-marcus-ranger',
-        userEmail: 'ranger.marcus@eastbaytrailtracker.test',
-        userName: 'Ranger Marcus',
-        trailName: 'Cull Canyon',
-        bagCount: 8,
-        totalWeightLbs: 62.0,
-        milesLogged: 2.5,
-        totalHours: 4.0,
-        notes: 'Major dump site cleared near the staging area entrance.',
-        type: 'cleanup',
-        status: 'submitted',
-        createdAt: new Date('2025-10-15T14:30:00Z'),
-      },
-      {
+        id: 'seed-cleanup-2',
         uid: 'demo-katlyn-volunteer',
         userEmail: 'katlyn.volunteer@eastbaytrailtracker.test',
         userName: 'Volunteer Katlyn',
@@ -62,25 +60,12 @@ export const seedApplicationData = async (force = false) => {
         milesLogged: 3.1,
         totalHours: 2.0,
         notes: 'Mostly plastic bottles and food wrappers near the Pergola.',
-        type: 'cleanup',
+        issueType: 'trash',
         status: 'submitted',
         createdAt: new Date('2025-10-05T09:00:00Z'),
       },
       {
-        uid: 'demo-katlyn-volunteer',
-        userEmail: 'katlyn.volunteer@eastbaytrailtracker.test',
-        userName: 'Volunteer Katlyn',
-        trailName: 'Dublin Hills Regional Park',
-        bagCount: 4,
-        totalWeightLbs: 28.5,
-        milesLogged: 5.2,
-        totalHours: 3.0,
-        notes: 'Post-storm cleanup. Lots of microplastics washed onto the Calaveras Ridge trail.',
-        type: 'cleanup',
-        status: 'submitted',
-        createdAt: new Date('2025-10-22T10:15:00Z'),
-      },
-      {
+        id: 'seed-cleanup-3',
         uid: 'demo-elena-hiker',
         userEmail: 'elena.hiker@eastbaytrailtracker.test',
         userName: 'Hiker Elena',
@@ -90,38 +75,97 @@ export const seedApplicationData = async (force = false) => {
         milesLogged: 6.8,
         totalHours: 5.0,
         notes: 'Picked up micro-trash along the summit approach. Windy but productive.',
-        type: 'cleanup',
+        issueType: 'trash',
         status: 'submitted',
         createdAt: new Date('2025-10-12T14:00:00Z'),
       },
       {
+        id: 'seed-cleanup-4',
+        uid: 'demo-katlyn-volunteer',
+        userEmail: 'katlyn.volunteer@eastbaytrailtracker.test',
+        userName: 'Volunteer Katlyn',
+        trailName: 'Briones Regional Park',
+        bagCount: 4,
+        totalWeightLbs: 22.0,
+        milesLogged: 5.2,
+        totalHours: 4.0,
+        notes: 'Spring cleaning around Bear Creek staging area.',
+        issueType: 'trash',
+        status: 'submitted',
+        createdAt: new Date('2025-10-14T10:00:00Z'),
+      },
+      {
+        id: 'seed-cleanup-5',
+        uid: 'demo-marcus-ranger',
+        userEmail: 'ranger.marcus@eastbaytrailtracker.test',
+        userName: 'Ranger Marcus',
+        trailName: 'Wildcat Canyon',
+        bagCount: 6,
+        totalWeightLbs: 38.0,
+        milesLogged: 4.5,
+        totalHours: 3.0,
+        notes: 'Removed illegal dumping near the trailhead.',
+        issueType: 'trash',
+        status: 'submitted',
+        createdAt: new Date('2025-10-16T15:00:00Z'),
+      },
+      {
+        id: 'seed-cleanup-6',
         uid: 'demo-elena-hiker',
         userEmail: 'elena.hiker@eastbaytrailtracker.test',
         userName: 'Hiker Elena',
-        trailName: 'Sycamore Grove Park',
-        bagCount: 3,
-        totalWeightLbs: 15.0,
+        trailName: 'Coyote Hills',
+        bagCount: 2,
+        totalWeightLbs: 5.0,
         milesLogged: 3.5,
         totalHours: 2.5,
-        notes: 'Cleaning up around the creek crossing. Found a lot of picnic debris.',
-        type: 'cleanup',
+        notes: 'Marsh cleanup. Found lots of plastic straw wrappers.',
+        issueType: 'trash',
         status: 'submitted',
-        createdAt: new Date('2025-10-28T11:00:00Z'),
+        createdAt: new Date('2025-10-17T11:00:00Z'),
+      },
+      {
+        id: 'seed-cleanup-7',
+        uid: 'demo-katlyn-volunteer',
+        userEmail: 'katlyn.volunteer@eastbaytrailtracker.test',
+        userName: 'Volunteer Katlyn',
+        trailName: 'Anthony Chabot',
+        bagCount: 4,
+        totalWeightLbs: 28.0,
+        milesLogged: 6.0,
+        totalHours: 5.0,
+        notes: 'Cleaning up around the campground area.',
+        issueType: 'trash',
+        status: 'submitted',
+        createdAt: new Date('2025-10-19T09:00:00Z'),
+      },
+      {
+        id: 'seed-cleanup-8',
+        uid: 'demo-marcus-ranger',
+        userEmail: 'ranger.marcus@eastbaytrailtracker.test',
+        userName: 'Ranger Marcus',
+        trailName: 'Morgan Territory',
+        bagCount: 3,
+        totalWeightLbs: 15.0,
+        milesLogged: 5.5,
+        totalHours: 4.0,
+        notes: 'Routine sweep of the main loop.',
+        issueType: 'trash',
+        status: 'submitted',
+        createdAt: new Date('2025-10-22T13:00:00Z'),
       }
     ];
 
     for (const seed of cleanupSeeds) {
-      const q = query(reportsRef, where('uid', '==', seed.uid), where('notes', '==', seed.notes));
-      const existing = await getDocs(q);
-      if (existing.empty) {
-        await addDoc(reportsRef, { ...seed, updatedAt: serverTimestamp() });
-      }
+      const { id, ...data } = seed;
+      const reportRef = doc(db, 'reports', id);
+      batch.set(reportRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
     }
 
     // 3. Seed Issue Reports (trailReports collection)
-    const trailReportsRef = collection(db, 'trailReports');
     const issueSeeds = [
       {
+        id: 'seed-issue-1',
         uid: 'demo-marcus-ranger',
         issueType: 'downed_tree',
         trailName: 'Redwood Regional Park',
@@ -133,17 +177,7 @@ export const seedApplicationData = async (force = false) => {
         createdAt: new Date('2025-10-15T08:30:00Z'),
       },
       {
-        uid: 'demo-marcus-ranger',
-        issueType: 'overgrowth',
-        trailName: 'Wildcat Canyon',
-        description: 'Poison oak encroaching significantly on the Mezue Trail.',
-        severity: 'medium',
-        latitude: 37.9255,
-        longitude: -122.2855,
-        status: 'reported',
-        createdAt: new Date('2025-10-18T09:00:00Z'),
-      },
-      {
+        id: 'seed-issue-2',
         uid: 'demo-katlyn-volunteer',
         issueType: 'erosion',
         trailName: 'Joaquin Miller Park',
@@ -155,47 +189,34 @@ export const seedApplicationData = async (force = false) => {
         createdAt: new Date('2025-10-18T11:45:00Z'),
       },
       {
-        uid: 'demo-katlyn-volunteer',
-        issueType: 'trash',
-        trailName: 'Lake Merritt',
-        description: 'Illegal dumping reported near the boating center.',
-        severity: 'high',
-        latitude: 37.8055,
-        longitude: -122.2555,
-        status: 'reported',
-        createdAt: new Date('2025-10-25T13:20:00Z'),
-      },
-      {
+        id: 'seed-issue-3',
         uid: 'demo-elena-hiker',
-        issueType: 'mudslide',
-        trailName: 'Pleasanton Ridge',
-        description: 'Small slide blocking the Thermalito Trail about 1 mile in.',
+        issueType: 'trash',
+        trailName: 'Mount Diablo',
+        description: 'Large amount of construction debris dumped near the North Gate entrance.',
         severity: 'high',
-        latitude: 37.6655,
-        longitude: -121.9055,
+        latitude: 37.9200,
+        longitude: -121.9800,
         status: 'reported',
-        createdAt: new Date('2025-10-24T16:40:00Z'),
+        createdAt: new Date('2025-10-26T10:00:00Z'),
       }
     ];
 
     for (const seed of issueSeeds) {
-      const q = query(trailReportsRef, where('uid', '==', seed.uid), where('description', '==', seed.description));
-      const existing = await getDocs(q);
-      if (existing.empty) {
-        await addDoc(trailReportsRef, {
-          ...seed,
-          userEmail: DEMO_USERS.find(u => u.uid === seed.uid).email,
-          userName: DEMO_USERS.find(u => u.uid === seed.uid).displayName,
-          userPhotoURL: DEMO_USERS.find(u => u.uid === seed.uid).photoURL,
-          upvotes: 5,
-          updatedAt: serverTimestamp()
-        });
-      }
+      const { id, ...data } = seed;
+      const trailReportRef = doc(db, 'trailReports', id);
+      const userData = DEMO_USERS.find(u => u.uid === seed.uid);
+      batch.set(trailReportRef, {
+        ...data,
+        userEmail: userData.email,
+        userName: userData.displayName,
+        userPhotoURL: userData.photoURL,
+        upvotes: 5,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
     }
 
-
-    // 4. Seed Community Board Posts
-    const postsRef = collection(db, 'communityPosts');
+    // 4. Seed Community Board Posts (6 posts)
     const postSeeds = [
       {
         id: 'seed-post-1',
@@ -273,25 +294,55 @@ export const seedApplicationData = async (force = false) => {
 
     for (const seed of postSeeds) {
       const { id, ...data } = seed;
-      await setDoc(doc(postsRef, id), { ...data, updatedAt: serverTimestamp() }, { merge: true });
+      const postRef = doc(db, 'communityPosts', id);
+      batch.set(postRef, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+    }
 
-      // Add a dummy comment to each post
-      const commentsRef = collection(db, 'communityPosts', id, 'comments');
-      const existingComments = await getDocs(commentsRef);
-      if (existingComments.empty) {
-        await addDoc(commentsRef, {
-          message: 'Great update, thanks for sharing!',
-          authorUid: 'demo-marcus-ranger',
-          authorName: 'Ranger Marcus',
-          createdAt: serverTimestamp(),
-          likes: 2,
-          likedBy: ['demo-katlyn-volunteer']
-        });
-      }
+    await batch.commit();
+
+    // 5. Seed Comments (Subcollections)
+    for (const seed of postSeeds) {
+        const commentsRef = collection(db, 'communityPosts', seed.id, 'comments');
+
+        // Add specific comments for v4 richness
+        if (seed.id === 'seed-post-1') {
+            batch.set(doc(commentsRef, 'comment-1'), {
+                message: 'Wish I could have been there! The Dublin Hills are beautiful.',
+                authorUid: 'demo-elena-hiker',
+                authorName: 'Hiker Elena',
+                createdAt: serverTimestamp(),
+                likes: 3,
+                likedBy: ['demo-marcus-ranger', 'demo-katlyn-volunteer']
+            });
+        }
+
+        if (seed.id === 'seed-post-6') {
+            batch.set(doc(commentsRef, 'comment-2'), {
+                message: '500 bags! That is incredible. So proud of this community.',
+                authorUid: 'demo-katlyn-volunteer',
+                authorName: 'Volunteer Katlyn',
+                createdAt: serverTimestamp(),
+                likes: 12,
+                likedBy: ['demo-marcus-ranger', 'demo-elena-hiker']
+            });
+        }
+
+        const q = query(commentsRef, where('authorUid', '==', 'demo-marcus-ranger'));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            batch.set(doc(commentsRef, 'generic-comment-' + seed.id), {
+                message: 'Great update, thanks for sharing!',
+                authorUid: 'demo-marcus-ranger',
+                authorName: 'Ranger Marcus',
+                createdAt: serverTimestamp(),
+                likes: 2,
+                likedBy: ['demo-katlyn-volunteer']
+            });
+        }
     }
 
     localStorage.setItem(SEED_FLAG_KEY, 'true');
-    console.log('Seeding completed successfully!');
+    console.log('Seeding v6 completed successfully!');
   } catch (error) {
     console.error('Error seeding data:', error);
   }

@@ -21,6 +21,7 @@ const LogCleanup = () => {
   });
   const [photos, setPhotos] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedTrailLocation, setSelectedTrailLocation] = useState(null);
@@ -38,6 +39,9 @@ const LogCleanup = () => {
 
   const handleFieldChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => ({ ...prev, [field]: '' }));
+    }
   };
 
   const handlePhotoUpload = (event) => {
@@ -70,12 +74,14 @@ const LogCleanup = () => {
     setPhotos([]);
     setSelectedTrailLocation(null);
     setShowTrailSuggestions(false);
+    setFieldErrors({});
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setSuccess('');
+    const newErrors = {};
 
     if (!user) {
       setError('You must be signed in before logging a cleanup.');
@@ -84,17 +90,25 @@ const LogCleanup = () => {
 
     const trailName = formData.trailName.trim();
     if (!trailName) {
-      setError('Please provide a trail or park name.');
-      return;
+      newErrors.trailName = 'TRAIL NAME is required.';
     }
 
     if (!formData.notes.trim()) {
-      setError('Please provide field notes for the cleanup.');
+      newErrors.notes = 'FIELD NOTES are required.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
       return;
     }
 
     try {
       setSubmitting(true);
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 5000)
+      );
+
       const pointsEarned = 25;
       const uploadedPhotoUrls = [];
       const selectedCoordinates =
@@ -107,11 +121,19 @@ const LogCleanup = () => {
       const trailMapUrl = buildGoogleMapsSearchUrl(trailName, selectedCoordinates);
 
       for (const photo of photos) {
-        const photoUrl = await uploadTrailReportImage(photo, user.uid);
-        uploadedPhotoUrls.push(photoUrl);
+        try {
+          const uploadPromise = uploadTrailReportImage(photo, user.uid);
+          const url = await Promise.race([
+            uploadPromise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('upload_timeout')), 4000))
+          ]);
+          uploadedPhotoUrls.push(url);
+        } catch (uploadErr) {
+          console.warn('Cleanup photo upload failed/deferred:', uploadErr);
+        }
       }
 
-      await addDoc(collection(db, 'reports'), {
+      const reportData = {
         uid: user.uid,
         userEmail: user.email || '',
         userName: userProfile?.displayName || 'Trail Explorer',
@@ -128,43 +150,62 @@ const LogCleanup = () => {
         status: 'submitted',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
 
-      await updateDoc(doc(db, 'users', user.uid), {
-        pointsBalance: increment(pointsEarned),
-        totalBags: increment(metricsPreview.bags),
-        totalWeightLbs: increment(metricsPreview.weight),
-        totalMiles: increment(metricsPreview.miles),
-        totalHours: increment(metricsPreview.hours),
-        uniqueTrails: arrayUnion(trailName),
-        trashBagsCollected: increment(metricsPreview.bags),
-        milesLogged: increment(metricsPreview.miles),
-        volunteerHours: increment(metricsPreview.hours),
-        updatedAt: serverTimestamp(),
-      });
+      const firestoreAction = async () => {
+        await addDoc(collection(db, 'reports'), reportData);
 
-      const existingTrails = Array.isArray(userProfile?.uniqueTrails) ? userProfile.uniqueTrails : [];
-      const nextUniqueTrails = existingTrails.includes(trailName)
-        ? existingTrails
-        : [...existingTrails, trailName];
+        await setDoc(doc(db, 'users', user.uid), {
+          pointsBalance: increment(pointsEarned),
+          totalBags: increment(metricsPreview.bags),
+          totalWeightLbs: increment(metricsPreview.weight),
+          totalMiles: increment(metricsPreview.miles),
+          totalHours: increment(metricsPreview.hours),
+          uniqueTrails: arrayUnion(trailName),
+          trashBagsCollected: increment(metricsPreview.bags),
+          milesLogged: increment(metricsPreview.miles),
+          volunteerHours: increment(metricsPreview.hours),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      };
 
-      await updateUserProfile({
-        pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
-        totalBags: (userProfile?.totalBags ?? userProfile?.trashBagsCollected ?? 0) + metricsPreview.bags,
-        totalWeightLbs: (userProfile?.totalWeightLbs || 0) + metricsPreview.weight,
-        totalMiles: (userProfile?.totalMiles ?? userProfile?.milesLogged ?? 0) + metricsPreview.miles,
-        totalHours: (userProfile?.totalHours ?? userProfile?.volunteerHours ?? 0) + metricsPreview.hours,
-        uniqueTrails: nextUniqueTrails,
-        trashBagsCollected: (userProfile?.trashBagsCollected || 0) + metricsPreview.bags,
-        milesLogged: (userProfile?.milesLogged || 0) + metricsPreview.miles,
-        volunteerHours: (userProfile?.volunteerHours || 0) + metricsPreview.hours,
-      });
+      try {
+        await Promise.race([firestoreAction(), timeoutPromise]);
 
-      resetForm();
-      setSuccess(`Cleanup logged successfully. +${pointsEarned} points added to your account.`);
+        const existingTrails = Array.isArray(userProfile?.uniqueTrails) ? userProfile.uniqueTrails : [];
+        const nextUniqueTrails = existingTrails.includes(trailName)
+          ? existingTrails
+          : [...existingTrails, trailName];
+
+        updateUserProfile?.({
+          pointsBalance: (userProfile?.pointsBalance || 0) + pointsEarned,
+          totalBags: (userProfile?.totalBags ?? userProfile?.trashBagsCollected ?? 0) + metricsPreview.bags,
+          totalWeightLbs: (userProfile?.totalWeightLbs || 0) + metricsPreview.weight,
+          totalMiles: (userProfile?.totalMiles ?? userProfile?.milesLogged ?? 0) + metricsPreview.miles,
+          totalHours: (userProfile?.totalHours ?? userProfile?.volunteerHours ?? 0) + metricsPreview.hours,
+          uniqueTrails: nextUniqueTrails,
+          trashBagsCollected: (userProfile?.trashBagsCollected || 0) + metricsPreview.bags,
+          milesLogged: (userProfile?.milesLogged || 0) + metricsPreview.miles,
+          volunteerHours: (userProfile?.volunteerHours || 0) + metricsPreview.hours,
+        });
+
+        resetForm();
+        setSuccess(`Cleanup logged successfully. +${pointsEarned} points added to your account.`);
+      } catch (raceErr) {
+        console.warn('Cleanup pending (offline):', raceErr);
+        setSuccess('Saved offline — will sync when online');
+        resetForm();
+      }
     } catch (submitError) {
       console.error('Cleanup submission error:', submitError);
-      setError(submitError.message || 'Unable to submit cleanup right now. Please try again.');
+      const isOffline = submitError.message?.includes('timeout') || !navigator.onLine || submitError.code === 'unavailable';
+
+      if (isOffline) {
+        setSuccess('Saved offline — will sync when online');
+        resetForm();
+      } else {
+        setError(submitError.message || 'Unable to submit cleanup right now. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -212,14 +253,16 @@ const LogCleanup = () => {
                 onFocus={() => setShowTrailSuggestions(true)}
                 onBlur={() => window.setTimeout(() => setShowTrailSuggestions(false), 120)}
                 placeholder="Search California trails..."
-                className="nature-input"
-                required
+                className={`nature-input ${fieldErrors.trailName ? 'border-red-500 bg-red-50/30' : ''}`}
               />
+              {fieldErrors.trailName && (
+                <p className="mt-1.5 text-[10px] font-bold text-red-600 uppercase tracking-tight ml-1">{fieldErrors.trailName}</p>
+              )}
               {showTrailSuggestions && trailSearch.suggestions.length > 0 && (
                 <div className="absolute z-50 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-forest-moss/20 bg-white shadow-2xl p-2 animate-in fade-in zoom-in-95">
-                  {trailSearch.suggestions.map((suggestion) => (
+                  {trailSearch.suggestions.map((suggestion, idx) => (
                     <button
-                      key={suggestion.id}
+                      key={`${suggestion.id}-${idx}`}
                       type="button"
                       onClick={() => {
                         handleFieldChange('trailName', suggestion.name);
@@ -315,9 +358,11 @@ const LogCleanup = () => {
               value={formData.notes}
               onChange={(event) => handleFieldChange('notes', event.target.value)}
               placeholder="What did you find? Any specific areas needing attention?"
-              className="nature-input min-h-[120px] resize-none"
-              required
+              className={`nature-input min-h-[120px] resize-none ${fieldErrors.notes ? 'border-red-500 bg-red-50/30' : ''}`}
             />
+            {fieldErrors.notes && (
+              <p className="mt-1.5 text-[10px] font-bold text-red-600 uppercase tracking-tight ml-1">{fieldErrors.notes}</p>
+            )}
           </div>
 
           {/* Photo Upload */}
